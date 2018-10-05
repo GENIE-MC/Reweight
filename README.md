@@ -1,15 +1,15 @@
-# The GENIE Event Generator
+# GENIE Reweight
 
-The GENIE Generator product is an advanced physics simulation used by nearly all modern neutrino experiments and 
-it plays a key role in the exploitation of neutrino data. This product implements a modern software framework for 
-MC event generators and includes state-of-the-art physics modules for neutrino or charged-lepton interactions 
-with nucleons or nuclei, and for the simulation of nucleon decay, n-bar oscillation and boosted dark matter. 
-It captures the latest results of the GENIE global analysis of neutrino scattering data and includes several tunes 
-that were produced using the proprietary Comparisons and Tuning products.
-The GENIE physics model is universal and comprehensive:  It handles all neutrinos and targets, and all processes 
-relevant from MeV to PeV energy scales. The Generator includes several tools (flux drivers, detector geometry 
-navigation drivers, specialized event generation apps, event reweighting engines) to simulate complex experimental 
-setups in full detail and to support generator-related analysis tasks. 
+The GENIE Reweight product is a selection of tools to propagate model uncertainties and to support generator-related 
+analysis tasks. Users should note the inherent limitations of the reweighting procedure and be aware that this product
+does not include weight calculators for several important systematics, and that important modelling aspects are not
+reweightable in principle. The GENIE Reweight product does *not* provide the full systematic error for any GENIE 
+comprehensive model or tune and, indeed, the **GENIE tuning procedure makes no use of the ReWeight product** 
+but it relies on weighting functions from brute-force parameter scans made with the aid of the Professor tool.
+
+The GENIE Collaboration has medium-term plans to release Professor/YODA Generator response functions for all important 
+modelling uncertainties, as well as to release all covariance matrices from the GENIE global fits to scattering data.
+In the mean time, please be aware of the numerous caveats with the use of the Reweight product.
 
 For more information, visit http://www.genie-mc.org
 
@@ -22,7 +22,7 @@ For more information, visit http://www.genie-mc.org
                    Nh+//ohN  m+s      N//syyN    `88.    .88'   888       o  8       `888   888   888       o  
                  Ny+//od   Nh+oN       o///+      `Y8bood8P'   o888ooooood8 o8o        `8  o888o o888ooooood8  
                Nh+//om   Nh+/yN       o///s                                                                    
-              d+//+d   my+/smmyhN    m///h                                         MONTE CARLO EVENT GENERATOR    
+              d+//+d   my+/smmyhN    m///h                                                           REWEIGHT    
             Ns///yN NdyoshNNs///d   h////yN                                                                    
            mo//om        ms///+m   d///////oyhmN                                                               
           N+//yN       ms////+N    h////////////oym                                                         
