@@ -23,7 +23,7 @@ BUILD_TARGETS =    print-make-info \
 		   reweight-framework \
 		   reweight-io \
 		   reweight-calculators \
-                   general-apps \
+		   general-apps \
 		   install-scripts
 
 INSTALL_TARGETS =  print-makeinstall-info \
@@ -83,7 +83,7 @@ reweight-calculators: FORCE
 	cd RwCalculators && make && cd .. && \
 	cd ${GENIE_REWEIGHT}
 
-general-apps : FORCE 
+general-apps : reweight-framework reweight-io reweight-calculators FORCE 
 	@echo " "
 	@echo "** Apps..."	
 	cd ${GENIE_REWEIGHT}/src/Apps && \
