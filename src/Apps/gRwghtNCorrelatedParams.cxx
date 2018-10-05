@@ -8,30 +8,30 @@
          and a covariance matrix for the input set of parameters.
          The covariance matrix should be in the form a ROOT file containing
          only a TMatrixD object which is square and symmetric.
-         It outputs a ROOT file containing a tree with an entry for every 
-         input event. Each such tree entry contains a TArrayD of all computed 
+         It outputs a ROOT file containing a tree with an entry for every
+         input event. Each such tree entry contains a TArrayD of all computed
          weights and TArrayD for each requested systematic of all of the
          corresponding randomly generated tweak dial values.
 
 \syntax  grwghtnp \
-           -f input_event_file 
+           -f input_event_file
            -c input_covariance_file
-           -s systematic1[,systematic2[,...]] 
+           -s systematic1[,systematic2[,...]]
            -v central_value1[,central_value2[,...]]
            -t n_twk_dial_values
-          [-n n1[,n2]] 
+          [-n n1[,n2]]
           [-r run_key]
           [-o output_weights_file]
 
-         where 
+         where
          [] is an optional argument.
 
-         -f 
+         -f
             Specifies a GHEP input file.
          -c
             Specifies a binary ROOT file which contains the covariance matrix
             as a TMatrixD object.
-         -s 
+         -s
             Specifies the systematic parameters to tweak.
             See $GENIE/src/ReWeight/GSyst.h for a list of parameters and
             their corresponding label, which is what should be input here.
@@ -39,17 +39,17 @@
             Central values specified in $GENIE/config/UserPhysicsOptions.xml
             for the reweighted parameters. Assigns uncertainties based on
             covariance matrix diagonal. Should be automated, but cannot for now.
-         -t 
+         -t
             Number of random drawings of tweak values between -1 and 1.
             Values for tweaks respect the covariance of systematics
-         -n 
+         -n
             Specifies an event range.
             Examples:
             - Type `-n 50,2350' to process all 2301 events from 50 up to 2350.
               Note: Both 50 and 2350 are included.
             - Type `-n 1000' to process the first 1000 events;
               from event number 0 up to event number 999.
-            This is an optional argument. 
+            This is an optional argument.
             By default GENIE will process all events.
          -r
             Specifies an integer run key.
@@ -63,7 +63,6 @@
 
 \cpright Copyright (c) 2003-2018, The GENIE Collaboration
          For the full text of the license visit http://copyright.genie-mc.org
-         or see $GENIE/LICENSE
 */
 //____________________________________________________________________________
 
@@ -77,6 +76,7 @@
 #include <TTree.h>
 #include <TRandom.h>
 
+// GENIE/Generator includes
 #include "Framework/Conventions/Constants.h"
 #include "Framework/Conventions/Controls.h"
 #include "Framework/EventGen/EventRecord.h"
@@ -85,26 +85,28 @@
 #include "Framework/Ntuple/NtpMCEventRecord.h"
 #include "Framework/Numerical/RandomGen.h"
 #include "Framework/Messenger/Messenger.h"
-#include "Tools/ReWeight/GReWeight.h"
-#include "Tools/ReWeight/GReWeightI.h"
-#include "Tools/ReWeight/GReWeightAGKY.h"
-#include "Tools/ReWeight/GReWeightDISNuclMod.h"
-#include "Tools/ReWeight/GReWeightFGM.h"
-#include "Tools/ReWeight/GReWeightFZone.h"
-#include "Tools/ReWeight/GReWeightINuke.h"
-#include "Tools/ReWeight/GReWeightNonResonanceBkg.h"
-#include "Tools/ReWeight/GReWeightNuXSecCCQE.h"
-#include "Tools/ReWeight/GReWeightNuXSecCCQEvec.h"
-#include "Tools/ReWeight/GReWeightNuXSecCCRES.h"
-#include "Tools/ReWeight/GReWeightNuXSecNCRES.h"
-#include "Tools/ReWeight/GReWeightNuXSecDIS.h"
-#include "Tools/ReWeight/GReWeightNuXSecCOH.h"
-#include "Tools/ReWeight/GReWeightResonanceDecay.h"
-#include "Tools/ReWeight/GSystSet.h"
-#include "Tools/ReWeight/GSystUncertainty.h"
 #include "Framework/Utils/CmdLnArgParser.h"
 #include "Framework/Numerical/MathUtils.h"
 #include "Framework/Utils/StringUtils.h"
+
+// GENIE/Reweight includes
+#include "RwFramework/GSystSet.h"
+#include "RwFramework/GSystUncertainty.h"
+#include "RwFramework/GReWeightI.h"
+#include "RwFramework/GReWeight.h"
+#include "RwCalculators/GReWeightAGKY.h"
+#include "RwCalculators/GReWeightDISNuclMod.h"
+#include "RwCalculators/GReWeightFGM.h"
+#include "RwCalculators/GReWeightFZone.h"
+#include "RwCalculators/GReWeightINuke.h"
+#include "RwCalculators/GReWeightNonResonanceBkg.h"
+#include "RwCalculators/GReWeightNuXSecCCQE.h"
+#include "RwCalculators/GReWeightNuXSecCCQEvec.h"
+#include "RwCalculators/GReWeightNuXSecCCRES.h"
+#include "RwCalculators/GReWeightNuXSecNCRES.h"
+#include "RwCalculators/GReWeightNuXSecDIS.h"
+#include "RwCalculators/GReWeightNuXSecCOH.h"
+#include "RwCalculators/GReWeightResonanceDecay.h"
 
 using namespace genie;
 using namespace genie::constants;
@@ -161,7 +163,7 @@ int main(int argc, char ** argv)
   // Preparation for finding correlated vectors
   //
   // Solutions are subject to constraint of an error ellipse with equation:
-  //  1 = x^T.Cor^-1.x 
+  //  1 = x^T.Cor^-1.x
   // x is a vector of tweaks to apply to the systematics
   // Cholesky Decomposition solves for U in equation:
   //  Cor^-1 = U^T.U
@@ -193,7 +195,7 @@ int main(int argc, char ** argv)
   LOG("grwghtnp", pNOTICE) << "Will process " << nev << " events";
 
   //
-  // Create a GReWeight object and add to it a set of 
+  // Create a GReWeight object and add to it a set of
   // weight calculators
   //
   // If seg-faulting here, probably need to change
@@ -340,20 +342,20 @@ int main(int argc, char ** argv)
     twk_dial_brnch_name << "twk_" << GSyst::AsString(*it);
 
     // access TArrayD memory directly
-    branch_twkdials_array[ip] = new TArrayD(gOptNTwk); 
+    branch_twkdials_array[ip] = new TArrayD(gOptNTwk);
     branch_twkdials_ptr[ip] = branch_twkdials_array[ip]->GetArray();
 
     // create branch
     wght_tree->Branch(twk_dial_brnch_name.str().c_str(), branch_twkdials_array[ip]);
     LOG("grwghtnp", pINFO) << "Creating tweak branch : " << twk_dial_brnch_name.str();
- 
+
     // set up loading directly into TArrayD
-    for (int i=0; i < n_tweaks; i++) { 
+    for (int i=0; i < n_tweaks; i++) {
       wght_list[i]->SetBranchAddress(twk_dial_brnch_name.str().c_str(),&branch_twkdials_ptr[ip][i]);
       //LOG("grwghtnp", pINFO) << "Loading tweak value : "<<branch_twkdials_array[ip]->fArray[i];
     }
   }
- 
+
   //
   // CONSOLIDATION LOOP
   // -- combine all data from reweighting into single file
@@ -379,7 +381,7 @@ int main(int argc, char ** argv)
     tmpName << "_temporary_rwght." <<itk <<"." <<gOptRunKey <<".root";
     if( remove(tmpName.str().c_str()) != 0 )
     { LOG("grwghtnp", pWARN) << "Could not delete temporary file : " << tmpName.str(); }
-    //else 
+    //else
     //{ LOG("grwghtnp", pINFO) << "Deleted temporary file : " << tmpName.str(); }
   }
 
@@ -403,22 +405,22 @@ void GetCommandLineArgs(int argc, char ** argv)
   CmdLnArgParser parser(argc,argv);
 
   // get GENIE event sample
-  if( parser.OptionExists('f') ) {  
+  if( parser.OptionExists('f') ) {
     LOG("grwghtnp", pINFO) << "Reading event sample filename";
     gOptInpFilename = parser.ArgAsString('f');
   } else {
-    LOG("grwghtnp", pFATAL) 
+    LOG("grwghtnp", pFATAL)
       << "Unspecified input filename - Exiting";
     PrintSyntax();
     exit(1);
   }
 
   // get ROOT covariance matrix binary file
-  if( parser.OptionExists('c') ) {  
+  if( parser.OptionExists('c') ) {
     LOG("grwghtnp", pINFO) << "Reading covariance matrix filename";
     gOptInpCovariance = parser.ArgAsString('c');
   } else {
-    LOG("grwghtnp", pFATAL) 
+    LOG("grwghtnp", pFATAL)
       << "Unspecified covariance filename - Exiting";
     PrintSyntax();
     exit(1);
@@ -480,7 +482,7 @@ void GetCommandLineArgs(int argc, char ** argv)
     gOptNSyst = gOptVSyst.size();
     LOG("grwghtnp", pINFO) << "Number of systematics : " << gOptNSyst;
   } else {
-    LOG("rwghtcov", pFATAL) 
+    LOG("rwghtcov", pFATAL)
       << "Unspecified systematics - Exiting";
     PrintSyntax();
     exit(1);
@@ -492,13 +494,13 @@ void GetCommandLineArgs(int argc, char ** argv)
     gOptVCentVal  = parser.ArgAsDoubleTokens('v',",");
     // check size
     if (gOptNSyst != (int)gOptVCentVal.size()) {
-      LOG("rwghtcov", pFATAL) 
+      LOG("rwghtcov", pFATAL)
         << "Number of systematic central values does not match number of systematics- Exiting";
       PrintSyntax();
       exit(1);
     }
   } else {
-    LOG("rwghtcov", pFATAL) 
+    LOG("rwghtcov", pFATAL)
       << "Unspecified systematic central values - Exiting";
     PrintSyntax();
     exit(1);
@@ -508,7 +510,7 @@ void GetCommandLineArgs(int argc, char ** argv)
   if( parser.OptionExists('t') ) {
     LOG("grwghtnp", pINFO) << "Reading number of tweaks";
     gOptNTwk = parser.ArgAsInt('t');
-    
+
     if( gOptNTwk < 1 )
     {
       LOG("grwghtnp", pFATAL) << "Must have at least 1 tweak - Exiting";
@@ -517,7 +519,7 @@ void GetCommandLineArgs(int argc, char ** argv)
     }
     LOG("grwghtnp",pINFO)<<"Number of tweaks : "<< gOptNTwk;
   } else {
-    LOG("grwghtnp", pFATAL) 
+    LOG("grwghtnp", pFATAL)
       << "Unspecified tweaks for parameters - Exiting";
     PrintSyntax();
     exit(1);
@@ -527,8 +529,8 @@ void GetCommandLineArgs(int argc, char ** argv)
   if( parser.OptionExists('r') ) {
     LOG("grwghtnp", pINFO) << "Reading run key";
     gOptRunKey = parser.ArgAsInt('r');
-    
-    LOG("grwghtnp", pINFO) 
+
+    LOG("grwghtnp", pINFO)
       << "Run key set to " <<gOptRunKey;
   }
 
@@ -549,7 +551,7 @@ void GetEventRange(Long64_t nev_in_file, Long64_t & nfirst, Long64_t & nlast)
   else
   if(gOptNEvt1<0 && gOptNEvt2>=0) {
     // Input was `-n N'.
-    // Process first N events [0,N). 
+    // Process first N events [0,N).
     // Note: Event N is not included.
     nfirst = 0;
     nlast  = TMath::Min(nev_in_file-1, gOptNEvt2-1);
@@ -569,7 +571,7 @@ void GetCorrelationMatrix(string fname, TMatrixD *& cmat)
   //
   // Loads a ROOT file containing only a TMatrixD
   // Reads a covariance/correlation matrix and returns correlation matrix
-  // 
+  //
 
   // Load covariance matrix diagonal into uncertainties
   GSystUncertainty * unc = GSystUncertainty::Instance();
@@ -587,7 +589,7 @@ void GetCorrelationMatrix(string fname, TMatrixD *& cmat)
   fkey = (TKey *)next();
   fkey->Read(inmat);
 
-  // checks 
+  // checks
   fin->Close();
   if (!inmat) {
     LOG("grwghtnp", pFATAL) << "Error reading covariance matrix - Exiting";

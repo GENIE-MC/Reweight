@@ -75,7 +75,6 @@
 
 \cpright Copyright (c) 2003-2018, The GENIE Collaboration
          For the full text of the license visit http://copyright.genie-mc.org
-         or see $GENIE/LICENSE
 */
 //____________________________________________________________________________
 
@@ -88,6 +87,7 @@
 #include <TTree.h>
 #include <TArrayF.h>
 
+// GENIE/Generator includes
 #include "Framework/EventGen/EventRecord.h"
 #include "Framework/GHEP/GHepParticle.h"
 #include "Framework/Ntuple/NtpMCFormat.h"
@@ -98,28 +98,30 @@
 #include "Framework/ParticleData/PDGCodes.h"
 #include "Framework/ParticleData/PDGCodeList.h"
 #include "Framework/Utils/XSecSplineList.h"
-#include "Tools/ReWeight/GReWeightI.h"
-#include "Tools/ReWeight/GSystSet.h"
-#include "Tools/ReWeight/GSyst.h"
-#include "Tools/ReWeight/GReWeight.h"
-#include "Tools/ReWeight/GReWeightNuXSecNCEL.h"
-#include "Tools/ReWeight/GReWeightNuXSecCCQE.h"
-#include "Tools/ReWeight/GReWeightNuXSecCCRES.h"
-#include "Tools/ReWeight/GReWeightNuXSecCOH.h"
-#include "Tools/ReWeight/GReWeightNonResonanceBkg.h"
-#include "Tools/ReWeight/GReWeightFGM.h"
-#include "Tools/ReWeight/GReWeightDISNuclMod.h"
-#include "Tools/ReWeight/GReWeightResonanceDecay.h"
-#include "Tools/ReWeight/GReWeightFZone.h"
-#include "Tools/ReWeight/GReWeightINuke.h"
-#include "Tools/ReWeight/GReWeightAGKY.h"
-#include "Tools/ReWeight/GReWeightNuXSecCCQEaxial.h"
-#include "Tools/ReWeight/GReWeightNuXSecCCQEvec.h"
-#include "Tools/ReWeight/GReWeightNuXSecNCRES.h"
-#include "Tools/ReWeight/GReWeightNuXSecDIS.h"
 #include "Framework/Utils/AppInit.h"
 #include "Framework/Utils/RunOpt.h"
 #include "Framework/Utils/CmdLnArgParser.h"
+
+// GENIE/Reweight includes
+#include "RwFramework/GReWeightI.h"
+#include "RwFramework/GSystSet.h"
+#include "RwFramework/GSyst.h"
+#include "RwFramework/GReWeight.h"
+#include "RwCalculators/GReWeightNuXSecNCEL.h"
+#include "RwCalculators/GReWeightNuXSecCCQE.h"
+#include "RwCalculators/GReWeightNuXSecCCRES.h"
+#include "RwCalculators/GReWeightNuXSecCOH.h"
+#include "RwCalculators/GReWeightNonResonanceBkg.h"
+#include "RwCalculators/GReWeightFGM.h"
+#include "RwCalculators/GReWeightDISNuclMod.h"
+#include "RwCalculators/GReWeightResonanceDecay.h"
+#include "RwCalculators/GReWeightFZone.h"
+#include "RwCalculators/GReWeightINuke.h"
+#include "RwCalculators/GReWeightAGKY.h"
+#include "RwCalculators/GReWeightNuXSecCCQEaxial.h"
+#include "RwCalculators/GReWeightNuXSecCCQEvec.h"
+#include "RwCalculators/GReWeightNuXSecNCRES.h"
+#include "RwCalculators/GReWeightNuXSecDIS.h"
 
 using std::string;
 using std::ostringstream;

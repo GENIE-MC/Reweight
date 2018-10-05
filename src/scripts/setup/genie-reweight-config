@@ -11,7 +11,7 @@ libdir=$GENIE_REWEIGHT/lib
 srcdir=$GENIE_REWEIGHT/src
 
 ### GENIE/Reweight libraries:
-libs="-L$libdir -lGCCmn -lGCIfc -lGCDrm -lGCMiniBooNE -lGCT2K -lGCStructFunc -lGCIntgNuXS -lGCMerenyi -lGCHadronization "
+libs="-L$libdir -lGRwFwk -lGRwIO -lGRwClc "
 
 ### Usage
 usage="\
