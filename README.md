@@ -5,7 +5,7 @@ analysis tasks. Users should note the inherent limitations of the reweighting pr
 does not include weight calculators for several important systematics, and that important modelling aspects are not
 reweightable in principle. The GENIE Reweight product does *not* provide the full systematic error for any GENIE 
 comprehensive model or tune and, indeed, the **GENIE tuning procedure makes no use of the ReWeight product** 
-but it relies on weighting functions from brute-force parameter scans made with the aid of the Professor tool.
+but it relies on weighting functions from brute-force parameter scans made with the aid of the Professor tool [https://professor.hepforge.org/].
 
 The GENIE Collaboration has medium-term plans to release Professor/YODA Generator response functions for all important 
 modelling uncertainties, as well as to release all covariance matrices from the GENIE global fits to scattering data.
