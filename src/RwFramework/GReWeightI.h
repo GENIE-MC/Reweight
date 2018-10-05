@@ -18,11 +18,12 @@
 #ifndef _G_REWEIGHT_ABC_H_
 #define _G_REWEIGHT_ABC_H_
 
-#include "Tools/ReWeight/GSyst.h"
-#include "Tools/ReWeight/GSystSet.h"
-
 // GENIE/Generator includes
 #include "Framework/Interaction/ScatteringType.h"
+
+// GENIE/Reweight includes
+#include "RwFramework/GSyst.h"
+#include "RwFramework/GSystSet.h"
 
 namespace genie {
 

@@ -15,7 +15,7 @@
 #include "Framework/Messenger/Messenger.h"
 
 // GENIE/Reweight includes
-#include "Tools/ReWeight/GSystUncertainty.h"
+#include "RwFramework/GSystUncertainty.h"
 
 using namespace genie;
 using namespace genie::rew;
