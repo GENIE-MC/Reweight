@@ -1,2 +1,0 @@
-SELECT name, xsec, E FROM TABLE CROSS_SECTION;
-
