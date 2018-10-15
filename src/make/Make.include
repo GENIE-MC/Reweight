@@ -37,31 +37,31 @@ GENIE_REWEIGHT_INC_INSTALLATION_PATH := $(GENIE_INSTALLATION_PATH)/include/GENIE
 #
 GENIE_REWEIGHT_INCLUDES := -I$(GENIE_REWEIGHT)/src/
 
-# The following will be appended in the library name 
+# The following will be appended in the library name
 #
 GLIBVERSION =
-ifeq ($(strip $(GOPT_ENABLE_DYLIBVERSION)),YES) 
+ifeq ($(strip $(GOPT_ENABLE_DYLIBVERSION)),YES)
   GLIBVERSION = -$(GENIE_REWEIGHT_VERSION)-$(GVERSION)
 endif
 
 # Look for traces of a previous installation at the specified
 # installation location
 #
-#ifeq ($(shell ls $(GENIE_INC_INSTALLATION_PATH) 2>/dev/null ),)
-#  GENIE_PREVIOUS_INSTALLATION = NO
-#else
-#  GENIE_PREVIOUS_INSTALLATION = YES
-#endif
+ifeq ($(shell ls $(GENIE_INC_INSTALLATION_PATH)/RwIO 2>/dev/null ),)
+  GENIE_REWEIGHT_PREVIOUS_INSTALLATION = NO
+else
+  GENIE_REWEIGHT_PREVIOUS_INSTALLATION = YES
+endif
 
 #-------------------------------------------------------------------
 #                            SUMMING-UP
 #-------------------------------------------------------------------
 
-# includes and libraries needed to compile programs. 
+# includes and libraries needed to compile programs.
 
-ifdef CPP_INCLUDES 
+ifdef CPP_INCLUDES
 CPP_INCLUDES  := $(CPP_INCLUDES) $(GENIE_REWEIGHT_INCLUDES)
-INCLUDES  := $(CPP_INCLUDES) 
+INCLUDES  := $(CPP_INCLUDES)
 ROOT_DICT_GEN_INCLUDES := $(ROOT_DICT_GEN_INCLUDES) $(GENIE_REWEIGHT_INCLUDES)
 else
 INCLUDES  := $(INCLUDES)  $(GENIE_REWEIGHT_INCLUDES)
@@ -69,4 +69,3 @@ ROOT_DICT_GEN_INCLUDES := $(INCLUDES) $(GENIE_REWEIGHT_INCLUDES)
 endif
 
 LIBRARIES := $(LIBRARIES) $(GENIE_REWEIGHT_LIBRARIES)
-
