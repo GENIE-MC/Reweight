@@ -21,16 +21,11 @@ PACKAGE_ALL_SOURCES          := $(PACKAGE_ALL_SOURCES) $(DICTIONARY).cc $(wildca
 PACKAGE_ALL_OBJECTS           = $(addsuffix .$(ObjSuf), $(basename $(PACKAGE_ALL_SOURCES)))
 PACKAGE_SOURCES              := $(wildcard *.cxx)
 PACKAGE_OBJECTS               = $(addsuffix .$(ObjSuf), $(basename $(PACKAGE_SOURCES)))
-### pcm & rootmap files should follow library naming ??
-#DICTIONARY_PCM               := $(DICTIONARY)_rdict.pcm
-#DICTIONARY_PCM_WITH_PATH     := $(GENIE_LIB_PATH)/$(DICTIONARY)_rdict.pcm
-#DICTIONARY_ROOTMAP           := $(DICTIONARY).rootmap
-#DICTIONARY_ROOTMAP_WITH_PATH := $(GENIE_LIB_PATH)/$(DICTIONARY).rootmap
 
 PACKAGE_PCM               := $(LIBNAME)_rdict.pcm
-PACKAGE_PCM_WITH_PATH     := $(GENIE_LIB_PATH)/$(PACKAGE_PCM)
+PACKAGE_PCM_WITH_PATH     := $(GENIE_REWEIGHT_LIB_PATH)/$(PACKAGE_PCM)
 PACKAGE_ROOTMAP           := $(LIBNAME).rootmap
-PACKAGE_ROOTMAP_WITH_PATH := $(GENIE_LIB_PATH)/$(PACKAGE_ROOTMAP)
+PACKAGE_ROOTMAP_WITH_PATH := $(GENIE_REWEIGHT_LIB_PATH)/$(PACKAGE_ROOTMAP)
 
 LIB_DEPEND=
 ifeq ($(strip $(DICTIONARY)),undefined)
@@ -57,7 +52,6 @@ else
 	ROOT_INCLUDE_PATH=$(GENIE_REWEIGHT_LIB_PATH):$(GENIE_REWEIGHT)/src:$(GENIE_LIB_PATH):$(GENIE)/src:$(GENIE_REWEIGHT)/src/$(PACKAGE) \
           rootcling -f $(DICTIONARY).cc \
                     -I$(PACKAGE) -IGENIE \
-                    -I../Types -I../Interfaces \
                     -IGENIE/$(PACKAGE) \
                     -I../include -I../include/GENIE \
                     -I../include/GENIE/$(PACKAGE) \
@@ -79,13 +73,17 @@ endif
 #
 #
 
-lib: $(LIB_DEPEND)
-	@echo "[package: $(PACKAGE)] Generating shared library ..."
+$(PACKAGE_LIB_WITH_PATH): $(LIB_DEPEND)
+	@echo "[package: $(PACKAGE)] Generating shared library ...dictionary=$(DICTIONARY)"
 ifeq ($(strip $(DICTIONARY)),undefined)
 	$(SOCMD) $(SOFLAGS) $(SOMINF) $(PACKAGE_OBJECTS) $(EXTRA_EXT_LIBS) $(OutPutOpt) $(PACKAGE_LIB_WITH_PATH)
 else
 	$(SOCMD) $(SOFLAGS) $(SOMINF) $(PACKAGE_ALL_OBJECTS) $(EXTRA_EXT_LIBS) $(OutPutOpt) $(PACKAGE_LIB_WITH_PATH)
+	[ ! -f $(PACKAGE_PCM)     ] || $(COPY) $(PACKAGE_PCM)     $(GENIE_REWEIGHT_LIB_PATH)
+	[ ! -f $(PACKAGE_ROOTMAP) ] || $(COPY) $(PACKAGE_ROOTMAP) $(GENIE_REWEIGHT_LIB_PATH)
 endif
+
+lib: $(PACKAGE_LIB_WITH_PATH)
 
 #
 #
@@ -109,6 +107,11 @@ ifeq ($(strip $(GOPT_ENABLE_DYLIBVERSION)),YES)
 endif
 ifeq ($(strip $(ARCH)),macosx)
 	[ ! -f $(PACKAGE_LIB_WITH_PATH) ] || $(SYMLINK) $(PACKAGE_LIB) $(PACKAGE_LIBMACLINK_WITH_IPATH)
+endif
+ifeq ($(ROOT_MAJOR),6)
+	@echo "[package: $(PACKAGE)] $(PACKAGE_PCM_WITH_PATH) $(PACKAGE_PCM_WITH_PATH) $(GENIE_REWEIGHT_LIB_INSTALLATION_PATH)"
+	[ ! -f $(PACKAGE_PCM_WITH_PATH) ]     || $(COPY) $(PACKAGE_PCM_WITH_PATH) $(GENIE_REWEIGHT_LIB_INSTALLATION_PATH)
+	[ ! -f $(PACKAGE_ROOTMAP_WITH_PATH) ] || $(COPY) $(PACKAGE_ROOTMAP_WITH_PATH) $(GENIE_REWEIGHT_LIB_INSTALLATION_PATH)
 endif
 
 #
