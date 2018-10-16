@@ -36,9 +36,9 @@ typedef enum EGSyst {
 
   //
   // Neutrino cross section systematics
-  // 
-  // Note: 
-  // 
+  //
+  // Note:
+  //
   //
   //
 
@@ -84,9 +84,9 @@ typedef enum EGSyst {
   kXSecTwkDial_RvbarnNC2pi,       ///< tweak the 2pi non-RES bkg in the RES region, for vbar+n NC
   // DIS tweaking parameters - applied for DIS events with (Q2>Q2o, W>Wo), typically Q2o=1GeV^2, Wo=1.7-2.0GeV
   kXSecTwkDial_AhtBY,             ///< tweak the Bodek-Yang model parameter A_{ht} - incl. both shape and normalization effect
-  kXSecTwkDial_BhtBY,             ///< tweak the Bodek-Yang model parameter B_{ht} - incl. both shape and normalization effect 
-  kXSecTwkDial_CV1uBY,            ///< tweak the Bodek-Yang model parameter CV1u - incl. both shape and normalization effect 
-  kXSecTwkDial_CV2uBY,            ///< tweak the Bodek-Yang model parameter CV2u - incl. both shape and normalization effect 
+  kXSecTwkDial_BhtBY,             ///< tweak the Bodek-Yang model parameter B_{ht} - incl. both shape and normalization effect
+  kXSecTwkDial_CV1uBY,            ///< tweak the Bodek-Yang model parameter CV1u - incl. both shape and normalization effect
+  kXSecTwkDial_CV2uBY,            ///< tweak the Bodek-Yang model parameter CV2u - incl. both shape and normalization effect
   kXSecTwkDial_AhtBYshape,        ///< tweak the Bodek-Yang model parameter A_{ht} - shape only effect to d2sigma(DIS)/dxdy
   kXSecTwkDial_BhtBYshape,        ///< tweak the Bodek-Yang model parameter B_{ht} - shape only effect to d2sigma(DIS)/dxdy
   kXSecTwkDial_CV1uBYshape,       ///< tweak the Bodek-Yang model parameter CV1u - shape only effect to d2sigma(DIS)/dxdy
@@ -95,12 +95,12 @@ typedef enum EGSyst {
   kXSecTwkDial_RnubarnuCC,        ///< tweak the ratio of \sigma(\bar\nu CC) / \sigma(\nu CC)
   kXSecTwkDial_DISNuclMod,        ///< tweak DIS nuclear modification (shadowing, anti-shadowing, EMC)
   //
-  kXSecTwkDial_NC,                ///< 
+  kXSecTwkDial_NC,                ///<
 
 
   //
   // Hadronization (free nucleon target)
-  // 
+  //
 
   kHadrAGKYTwkDial_xF1pi,         ///< tweak xF distribution for low multiplicity (N + pi) DIS f/s produced by AGKY
   kHadrAGKYTwkDial_pT1pi,         ///< tweak pT distribution for low multiplicity (N + pi) DIS f/s produced by AGKY
@@ -108,7 +108,7 @@ typedef enum EGSyst {
 
   //
   // Medium-effects to hadronization
-  // 
+  //
 
   kHadrNuclTwkDial_FormZone,         ///< tweak formation zone
 
@@ -136,14 +136,14 @@ typedef enum EGSyst {
 
   //
   // Nuclear model
-  // 
+  //
 
   kSystNucl_CCQEPauliSupViaKF,   ///<
   kSystNucl_CCQEMomDistroFGtoSF, ///<
 
   //
   // Resonance decays
-  // 
+  //
 
   kRDcyTwkDial_BR1gamma,        ///< tweak Resonance -> X + gamma branching ratio, eg Delta+(1232) -> p gamma
   kRDcyTwkDial_BR1eta,          ///< tweak Resonance -> X + eta   branching ratio, eg N+(1440) -> p eta
@@ -159,20 +159,30 @@ typedef enum EGSyst {
   kXSecTwkDial_ZExpA3CCQE,        ///< tweak Z-expansion coefficient 3, affects dsigma(CCQE)/dQ2 both in shape and normalization
   kXSecTwkDial_ZExpA4CCQE,        ///< tweak Z-expansion coefficient 4, affects dsigma(CCQE)/dQ2 both in shape and normalization
   kXSecTwkDial_AxFFCCQEshape,     ///< tweak axial nucleon form factors (dipole -> z-expansion) - shape only effect of dsigma(CCQE)/dQ2
-  
-  
+
+
   //
   //   Alternative approach to CCQE form factors (RunningMA)
   //
-  
+
   kXSecTwkDial_E0CCQEshape,       ///< tweak E0 CCQE RunningMA, affects dsigma(CCQE)/dQ2 in shape only (normalized to constant integral)
   kXSecTwkDial_E0CCQE,            ///< tweak E0 CCQE RunningMA, affects dsigma(CCQE)/dQ2 both in shape and normalization
 
+  /// EmpiricalMEC dials
+  kXSecTwkDial_EmpMEC_Mq2d,
+  kXSecTwkDial_EmpMEC_Mass,
+  kXSecTwkDial_EmpMEC_Width,
+  kXSecTwkDial_EmpMEC_FracPN_NC,
+  kXSecTwkDial_EmpMEC_FracPN_CC,
+  kXSecTwkDial_EmpMEC_FracCCQE,
+  kXSecTwkDial_EmpMEC_FracNCQE,
+  kXSecTwkDial_EmpMEC_FracPN_EM,
+  kXSecTwkDial_EmpMEC_FracEMQE,
 
   //
   // Misc
   //
-  
+
   kNTwkDials /// < Not a real dial, just keep as last entry for looping purposes
 
 
@@ -182,7 +192,7 @@ typedef enum EGSyst {
 class GSyst {
 public:
  //......................................................................................
- static string AsString(GSyst_t syst) 
+ static string AsString(GSyst_t syst)
  {
    switch(syst) {
      case ( kXSecTwkDial_MaNCEL           ) : return "MaNCEL";               break;
@@ -259,8 +269,17 @@ public:
      case ( kRDcyTwkDial_BR1gamma         ) : return "RDecBR1gamma";         break;
      case ( kRDcyTwkDial_BR1eta           ) : return "RDecBR1eta";           break;
      case ( kRDcyTwkDial_Theta_Delta2Npi  ) : return "Theta_Delta2Npi";      break;
+     case ( kXSecTwkDial_EmpMEC_Mq2d      ) : return "EmpMEC_Mq2d";          break;
+     case ( kXSecTwkDial_EmpMEC_Mass      ) : return "EmpMEC_Mass";          break;
+     case ( kXSecTwkDial_EmpMEC_Width     ) : return "EmpMEC_Width";         break;
+     case ( kXSecTwkDial_EmpMEC_FracPN_NC ) : return "EmpMEC_FracPN_NC";     break;
+     case ( kXSecTwkDial_EmpMEC_FracPN_CC ) : return "EmpMEC_FracPN_CC";     break;
+     case ( kXSecTwkDial_EmpMEC_FracCCQE  ) : return "EmpMEC_FracCCQE";      break;
+     case ( kXSecTwkDial_EmpMEC_FracNCQE  ) : return "EmpMEC_FracNCQE";      break;
+     case ( kXSecTwkDial_EmpMEC_FracPN_EM ) : return "EmpMEC_FracPN_EM";     break;
+     case ( kXSecTwkDial_EmpMEC_FracEMQE  ) : return "EmpMEC_FracEMQE";      break;
 
-     default: 
+     default:
        return "-";
    }
    return "";
@@ -272,78 +291,87 @@ public:
    {
        kXSecTwkDial_MaNCEL,
        kXSecTwkDial_EtaNCEL,
-       kXSecTwkDial_NormCCQE,   
-       kXSecTwkDial_NormCCQEenu,   
-       kXSecTwkDial_MaCCQE,        
+       kXSecTwkDial_NormCCQE,
+       kXSecTwkDial_NormCCQEenu,
+       kXSecTwkDial_MaCCQE,
        kXSecTwkDial_MaCCQEshape,
        kXSecTwkDial_E0CCQE,
-       kXSecTwkDial_E0CCQEshape,  
-       kXSecTwkDial_ZNormCCQE,   
-       kXSecTwkDial_ZExpA1CCQE,        
-       kXSecTwkDial_ZExpA2CCQE,        
-       kXSecTwkDial_ZExpA3CCQE,        
-       kXSecTwkDial_ZExpA4CCQE,        
+       kXSecTwkDial_E0CCQEshape,
+       kXSecTwkDial_ZNormCCQE,
+       kXSecTwkDial_ZExpA1CCQE,
+       kXSecTwkDial_ZExpA2CCQE,
+       kXSecTwkDial_ZExpA3CCQE,
+       kXSecTwkDial_ZExpA4CCQE,
        kXSecTwkDial_AxFFCCQEshape,
        kXSecTwkDial_VecFFCCQEshape,
-       kXSecTwkDial_NormCCRES,    
-       kXSecTwkDial_MaCCRESshape, 
-       kXSecTwkDial_MvCCRESshape, 
-       kXSecTwkDial_MaCCRES,      
-       kXSecTwkDial_MvCCRES,      
-       kXSecTwkDial_NormNCRES,    
-       kXSecTwkDial_MaNCRESshape, 
-       kXSecTwkDial_MvNCRESshape, 
-       kXSecTwkDial_MaNCRES,      
-       kXSecTwkDial_MvNCRES,      
-       kXSecTwkDial_MaCOHpi,      
-       kXSecTwkDial_R0COHpi,    
-       kXSecTwkDial_RvpCC1pi,   
-       kXSecTwkDial_RvpCC2pi,   
-       kXSecTwkDial_RvpNC1pi,    
-       kXSecTwkDial_RvpNC2pi,     
-       kXSecTwkDial_RvnCC1pi,     
-       kXSecTwkDial_RvnCC2pi,     
-       kXSecTwkDial_RvnNC1pi,     
-       kXSecTwkDial_RvnNC2pi,     
-       kXSecTwkDial_RvbarpCC1pi,  
-       kXSecTwkDial_RvbarpCC2pi,  
-       kXSecTwkDial_RvbarpNC1pi,  
-       kXSecTwkDial_RvbarpNC2pi,  
-       kXSecTwkDial_RvbarnCC1pi,  
-       kXSecTwkDial_RvbarnCC2pi,  
-       kXSecTwkDial_RvbarnNC1pi,  
-       kXSecTwkDial_RvbarnNC2pi,  
-       kXSecTwkDial_AhtBY,        
-       kXSecTwkDial_BhtBY,        
-       kXSecTwkDial_CV1uBY,       
-       kXSecTwkDial_CV2uBY,       
-       kXSecTwkDial_AhtBYshape,   
-       kXSecTwkDial_BhtBYshape,   
-       kXSecTwkDial_CV1uBYshape,  
-       kXSecTwkDial_CV2uBYshape,  
-       kXSecTwkDial_NormDISCC,    
-       kXSecTwkDial_RnubarnuCC,   
-       kXSecTwkDial_DISNuclMod,   
-       kHadrAGKYTwkDial_xF1pi,    
-       kHadrAGKYTwkDial_pT1pi,    
-       kHadrNuclTwkDial_FormZone, 
-       kINukeTwkDial_MFP_pi,      
-       kINukeTwkDial_MFP_N,       
-       kINukeTwkDial_FrCEx_pi,    
-       kINukeTwkDial_FrElas_pi,   
-       kINukeTwkDial_FrInel_pi,   
-       kINukeTwkDial_FrAbs_pi,    
-       kINukeTwkDial_FrPiProd_pi, 
-       kINukeTwkDial_FrCEx_N,    
-       kINukeTwkDial_FrElas_N,   
-       kINukeTwkDial_FrInel_N,   
-       kINukeTwkDial_FrAbs_N,    
-       kINukeTwkDial_FrPiProd_N, 
-       kSystNucl_CCQEPauliSupViaKF,   
+       kXSecTwkDial_NormCCRES,
+       kXSecTwkDial_MaCCRESshape,
+       kXSecTwkDial_MvCCRESshape,
+       kXSecTwkDial_MaCCRES,
+       kXSecTwkDial_MvCCRES,
+       kXSecTwkDial_NormNCRES,
+       kXSecTwkDial_MaNCRESshape,
+       kXSecTwkDial_MvNCRESshape,
+       kXSecTwkDial_MaNCRES,
+       kXSecTwkDial_MvNCRES,
+       kXSecTwkDial_MaCOHpi,
+       kXSecTwkDial_R0COHpi,
+       kXSecTwkDial_RvpCC1pi,
+       kXSecTwkDial_RvpCC2pi,
+       kXSecTwkDial_RvpNC1pi,
+       kXSecTwkDial_RvpNC2pi,
+       kXSecTwkDial_RvnCC1pi,
+       kXSecTwkDial_RvnCC2pi,
+       kXSecTwkDial_RvnNC1pi,
+       kXSecTwkDial_RvnNC2pi,
+       kXSecTwkDial_RvbarpCC1pi,
+       kXSecTwkDial_RvbarpCC2pi,
+       kXSecTwkDial_RvbarpNC1pi,
+       kXSecTwkDial_RvbarpNC2pi,
+       kXSecTwkDial_RvbarnCC1pi,
+       kXSecTwkDial_RvbarnCC2pi,
+       kXSecTwkDial_RvbarnNC1pi,
+       kXSecTwkDial_RvbarnNC2pi,
+       kXSecTwkDial_AhtBY,
+       kXSecTwkDial_BhtBY,
+       kXSecTwkDial_CV1uBY,
+       kXSecTwkDial_CV2uBY,
+       kXSecTwkDial_AhtBYshape,
+       kXSecTwkDial_BhtBYshape,
+       kXSecTwkDial_CV1uBYshape,
+       kXSecTwkDial_CV2uBYshape,
+       kXSecTwkDial_NormDISCC,
+       kXSecTwkDial_RnubarnuCC,
+       kXSecTwkDial_DISNuclMod,
+       kHadrAGKYTwkDial_xF1pi,
+       kHadrAGKYTwkDial_pT1pi,
+       kHadrNuclTwkDial_FormZone,
+       kINukeTwkDial_MFP_pi,
+       kINukeTwkDial_MFP_N,
+       kINukeTwkDial_FrCEx_pi,
+       kINukeTwkDial_FrElas_pi,
+       kINukeTwkDial_FrInel_pi,
+       kINukeTwkDial_FrAbs_pi,
+       kINukeTwkDial_FrPiProd_pi,
+       kINukeTwkDial_FrCEx_N,
+       kINukeTwkDial_FrElas_N,
+       kINukeTwkDial_FrInel_N,
+       kINukeTwkDial_FrAbs_N,
+       kINukeTwkDial_FrPiProd_N,
+       kSystNucl_CCQEPauliSupViaKF,
        kSystNucl_CCQEMomDistroFGtoSF,
-       kRDcyTwkDial_BR1gamma,       
-       kRDcyTwkDial_BR1eta,         
+       kRDcyTwkDial_BR1gamma,
+       kRDcyTwkDial_BR1eta,
        kRDcyTwkDial_Theta_Delta2Npi,
+       kXSecTwkDial_EmpMEC_Mq2d,
+       kXSecTwkDial_EmpMEC_Mass,
+       kXSecTwkDial_EmpMEC_Width,
+       kXSecTwkDial_EmpMEC_FracPN_NC,
+       kXSecTwkDial_EmpMEC_FracPN_CC,
+       kXSecTwkDial_EmpMEC_FracCCQE,
+       kXSecTwkDial_EmpMEC_FracNCQE,
+       kXSecTwkDial_EmpMEC_FracPN_EM,
+       kXSecTwkDial_EmpMEC_FracEMQE,
        kNullSystematic
    };
 
@@ -358,34 +386,34 @@ public:
    return kNullSystematic;
  }
  //......................................................................................
- static bool IsINukePionFateSystematic(GSyst_t syst) 
+ static bool IsINukePionFateSystematic(GSyst_t syst)
  {
    switch(syst) {
-     case ( kINukeTwkDial_FrCEx_pi   ) : 
-     case ( kINukeTwkDial_FrElas_pi  ) : 
-     case ( kINukeTwkDial_FrInel_pi  ) : 
-     case ( kINukeTwkDial_FrAbs_pi   ) : 
-     case ( kINukeTwkDial_FrPiProd_pi) : 
+     case ( kINukeTwkDial_FrCEx_pi   ) :
+     case ( kINukeTwkDial_FrElas_pi  ) :
+     case ( kINukeTwkDial_FrInel_pi  ) :
+     case ( kINukeTwkDial_FrAbs_pi   ) :
+     case ( kINukeTwkDial_FrPiProd_pi) :
         return true;
         break;
-     default: 
+     default:
         return false;
         break;
    }
    return false;
  }
  //......................................................................................
- static bool IsINukeNuclFateSystematic(GSyst_t syst) 
+ static bool IsINukeNuclFateSystematic(GSyst_t syst)
  {
    switch(syst) {
-     case ( kINukeTwkDial_FrCEx_N   ) : 
-     case ( kINukeTwkDial_FrElas_N  ) : 
-     case ( kINukeTwkDial_FrInel_N  ) : 
-     case ( kINukeTwkDial_FrAbs_N   ) : 
-     case ( kINukeTwkDial_FrPiProd_N) : 
+     case ( kINukeTwkDial_FrCEx_N   ) :
+     case ( kINukeTwkDial_FrElas_N  ) :
+     case ( kINukeTwkDial_FrInel_N  ) :
+     case ( kINukeTwkDial_FrAbs_N   ) :
+     case ( kINukeTwkDial_FrPiProd_N) :
         return true;
         break;
-     default: 
+     default:
         return false;
         break;
    }
@@ -395,19 +423,19 @@ public:
  static bool IsINukeFateSystematic(GSyst_t syst)
  {
    switch(syst) {
-     case ( kINukeTwkDial_FrCEx_pi    ) : 
+     case ( kINukeTwkDial_FrCEx_pi    ) :
      case ( kINukeTwkDial_FrElas_pi   ) :
      case ( kINukeTwkDial_FrInel_pi   ) :
      case ( kINukeTwkDial_FrAbs_pi    ) :
      case ( kINukeTwkDial_FrPiProd_pi ) :
-     case ( kINukeTwkDial_FrCEx_N     ) : 
+     case ( kINukeTwkDial_FrCEx_N     ) :
      case ( kINukeTwkDial_FrElas_N    ) :
      case ( kINukeTwkDial_FrInel_N    ) :
      case ( kINukeTwkDial_FrAbs_N     ) :
      case ( kINukeTwkDial_FrPiProd_N  ) :
        return true;
        break;
-     
+
      default:
        return false;
        break;
@@ -418,10 +446,10 @@ public:
  static bool IsINukePionMeanFreePathSystematic(GSyst_t syst)
  {
    switch(syst) {
-     case ( kINukeTwkDial_MFP_pi ) : 
+     case ( kINukeTwkDial_MFP_pi ) :
        return true;
        break;
-     
+
      default:
        return false;
        break;
@@ -432,10 +460,10 @@ public:
  static bool IsINukeNuclMeanFreePathSystematic(GSyst_t syst)
  {
    switch(syst) {
-     case ( kINukeTwkDial_MFP_N  ) : 
+     case ( kINukeTwkDial_MFP_N  ) :
        return true;
        break;
-     
+
      default:
        return false;
        break;
@@ -446,11 +474,11 @@ public:
  static bool IsINukeMeanFreePathSystematic(GSyst_t syst)
  {
    switch(syst) {
-     case ( kINukeTwkDial_MFP_pi ) : 
-     case ( kINukeTwkDial_MFP_N  ) : 
+     case ( kINukeTwkDial_MFP_pi ) :
+     case ( kINukeTwkDial_MFP_N  ) :
        return true;
        break;
-     
+
      default:
        return false;
        break;
@@ -516,25 +544,25 @@ public:
    bool is_vbar = pdg::IsAntiNeutrino (probe);
    bool is_p    = pdg::IsProton       (hitnuc);
    bool is_n    = pdg::IsNeutron      (hitnuc);
-  
+
    // CC
    bool is_cc = (itype == kIntWeakCC);
    if(is_cc) {
      if(is_v && is_p) {
        if(npi==1) return kXSecTwkDial_RvpCC1pi;
-       if(npi==2) return kXSecTwkDial_RvpCC2pi;   
+       if(npi==2) return kXSecTwkDial_RvpCC2pi;
      }
      if(is_v && is_n) {
        if(npi==1) return kXSecTwkDial_RvnCC1pi;
-       if(npi==2) return kXSecTwkDial_RvnCC2pi;   
+       if(npi==2) return kXSecTwkDial_RvnCC2pi;
      }
      if(is_vbar && is_p) {
        if(npi==1) return kXSecTwkDial_RvbarpCC1pi;
-       if(npi==2) return kXSecTwkDial_RvbarpCC2pi;   
+       if(npi==2) return kXSecTwkDial_RvbarpCC2pi;
      }
      if(is_vbar && is_n) {
        if(npi==1) return kXSecTwkDial_RvbarnCC1pi;
-       if(npi==2) return kXSecTwkDial_RvbarnCC2pi;   
+       if(npi==2) return kXSecTwkDial_RvbarnCC2pi;
      }
    }//cc
 
@@ -543,19 +571,19 @@ public:
    if(is_nc) {
      if(is_v && is_p) {
        if(npi==1) return kXSecTwkDial_RvpNC1pi;
-       if(npi==2) return kXSecTwkDial_RvpNC2pi;   
+       if(npi==2) return kXSecTwkDial_RvpNC2pi;
      }
      if(is_v && is_n) {
        if(npi==1) return kXSecTwkDial_RvnNC1pi;
-       if(npi==2) return kXSecTwkDial_RvnNC2pi;   
+       if(npi==2) return kXSecTwkDial_RvnNC2pi;
      }
      if(is_vbar && is_p) {
        if(npi==1) return kXSecTwkDial_RvbarpNC1pi;
-       if(npi==2) return kXSecTwkDial_RvbarpNC2pi;   
+       if(npi==2) return kXSecTwkDial_RvbarpNC2pi;
      }
      if(is_vbar && is_n) {
        if(npi==1) return kXSecTwkDial_RvbarnNC1pi;
-       if(npi==2) return kXSecTwkDial_RvbarnNC2pi;   
+       if(npi==2) return kXSecTwkDial_RvbarnNC2pi;
      }
    }//nc
 
@@ -568,5 +596,4 @@ public:
 } // rew   namespace
 } // genie namespace
 
-#endif 
-
+#endif
