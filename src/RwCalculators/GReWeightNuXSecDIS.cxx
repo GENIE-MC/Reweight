@@ -329,10 +329,10 @@ void GReWeightNuXSecDIS::Init(void)
   this->SetWminCut (1.7*units::GeV);
   this->SetQ2minCut(1.0*units::GeV*units::GeV);
 
-  this->SetAhtBYPath ("SFAlg/A");
-  this->SetBhtBYPath ("SFAlg/B");
-  this->SetCV1uBYPath("SFAlg/Cv1U");
-  this->SetCV2uBYPath("SFAlg/Cv2U");
+  this->SetAhtBYPath ("SFAlg/BY-A");
+  this->SetBhtBYPath ("SFAlg/BY-B");
+  this->SetCV1uBYPath("SFAlg/BY-Cv1U");
+  this->SetCV2uBYPath("SFAlg/BY-Cv2U");
 
   fAhtBYTwkDial  = 0;
   fBhtBYTwkDial  = 0;
