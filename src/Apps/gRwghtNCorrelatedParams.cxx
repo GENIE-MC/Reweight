@@ -682,79 +682,80 @@ bool FindIncompatibleSystematics(vector<GSyst_t> lsyst)
   // Look through the rest of systematics the list for others with similar modes (it1)
   // If it1 conflicts with the group for it0, reject whole list
   //
-  for(it0=lsyst.begin();it0 != lsyst.end();it0++)
+  for ( it0=lsyst.begin(); it0 != lsyst.end(); it0++ )
   {
-    switch(*it0){
+    switch( *it0 ) {
     // CC QE
     case kXSecTwkDial_MaCCQE:
-      for(it1=it0;it1 != lsyst.end();it1++){
+      for ( it1=it0; it1 != lsyst.end(); it1++ ) {
         for(int i=0;i<2;i++){ if(ccqe_ma_shp_norm[i] == *it1) return false; }
         for(int i=0;i<5;i++){ if(ccqe_z_shp[i]       == *it1) return false; }
       }
+      break;
     case kXSecTwkDial_NormCCQE:
     case kXSecTwkDial_MaCCQEshape:
-      for(it1=it0;it1 != lsyst.end();it1++){
+      for ( it1=it0; it1 != lsyst.end(); it1++ ) {
         for(int i=0;i<1;i++){ if(ccqe_ma_shp[i]      == *it1) return false; }
         for(int i=0;i<5;i++){ if(ccqe_z_shp[i]       == *it1) return false; }
       }
-    break;
+      break;
     case kXSecTwkDial_ZNormCCQE:
     case kXSecTwkDial_ZExpA1CCQE:
     case kXSecTwkDial_ZExpA2CCQE:
     case kXSecTwkDial_ZExpA3CCQE:
     case kXSecTwkDial_ZExpA4CCQE:
-      for(it1=it0;it1 != lsyst.end();it1++){
+      for( it1=it0; it1 != lsyst.end(); it1++ ) {
         for(int i=0;i<1;i++){ if(ccqe_ma_shp[i]      == *it1) return false; }
         for(int i=0;i<2;i++){ if(ccqe_ma_shp_norm[i] == *it1) return false; }
       }
-    break;
+      break;
     // CC RES
     case kXSecTwkDial_MaCCRES:
     case kXSecTwkDial_MvCCRES:
-      for(it1=it0;it1 != lsyst.end();it1++){
+      for ( it1=it0; it1 != lsyst.end(); it1++ ) {
         for(int i=0;i<3;i++){ if(ccres_shp_norm[i] == *it1) return false; }
       }
-    break;
+      break;
     case kXSecTwkDial_NormCCRES:
     case kXSecTwkDial_MaCCRESshape:
     case kXSecTwkDial_MvCCRESshape:
-      for(it1=it0;it1 != lsyst.end();it1++){
+      for ( it1=it0; it1 != lsyst.end(); it1++ ) {
         for(int i=0;i<2;i++){ if(ccres_shp[i]      == *it1) return false; }
       }
-    break;
+      break;
     // DIS
     case kXSecTwkDial_AhtBYshape:
     case kXSecTwkDial_BhtBYshape:
     case kXSecTwkDial_CV1uBYshape:
     case kXSecTwkDial_CV2uBYshape:
-      for(it1=it0;it1 != lsyst.end();it1++){
+      for ( it1=it0; it1 != lsyst.end(); it1++ ) {
         for(int i=0;i<4;i++){ if(dis_shp_norm[i]   == *it1) return false; }
       }
-    break;
+      break;
     case kXSecTwkDial_AhtBY:
     case kXSecTwkDial_BhtBY:
     case kXSecTwkDial_CV1uBY:
     case kXSecTwkDial_CV2uBY:
-      for(it1=it0;it1 != lsyst.end();it1++){
+      for ( it1=it0; it1 != lsyst.end(); it1++ ) {
         for(int i=0;i<4;i++){ if(dis_shp[i]        == *it1) return false; }
       }
-    break;
+      break;
     // NC RES
     case kXSecTwkDial_MaNCRES:
     case kXSecTwkDial_MvNCRES:
-      for(it1=it0;it1 != lsyst.end();it1++){
+      for ( it1=it0; it1 != lsyst.end(); it1++ ) {
         for(int i=0;i<3;i++){ if(ncres_shp_norm[i] == *it1) return false; }
       }
-    break;
+      break;
     case kXSecTwkDial_NormNCRES:
     case kXSecTwkDial_MaNCRESshape:
     case kXSecTwkDial_MvNCRESshape:
-      for(it1=it0;it1 != lsyst.end();it1++){
+      for ( it1=it0; it1 != lsyst.end(); it1++ ) {
         for(int i=0;i<2;i++){ if(ncres_shp[i]      == *it1) return false; }
       }
-    break;
+      break;
     default: // no conflicts
-    break;
+      break;
     }
   }
   return true;
