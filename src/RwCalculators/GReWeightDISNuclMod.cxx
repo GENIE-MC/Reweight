@@ -78,8 +78,11 @@ void GReWeightDISNuclMod::Reconfigure(void)
 //_______________________________________________________________________________________
 double GReWeightDISNuclMod::CalcWeight(const EventRecord & /*event*/)
 {
-  LOG("ReW",pFATAL) << "Not implemented.";
-  exit(-1);
+  if ( fNuclModTwkDial != 0.0 ) {
+    // fail hard if this reweighting is actually attempted
+    LOG("ReW",pFATAL) << "Not implemented.";
+    exit(-1);
+  }
   return 1.;
 }
 //_______________________________________________________________________________________
