@@ -27,7 +27,8 @@
 #include <map>
 #include <string>
 
-#include "RwFramework/GReWeightI.h"
+// GENIE/Reweight includes
+#include "RwCalculators/GReWeightModel.h"
 
 using std::map;
 using std::string;
@@ -42,13 +43,14 @@ class Registry;
 
 namespace rew {
 
-class GReWeightXSecEmpiricalMEC : public GReWeightI {
+class GReWeightXSecEmpiricalMEC : public GReWeightModel {
 public:
   GReWeightXSecEmpiricalMEC();
   ~GReWeightXSecEmpiricalMEC();
 
   // implement the GReWeightI interface
-  bool IsHandled(GSyst_t syst);
+  bool AppliesTo(ScatteringType_t type, bool is_cc) const;
+  bool IsHandled(GSyst_t syst) const;
   void SetSystematic(GSyst_t syst, double val);
   void Reset(void);
   void Reconfigure(void);

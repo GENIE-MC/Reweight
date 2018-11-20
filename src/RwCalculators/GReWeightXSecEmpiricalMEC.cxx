@@ -40,7 +40,11 @@
 using namespace genie;
 using namespace genie::rew;
 using std::ostringstream;
-GReWeightXSecEmpiricalMEC::GReWeightXSecEmpiricalMEC() { this->Init(); }
+
+GReWeightXSecEmpiricalMEC::GReWeightXSecEmpiricalMEC() :
+GReWeightModel("EmpiricalMEC")
+{ this->Init(); }
+
 GReWeightXSecEmpiricalMEC::~GReWeightXSecEmpiricalMEC() {
 #ifdef _G_REWEIGHT_EmpMEC_DEBUG_
   fTestFile->cd();
@@ -94,7 +98,15 @@ void GReWeightXSecEmpiricalMEC::Init(void) {
 #endif
 }
 
-bool GReWeightXSecEmpiricalMEC::IsHandled(GSyst_t syst) {
+bool GReWeightXSecEmpiricalMEC::AppliesTo(ScatteringType_t type,
+                                          bool /* is_cc */ ) const {
+  if (type==kScMEC) { // && is_cc ?
+    return true;
+  }
+  return false;
+}
+
+bool GReWeightXSecEmpiricalMEC::IsHandled(GSyst_t syst) const {
   if ((syst == kXSecTwkDial_EmpMEC_Mq2d) ||
       (syst == kXSecTwkDial_EmpMEC_Mass) ||
       (syst == kXSecTwkDial_EmpMEC_Width) ||
