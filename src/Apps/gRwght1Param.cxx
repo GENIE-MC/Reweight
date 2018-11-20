@@ -123,6 +123,11 @@
 #include "RwCalculators/GReWeightNuXSecNCRES.h"
 #include "RwCalculators/GReWeightNuXSecDIS.h"
 
+#include "RwCalculators/GReWeightINukeParams.h"
+#include "RwCalculators/GReWeightNuXSecNC.h"
+#include "RwCalculators/GReWeightXSecEmpiricalMEC.h"
+
+
 using std::string;
 using std::ostringstream;
 
@@ -222,6 +227,7 @@ int main(int argc, char ** argv)
   rw.AdoptWghtCalc( "xsec_ncel",       new GReWeightNuXSecNCEL      );
   rw.AdoptWghtCalc( "xsec_ccqe",       new GReWeightNuXSecCCQE      );
   rw.AdoptWghtCalc( "xsec_ccqe_axial", new GReWeightNuXSecCCQEaxial );
+  //rwh - xsec_ccqe_vec is problematic for various tunes
   rw.AdoptWghtCalc( "xsec_ccqe_vec",   new GReWeightNuXSecCCQEvec   );
   rw.AdoptWghtCalc( "xsec_ccres",      new GReWeightNuXSecCCRES     );
   rw.AdoptWghtCalc( "xsec_ncres",      new GReWeightNuXSecNCRES     );
@@ -229,11 +235,20 @@ int main(int argc, char ** argv)
   rw.AdoptWghtCalc( "xsec_coh",        new GReWeightNuXSecCOH       );
   rw.AdoptWghtCalc( "xsec_dis",        new GReWeightNuXSecDIS       );
   rw.AdoptWghtCalc( "nuclear_qe",      new GReWeightFGM             );
-  rw.AdoptWghtCalc( "nuclear_dis",     new GReWeightDISNuclMod      );
   rw.AdoptWghtCalc( "hadro_res_decay", new GReWeightResonanceDecay  );
   rw.AdoptWghtCalc( "hadro_fzone",     new GReWeightFZone           );
   rw.AdoptWghtCalc( "hadro_intranuke", new GReWeightINuke           );
   rw.AdoptWghtCalc( "hadro_agky",      new GReWeightAGKY            );
+
+  // GReWeightDISNuclMod::CalcWeight() not implemented - don't try to use it ..
+  // will return 1 if tweak dial = 0, hard fail otherwise
+  rw.AdoptWghtCalc( "nuclear_dis",     new GReWeightDISNuclMod      );
+
+  // a few more to possibly exercise
+  // rhatcher:  are there things to "fine-tune" below for these?
+  rw.AdoptWghtCalc( "xsec_nc",         new GReWeightNuXSecNC        );
+  rw.AdoptWghtCalc( "res_dk",          new GReWeightResonanceDecay  );
+  rw.AdoptWghtCalc( "xsec_empmec",     new GReWeightXSecEmpiricalMEC);
 
   // Get GSystSet and include the (single) input systematic parameter
 
@@ -242,31 +257,39 @@ int main(int argc, char ** argv)
 
   // Fine-tune weight calculators
 
-  if(gOptSyst == kXSecTwkDial_MaCCQE) {
+  if ( gOptSyst == kXSecTwkDial_MaCCQE ) {
      // By default GReWeightNuXSecCCQE is in `NormAndMaShape' mode
-     // where Ma affects the shape of dsigma/dQ2 and a different param affects the normalization
+     // where Ma affects the shape of dsigma/dQ2 and a different param
+     // affects the normalization
      // If the input is MaCCQE, switch the weight calculator to `Ma' mode
      GReWeightNuXSecCCQE * rwccqe =
         dynamic_cast<GReWeightNuXSecCCQE *> (rw.WghtCalc("xsec_ccqe"));
      rwccqe->SetMode(GReWeightNuXSecCCQE::kModeMa);
   }
-  if(gOptSyst == kXSecTwkDial_MaCCRES || gOptSyst == kXSecTwkDial_MvCCRES) {
+
+  if ( gOptSyst == kXSecTwkDial_MaCCRES ||
+       gOptSyst == kXSecTwkDial_MvCCRES    ) {
      // As above, but for the GReWeightNuXSecCCRES weight calculator
      GReWeightNuXSecCCRES * rwccres =
         dynamic_cast<GReWeightNuXSecCCRES *> (rw.WghtCalc("xsec_ccres"));
      rwccres->SetMode(GReWeightNuXSecCCRES::kModeMaMv);
   }
-  if(gOptSyst == kXSecTwkDial_MaNCRES || gOptSyst == kXSecTwkDial_MvNCRES) {
+
+  if ( gOptSyst == kXSecTwkDial_MaNCRES ||
+       gOptSyst == kXSecTwkDial_MvNCRES    ) {
      // As above, but for the GReWeightNuXSecNCRES weight calculator
      GReWeightNuXSecNCRES * rwncres =
         dynamic_cast<GReWeightNuXSecNCRES *> (rw.WghtCalc("xsec_ncres"));
      rwncres->SetMode(GReWeightNuXSecNCRES::kModeMaMv);
   }
-  if(gOptSyst == kXSecTwkDial_AhtBYshape  || gOptSyst == kXSecTwkDial_BhtBYshape ||
-     gOptSyst == kXSecTwkDial_CV1uBYshape || gOptSyst == kXSecTwkDial_CV2uBYshape ) {
+
+  if ( gOptSyst == kXSecTwkDial_AhtBYshape  ||
+       gOptSyst == kXSecTwkDial_BhtBYshape  ||
+       gOptSyst == kXSecTwkDial_CV1uBYshape ||
+       gOptSyst == kXSecTwkDial_CV2uBYshape    ) {
      // Similarly for the GReWeightNuXSecDIS weight calculator.
-     // There the default behaviour is for the Aht, Bht, CV1u and CV2u Bodek-Yang
-     // params to affects both normalization and dsigma/dxdy shape.
+     // There the default behaviour is for the Aht, Bht, CV1u and CV2u
+     // Bodek-Yang params to affects both normalization and dsigma/dxdy shape.
      // Switch mode if a shape-only param is specified.
      GReWeightNuXSecDIS * rwdis =
         dynamic_cast<GReWeightNuXSecDIS *> (rw.WghtCalc("xsec_dis"));
@@ -274,7 +297,7 @@ int main(int argc, char ** argv)
   }
 
   // Twk dial loop
-  for(int ith_dial = 0; ith_dial < n_points; ith_dial++){
+  for (int ith_dial = 0; ith_dial < n_points; ith_dial++) {
 
      // Set non-default values and re-configure.
      double twk_dial = twk_dial_min + ith_dial * twk_dial_step;
@@ -285,7 +308,7 @@ int main(int argc, char ** argv)
      rw.Reconfigure();
 
      // Event loop
-     for(int iev = nfirst; iev <= nlast; iev++) {
+     for (int iev = nfirst; iev <= nlast; iev++) {
 
           if(iev%100 == 0) {
               LOG("grwght1scan", pNOTICE)
@@ -308,7 +331,7 @@ int main(int argc, char ** argv)
 
           // Calculate weight
           double wght=1.;
-          if(do_reweight) {
+          if ( do_reweight ) {
              wght = rw.CalcWeight(event);
           }
 
@@ -333,7 +356,8 @@ int main(int argc, char ** argv)
   // Make an output tree for saving the weights. As only considering
   // varying a single systematic use this for name of tree.
   TFile * wght_file = new TFile(gOptOutFilename.c_str(), "RECREATE");
-  TTree * wght_tree = new TTree(GSyst::AsString(gOptSyst).c_str(), "GENIE weights tree");
+  TTree * wght_tree = new TTree(GSyst::AsString(gOptSyst).c_str(),
+                                "GENIE weights tree");
   int branch_eventnum = 0;
   TArrayF * branch_weight_array   = new TArrayF(n_points);
   TArrayF * branch_twkdials_array = new TArrayF(n_points);
