@@ -196,9 +196,13 @@ void GReWeightNonResonanceBkg::Init(void)
 {
   this->SetWminCut(2.0*units::GeV);
 
-  // Get the default  parameters
+  // Get the "common" (shared) parameters
   AlgConfigPool * conf_pool = AlgConfigPool::Instance();
-  Registry * user_config = conf_pool->GlobalParameterList();
+  Registry * user_config = conf_pool->CommonParameterList("NonResBackground");
+  if ( ! user_config ) {
+    std::cerr << "no CommonParameterList(\"NonResBackground\")" << std::endl;
+    exit(-1);
+  }
 
   fRDef.insert(map<GSyst_t,double>::value_type(
      kXSecTwkDial_RvpCC1pi,    user_config->GetDouble("DIS-HMultWgt-vp-CC-m2" )));
@@ -237,5 +241,6 @@ void GReWeightNonResonanceBkg::Init(void)
   for( ; it != fRDef.end(); ++it) {
     fRCurr.insert(map<GSyst_t,double>::value_type(it->first, it->second));
   }
+
 }
 //_______________________________________________________________________________________
