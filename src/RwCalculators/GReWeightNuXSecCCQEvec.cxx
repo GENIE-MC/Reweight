@@ -180,8 +180,8 @@ void GReWeightNuXSecCCQEvec::Init(void)
   Registry * gpl = conf_pool->GlobalParameterList();
   RgAlg xsec_alg = gpl->GetAlg("XSecModel@genie::EventGenerator/QEL-CC");
 
-  AlgId def_id  (AlgId(xsec_alg).Name(),"Default");
-  AlgId elff_id (AlgId(xsec_alg).Name(),"DipoleELFF");
+  AlgId def_id(xsec_alg); // no "default" anymore
+  AlgId elff_id(AlgId(xsec_alg).Name(),"Dipole");
 
   // I can't see why we'd want a non-default model name here, so this bit is unnecessary for now
   //~ if (fManualModelName.size()) {
