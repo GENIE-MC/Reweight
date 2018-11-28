@@ -154,11 +154,11 @@ double genie::utils::rew::FateFraction(
     }
     break;
 
-    case (genie::rew::kINukeTwkDial_FrElas_pi) :
-    {
-      fate_frac = hd->Frac(kPdgPiP, kIHAFtElas, ke);
-    }
-    break;
+    //    case (genie::rew::kINukeTwkDial_FrElas_pi) :
+    //    {
+    //      fate_frac = hd->Frac(kPdgPiP, kIHAFtElas, ke);
+    //    }
+    //    break;
 
     case (genie::rew::kINukeTwkDial_FrInel_pi) :
     {
@@ -188,11 +188,11 @@ double genie::utils::rew::FateFraction(
     }
     break;
 
-    case (genie::rew::kINukeTwkDial_FrElas_N) :
-    {
-      fate_frac = hd->Frac(kPdgProton, kIHAFtElas, ke);
-    }
-    break;
+    //    case (genie::rew::kINukeTwkDial_FrElas_N) :
+    //    {
+    //      fate_frac = hd->Frac(kPdgProton, kIHAFtElas, ke);
+    //    }
+    //    break;
 
     case (genie::rew::kINukeTwkDial_FrInel_N) :
     {

@@ -124,12 +124,13 @@ typedef enum EGSyst {
   kINukeTwkDial_MFP_pi,      ///< tweak mean free path for pions
   kINukeTwkDial_MFP_N,       ///< tweak mean free path for nucleons
   kINukeTwkDial_FrCEx_pi,    ///< tweak charge exchange probability for pions, for given total rescattering probability
-  kINukeTwkDial_FrElas_pi,   ///< tweak elastic         probability for pions, for given total rescattering probability
+  // sd - hA no longer has elastic fate
+  //  kINukeTwkDial_FrElas_pi,   ///< tweak elastic         probability for pions, for given total rescattering probability
   kINukeTwkDial_FrInel_pi,   ///< tweak inelastic       probability for pions, for given total rescattering probability
   kINukeTwkDial_FrAbs_pi,    ///< tweak absorption      probability for pions, for given total rescattering probability
   kINukeTwkDial_FrPiProd_pi, ///< tweak pion production probability for pions, for given total rescattering probability
   kINukeTwkDial_FrCEx_N,     ///< tweak charge exchange probability for nucleons, for given total rescattering probability
-  kINukeTwkDial_FrElas_N,    ///< tweak elastic         probability for nucleons, for given total rescattering probability
+  //  kINukeTwkDial_FrElas_N,    ///< tweak elastic         probability for nucleons, for given total rescattering probability
   kINukeTwkDial_FrInel_N,    ///< tweak inelastic       probability for nucleons, for given total rescattering probability
   kINukeTwkDial_FrAbs_N,     ///< tweak absorption      probability for nucleons, for given total rescattering probability
   kINukeTwkDial_FrPiProd_N,  ///< tweak pion production probability for nucleons, for given total rescattering probability
@@ -255,12 +256,12 @@ public:
      case ( kINukeTwkDial_MFP_pi          ) : return "MFP_pi";               break;
      case ( kINukeTwkDial_MFP_N           ) : return "MFP_N";                break;
      case ( kINukeTwkDial_FrCEx_pi        ) : return "FrCEx_pi";             break;
-     case ( kINukeTwkDial_FrElas_pi       ) : return "FrElas_pi";            break;
+       //     case ( kINukeTwkDial_FrElas_pi       ) : return "FrElas_pi";            break;
      case ( kINukeTwkDial_FrInel_pi       ) : return "FrInel_pi";            break;
      case ( kINukeTwkDial_FrAbs_pi        ) : return "FrAbs_pi";             break;
      case ( kINukeTwkDial_FrPiProd_pi     ) : return "FrPiProd_pi";          break;
      case ( kINukeTwkDial_FrCEx_N         ) : return "FrCEx_N";              break;
-     case ( kINukeTwkDial_FrElas_N        ) : return "FrElas_N";             break;
+       //     case ( kINukeTwkDial_FrElas_N        ) : return "FrElas_N";             break;
      case ( kINukeTwkDial_FrInel_N        ) : return "FrInel_N";             break;
      case ( kINukeTwkDial_FrAbs_N         ) : return "FrAbs_N";              break;
      case ( kINukeTwkDial_FrPiProd_N      ) : return "FrPiProd_N";           break;
@@ -349,12 +350,12 @@ public:
        kINukeTwkDial_MFP_pi,
        kINukeTwkDial_MFP_N,
        kINukeTwkDial_FrCEx_pi,
-       kINukeTwkDial_FrElas_pi,
+       //       kINukeTwkDial_FrElas_pi,
        kINukeTwkDial_FrInel_pi,
        kINukeTwkDial_FrAbs_pi,
        kINukeTwkDial_FrPiProd_pi,
        kINukeTwkDial_FrCEx_N,
-       kINukeTwkDial_FrElas_N,
+       //       kINukeTwkDial_FrElas_N,
        kINukeTwkDial_FrInel_N,
        kINukeTwkDial_FrAbs_N,
        kINukeTwkDial_FrPiProd_N,
@@ -390,7 +391,7 @@ public:
  {
    switch(syst) {
      case ( kINukeTwkDial_FrCEx_pi   ) :
-     case ( kINukeTwkDial_FrElas_pi  ) :
+       //     case ( kINukeTwkDial_FrElas_pi  ) :
      case ( kINukeTwkDial_FrInel_pi  ) :
      case ( kINukeTwkDial_FrAbs_pi   ) :
      case ( kINukeTwkDial_FrPiProd_pi) :
@@ -407,7 +408,7 @@ public:
  {
    switch(syst) {
      case ( kINukeTwkDial_FrCEx_N   ) :
-     case ( kINukeTwkDial_FrElas_N  ) :
+       //     case ( kINukeTwkDial_FrElas_N  ) :
      case ( kINukeTwkDial_FrInel_N  ) :
      case ( kINukeTwkDial_FrAbs_N   ) :
      case ( kINukeTwkDial_FrPiProd_N) :
@@ -424,12 +425,12 @@ public:
  {
    switch(syst) {
      case ( kINukeTwkDial_FrCEx_pi    ) :
-     case ( kINukeTwkDial_FrElas_pi   ) :
+       //     case ( kINukeTwkDial_FrElas_pi   ) :
      case ( kINukeTwkDial_FrInel_pi   ) :
      case ( kINukeTwkDial_FrAbs_pi    ) :
      case ( kINukeTwkDial_FrPiProd_pi ) :
      case ( kINukeTwkDial_FrCEx_N     ) :
-     case ( kINukeTwkDial_FrElas_N    ) :
+       //     case ( kINukeTwkDial_FrElas_N    ) :
      case ( kINukeTwkDial_FrInel_N    ) :
      case ( kINukeTwkDial_FrAbs_N     ) :
      case ( kINukeTwkDial_FrPiProd_N  ) :
@@ -489,7 +490,7 @@ public:
  static GSyst_t NextPionFateSystematic(int i)
  {
     if(i==0) return kINukeTwkDial_FrCEx_pi;
-    if(i==1) return kINukeTwkDial_FrElas_pi;
+    //    if(i==1) return kINukeTwkDial_FrElas_pi;
     if(i==2) return kINukeTwkDial_FrInel_pi;
     if(i==3) return kINukeTwkDial_FrAbs_pi;
     if(i==4) return kINukeTwkDial_FrPiProd_pi;
@@ -500,7 +501,7 @@ public:
  static GSyst_t NextNuclFateSystematic(int i)
  {
     if(i==0) return kINukeTwkDial_FrCEx_N;
-    if(i==1) return kINukeTwkDial_FrElas_N;
+    //    if(i==1) return kINukeTwkDial_FrElas_N;
     if(i==2) return kINukeTwkDial_FrInel_N;
     if(i==3) return kINukeTwkDial_FrAbs_N;
     if(i==4) return kINukeTwkDial_FrPiProd_N;
@@ -517,7 +518,7 @@ public:
      switch (fate) {
       case kIHAFtUndefined : return kNullSystematic;            break;
       case kIHAFtCEx       : return kINukeTwkDial_FrCEx_pi;     break;
-      case kIHAFtElas      : return kINukeTwkDial_FrElas_pi;    break;
+	//      case kIHAFtElas      : return kINukeTwkDial_FrElas_pi;    break;
       case kIHAFtInelas    : return kINukeTwkDial_FrInel_pi;    break;
       case kIHAFtAbs       : return kINukeTwkDial_FrAbs_pi;     break;
       case kIHAFtPiProd    : return kINukeTwkDial_FrPiProd_pi;  break;
@@ -528,7 +529,7 @@ public:
      switch (fate) {
       case kIHAFtUndefined : return kNullSystematic;           break;
       case kIHAFtCEx       : return kINukeTwkDial_FrCEx_N;     break;
-      case kIHAFtElas      : return kINukeTwkDial_FrElas_N;    break;
+	//      case kIHAFtElas      : return kINukeTwkDial_FrElas_N;    break;
       case kIHAFtInelas    : return kINukeTwkDial_FrInel_N;    break;
       case kIHAFtAbs       : return kINukeTwkDial_FrAbs_N;     break;
       case kIHAFtPiProd    : return kINukeTwkDial_FrPiProd_N;  break;

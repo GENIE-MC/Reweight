@@ -71,12 +71,12 @@ bool GReWeightINuke::IsHandled(GSyst_t syst) const
      case ( kINukeTwkDial_MFP_pi      ) :
      case ( kINukeTwkDial_MFP_N       ) :
      case ( kINukeTwkDial_FrCEx_pi    ) :
-     case ( kINukeTwkDial_FrElas_pi   ) :
+       //     case ( kINukeTwkDial_FrElas_pi   ) :
      case ( kINukeTwkDial_FrInel_pi   ) :
      case ( kINukeTwkDial_FrAbs_pi    ) :
      case ( kINukeTwkDial_FrPiProd_pi ) :
      case ( kINukeTwkDial_FrCEx_N     ) :
-     case ( kINukeTwkDial_FrElas_N    ) :
+       //     case ( kINukeTwkDial_FrElas_N    ) :
      case ( kINukeTwkDial_FrInel_N    ) :
      case ( kINukeTwkDial_FrAbs_N     ) :
      case ( kINukeTwkDial_FrPiProd_N  ) :

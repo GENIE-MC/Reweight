@@ -154,7 +154,7 @@ void GSystUncertainty::SetDefaults(void)
   this->SetUncertainty( kINukeTwkDial_FrAbs_pi,      0.30, 0.30);
   this->SetUncertainty( kINukeTwkDial_FrPiProd_pi,   0.20, 0.20);
   this->SetUncertainty( kINukeTwkDial_FrCEx_N,       0.50, 0.50);
-  this->SetUncertainty( kINukeTwkDial_FrElas_N,      0.30, 0.30);
+  //  this->SetUncertainty( kINukeTwkDial_FrElas_N,      0.30, 0.30);
   this->SetUncertainty( kINukeTwkDial_FrInel_N,      0.40, 0.40);
   this->SetUncertainty( kINukeTwkDial_FrAbs_N,       0.20, 0.20);
   this->SetUncertainty( kINukeTwkDial_FrPiProd_N,    0.20, 0.20);
