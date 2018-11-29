@@ -23,7 +23,7 @@
 #include "Framework/Numerical/Spline.h"
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/ParticleData/PDGCodes.h"
-#include "Physics/HadronTransport/INukeHadroData.h"
+#include "Physics/HadronTransport/INukeHadroData2018.h"
 #include "Physics/HadronTransport/INukeHadroFates.h"
 #include "Physics/HadronTransport/INukeUtils.h"
 
@@ -135,12 +135,14 @@ double genie::utils::rew::FateFraction(
 {
   double fate_frac = 0.0;
 
-  INukeHadroData * hd = INukeHadroData::Instance();
+  INukeHadroData2018 * hd = INukeHadroData2018::Instance();
 
   // convert to MeV and
   double ke = kinE / units::MeV;
-  ke = TMath::Max(INukeHadroData::fMinKinEnergy,   ke);
-  ke = TMath::Min(INukeHadroData::fMaxKinEnergyHA, ke);
+  ke = TMath::Max(INukeHadroData2018::fMinKinEnergy,   ke);
+  ke = TMath::Min(INukeHadroData2018::fMaxKinEnergyHA, ke);
+
+  int A=12;
 
   switch (syst) {
 
@@ -150,7 +152,7 @@ double genie::utils::rew::FateFraction(
 
     case (genie::rew::kINukeTwkDial_FrCEx_pi) :
     {
-      fate_frac = hd->Frac(kPdgPiP, kIHAFtCEx, ke);
+      fate_frac = hd->FracADep(kPdgPiP, kIHAFtCEx, ke, A);
     }
     break;
 
@@ -162,19 +164,19 @@ double genie::utils::rew::FateFraction(
 
     case (genie::rew::kINukeTwkDial_FrInel_pi) :
     {
-      fate_frac = hd->Frac(kPdgPiP, kIHAFtInelas, ke);
+      fate_frac = hd->FracADep(kPdgPiP, kIHAFtInelas, ke, A);
     }
     break;
 
     case (genie::rew::kINukeTwkDial_FrAbs_pi) :
     {
-      fate_frac = hd->Frac(kPdgPiP, kIHAFtAbs, ke);
+      fate_frac = hd->FracADep(kPdgPiP, kIHAFtAbs, ke, A);
     }
     break;
 
     case (genie::rew::kINukeTwkDial_FrPiProd_pi) :
     {
-      fate_frac = hd->Frac(kPdgPiP, kIHAFtPiProd,  ke);
+      fate_frac = hd->FracADep(kPdgPiP, kIHAFtPiProd,  ke, A);
     }
     break;
 
@@ -184,7 +186,7 @@ double genie::utils::rew::FateFraction(
 
     case (genie::rew::kINukeTwkDial_FrCEx_N) :
     {
-      fate_frac = hd->Frac(kPdgProton, kIHAFtCEx, ke);
+      fate_frac = hd->FracAIndep(kPdgProton, kIHAFtCEx, ke);
     }
     break;
 
@@ -196,19 +198,19 @@ double genie::utils::rew::FateFraction(
 
     case (genie::rew::kINukeTwkDial_FrInel_N) :
     {
-      fate_frac = hd->Frac(kPdgProton, kIHAFtInelas, ke);
+      fate_frac = hd->FracAIndep(kPdgProton, kIHAFtInelas, ke);
     }
     break;
 
     case (genie::rew::kINukeTwkDial_FrAbs_N) :
     {
-      fate_frac = hd->Frac(kPdgProton, kIHAFtAbs,    ke);
+      fate_frac = hd->FracAIndep(kPdgProton, kIHAFtAbs,    ke);
     }
     break;
 
     case (genie::rew::kINukeTwkDial_FrPiProd_N) :
     {
-      fate_frac = hd->Frac(kPdgProton, kIHAFtPiProd,  ke);
+      fate_frac = hd->FracAIndep(kPdgProton, kIHAFtPiProd,  ke);
     }
     break;
 

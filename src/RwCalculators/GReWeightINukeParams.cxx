@@ -24,7 +24,7 @@
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/Numerical/Spline.h"
 #include "Framework/ParticleData/PDGCodes.h"
-#include "Physics/HadronTransport/INukeHadroData.h"
+#include "Physics/HadronTransport/INukeHadroData2018.h"
 #include "Physics/HadronTransport/INukeHadroFates.h"
 #include "Physics/NuclearState/NuclearUtils.h"
 
@@ -405,7 +405,7 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
      double frac_scale = 1. + curr_twk_dial * fractional_frac_err;
      double curr_frac  = genie::utils::rew::FateFraction(curr_syst, KE, frac_scale);
 
-     LOG("ReW", pINFO)
+     LOG("ReW", pWARN)
          << "Systematic " << GSyst::AsString(curr_syst)
          << " (1 sigma frac. err = " << 100*fractional_frac_err
          << "%, tweak dial = " << curr_twk_dial
@@ -415,11 +415,12 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
      sum_fate_fraction_all += curr_frac;
   }
 
-  LOG("ReW", pINFO) << "Current sum of all fate fractions = " << sum_fate_fraction_all;
+  LOG("ReW", pWARN) << "Current sum of all fate fractions = " << sum_fate_fraction_all<< "  KE= " << KE;
 
   if(TMath::Abs(sum_fate_fraction_all-1) > 0.01) {
       LOG("ReW", pWARN) << "Unitarity violation level exceeded 1 part in 100.";
       LOG("ReW", pWARN) << "Current sum of all fate fractions = " << sum_fate_fraction_all;
+      exit(1);
   }
 
   map<GSyst_t, double>::const_iterator dial_iter = fSystValuesActual.find(syst);
@@ -551,7 +552,7 @@ void GReWeightINukeParams::Fates::AddCushionTerms(void)
 	LOG("ReW", pINFO)
           << "Systematic " << GSyst::AsString(syst)
           << " was already specified as a"
-          << ((is_cushion) ? " cuhsion " : " non-cushion ")
+          << ((is_cushion) ? " cushion " : " non-cushion ") 
           << "term";
         if(is_cushion) {
            fSystValuesUser[syst]  = 0.;

@@ -491,9 +491,9 @@ public:
  {
     if(i==0) return kINukeTwkDial_FrCEx_pi;
     //    if(i==1) return kINukeTwkDial_FrElas_pi;
-    if(i==2) return kINukeTwkDial_FrInel_pi;
-    if(i==3) return kINukeTwkDial_FrAbs_pi;
-    if(i==4) return kINukeTwkDial_FrPiProd_pi;
+    if(i==1) return kINukeTwkDial_FrInel_pi;
+    if(i==2) return kINukeTwkDial_FrAbs_pi;
+    if(i==3) return kINukeTwkDial_FrPiProd_pi;
 
     return kNullSystematic;
  }
@@ -502,9 +502,9 @@ public:
  {
     if(i==0) return kINukeTwkDial_FrCEx_N;
     //    if(i==1) return kINukeTwkDial_FrElas_N;
-    if(i==2) return kINukeTwkDial_FrInel_N;
-    if(i==3) return kINukeTwkDial_FrAbs_N;
-    if(i==4) return kINukeTwkDial_FrPiProd_N;
+    if(i==1) return kINukeTwkDial_FrInel_N;
+    if(i==2) return kINukeTwkDial_FrAbs_N;
+    if(i==3) return kINukeTwkDial_FrPiProd_N;
 
     return kNullSystematic;
  }
