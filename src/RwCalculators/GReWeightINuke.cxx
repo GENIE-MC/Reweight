@@ -132,6 +132,8 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
   if (A<=1) return 1.0;
   if (Z<=1) return 1.0;
 
+  fINukeRwParams.SetTargetA( A );
+
   double event_weight  = 1.0;
 
   // Loop over stdhep entries and only calculate weights for particles.

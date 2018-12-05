@@ -51,8 +51,9 @@ namespace rew   {
     double nRpi=0.5, double nRnuc=1.0, double NR=3, double R0=1.4);
 
   // Return the fraction of the hadron rescatering fate described by the input
-  // systematic enumeration at the input hadron kinetic energy
-  double FateFraction(genie::rew::GSyst_t syst, double kinE, double frac_scale_factor=1.);
+  // systematic enumeration at the input hadron kinetic energy for a hit nucleus
+  // with the given mass number
+  double FateFraction(genie::rew::GSyst_t syst, double kinE, int target_A, double frac_scale_factor=1.);
 
   // Return the required fate fraction scaling factor for the fate described by the input
   // systematic enumeration, at the input hadron kinetic energy, so that the fate fraction

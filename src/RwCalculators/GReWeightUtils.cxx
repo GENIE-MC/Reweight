@@ -130,9 +130,12 @@ double genie::utils::rew::MeanFreePathWeight(
   return w_mfp;
 }
 //____________________________________________________________________________
-double genie::utils::rew::FateFraction(
-   genie::rew::GSyst_t syst, double kinE, double frac_scale_factor)
+double genie::utils::rew::FateFraction(genie::rew::GSyst_t syst, double kinE,
+  int target_A, double frac_scale_factor)
 {
+  if ( target_A < 1 ) LOG("ReW", pERROR) << "Invalid mass number A = "
+    << target_A << " passed to genie::utils::rew::FateFraction";
+
   double fate_frac = 0.0;
 
   INukeHadroData2018 * hd = INukeHadroData2018::Instance();
@@ -142,8 +145,6 @@ double genie::utils::rew::FateFraction(
   ke = TMath::Max(INukeHadroData2018::fMinKinEnergy,   ke);
   ke = TMath::Min(INukeHadroData2018::fMaxKinEnergyHA, ke);
 
-  int A=12;
-
   switch (syst) {
 
     //
@@ -152,31 +153,31 @@ double genie::utils::rew::FateFraction(
 
     case (genie::rew::kINukeTwkDial_FrCEx_pi) :
     {
-      fate_frac = hd->FracADep(kPdgPiP, kIHAFtCEx, ke, A);
+      fate_frac = hd->FracADep(kPdgPiP, kIHAFtCEx, ke, target_A);
     }
     break;
 
     //    case (genie::rew::kINukeTwkDial_FrElas_pi) :
     //    {
-    //      fate_frac = hd->Frac(kPdgPiP, kIHAFtElas, ke);
+    //      fate_frac = hd->FracADep(kPdgPiP, kIHAFtElas, ke, target_A);
     //    }
     //    break;
 
     case (genie::rew::kINukeTwkDial_FrInel_pi) :
     {
-      fate_frac = hd->FracADep(kPdgPiP, kIHAFtInelas, ke, A);
+      fate_frac = hd->FracADep(kPdgPiP, kIHAFtInelas, ke, target_A);
     }
     break;
 
     case (genie::rew::kINukeTwkDial_FrAbs_pi) :
     {
-      fate_frac = hd->FracADep(kPdgPiP, kIHAFtAbs, ke, A);
+      fate_frac = hd->FracADep(kPdgPiP, kIHAFtAbs, ke, target_A);
     }
     break;
 
     case (genie::rew::kINukeTwkDial_FrPiProd_pi) :
     {
-      fate_frac = hd->FracADep(kPdgPiP, kIHAFtPiProd,  ke, A);
+      fate_frac = hd->FracADep(kPdgPiP, kIHAFtPiProd,  ke, target_A);
     }
     break;
 

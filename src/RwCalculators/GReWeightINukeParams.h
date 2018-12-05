@@ -62,6 +62,7 @@ namespace rew   {
    void    Reconfigure        (void);                   ///<
    double  ChisqPenalty       (void) const;             ///<
    void    SetTwkDial         (GSyst_t s, double val);  ///<
+   void    SetTargetA         (int target_A); ///< Set the mass number of the hit nucleus
 
    //.........................................................................
    //
@@ -84,6 +85,7 @@ namespace rew   {
      void   Reconfigure   (void);                                       ///<
      double ChisqPenalty  (void) const;                                 ///<
      void   SetTwkDial    (GSyst_t s, double val);                      ///<
+     void   SetTargetA    (int target_A); ///< Set the mass number of the hit nucleus
 
    private:
 
@@ -95,6 +97,7 @@ namespace rew   {
      std::map<GSyst_t, double> fSystValuesUser;    ///< List of systematics included & values set by the user
      mutable std:: map<GSyst_t, double> fSystValuesActual;  ///< List of systematics included & values actually used (user values limited to physical range)
      std::map<GSyst_t, bool>   fIsCushion;         ///< cushion term flag
+     int fTargetA; ///< Mass number of the hit nucleus (needed for pion fates)
 
    }; // Fates nested class
 
@@ -128,8 +131,6 @@ namespace rew   {
 
 
  private:
-
-    void Init(void);
 
     Fates * fParmPionFates;
     Fates * fParmNuclFates;

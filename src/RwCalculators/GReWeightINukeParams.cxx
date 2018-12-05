@@ -39,7 +39,10 @@ using namespace genie::rew;
 //___________________________________________________________________________
 GReWeightINukeParams::GReWeightINukeParams(void)
 {
-  this->Init();
+  fParmPionFates = new Fates (kRwINukePion);
+  fParmNuclFates = new Fates (kRwINukeNucl);
+  fParmPionMFP   = new MFP   (kRwINukePion);
+  fParmNuclMFP   = new MFP   (kRwINukeNucl);
 }
 //___________________________________________________________________________
 GReWeightINukeParams::~GReWeightINukeParams(void)
@@ -47,12 +50,10 @@ GReWeightINukeParams::~GReWeightINukeParams(void)
 
 }
 //___________________________________________________________________________
-void GReWeightINukeParams::Init(void)
+void GReWeightINukeParams::SetTargetA(int target_A)
 {
-  fParmPionFates = new Fates (kRwINukePion);
-  fParmNuclFates = new Fates (kRwINukeNucl);
-  fParmPionMFP   = new MFP   (kRwINukePion);
-  fParmNuclMFP   = new MFP   (kRwINukeNucl);
+  fParmPionFates->SetTargetA( target_A );
+  fParmNuclFates->SetTargetA( target_A );
 }
 //___________________________________________________________________________
 GReWeightINukeParams::Fates *
@@ -138,6 +139,7 @@ GReWeightINukeParams::Fates::Fates(GReWeightINukeParams::HadronType_t ht)
   }
 
   fHadType = ht;
+  fTargetA = 0;
 
   this->Reset();
 }
@@ -145,6 +147,11 @@ GReWeightINukeParams::Fates::Fates(GReWeightINukeParams::HadronType_t ht)
 GReWeightINukeParams::Fates::~Fates(void)
 {
   this->Reset();
+}
+//___________________________________________________________________________
+void GReWeightINukeParams::Fates::SetTargetA(int target_A)
+{
+  fTargetA = target_A;
 }
 //___________________________________________________________________________
 void GReWeightINukeParams::Fates::Reset()
@@ -208,7 +215,7 @@ double GReWeightINukeParams::Fates::ScaleFactor(
 double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
 {
   if(! this->IsIncluded(syst)) {
-    LOG("ReW", pWARN)
+    LOG("ReW", pDEBUG)
       << "Systematic " << GSyst::AsString(syst) << " not included";
     return 0.;
   }
@@ -274,8 +281,8 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
      double fractional_frac_err = uncert->OneSigmaErr(curr_syst); // fractional 1 sigma error
 
      double frac_scale = 1. + curr_twk_dial * fractional_frac_err;
-     double curr_frac  = genie::utils::rew::FateFraction(curr_syst, KE, frac_scale);
-     double nom_frac   = genie::utils::rew::FateFraction(curr_syst, KE, 1.);
+     double curr_frac  = genie::utils::rew::FateFraction(curr_syst, KE, fTargetA, frac_scale);
+     double nom_frac   = genie::utils::rew::FateFraction(curr_syst, KE, fTargetA, 1.);
 
      sum_nocushion_fate_fraction_nom += nom_frac;
      sum_nocushion_fate_fraction_twk += curr_frac;
@@ -319,7 +326,7 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
        double fractional_frac_err = uncert->OneSigmaErr(curr_syst); // fractional 1 sigma error
 
        double frac_scale = 1. + curr_twk_dial * fractional_frac_err;
-       double curr_frac  = genie::utils::rew::FateFraction(curr_syst, KE, frac_scale);
+       double curr_frac  = genie::utils::rew::FateFraction(curr_syst, KE, fTargetA, frac_scale);
 
        double curr_frac_new     = (curr_is_cushion) ? 0 : curr_frac * (1./sum_nocushion_fate_fraction_twk);
        double frac_scale_new    = genie::utils::rew::WhichFateFractionScaleFactor(curr_syst, KE, curr_frac_new);
@@ -364,7 +371,7 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
          if(!curr_is_cushion) continue;
 
          double fractional_frac_err = uncert->OneSigmaErr(curr_syst); // fractional 1 sigma error
-         double nom_frac = genie::utils::rew::FateFraction(curr_syst, KE, 1.);
+         double nom_frac = genie::utils::rew::FateFraction(curr_syst, KE, fTargetA, 1.);
          sum += (nom_frac * fractional_frac_err);
       }
 
@@ -403,9 +410,9 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
      double fractional_frac_err = uncert->OneSigmaErr(curr_syst); // fractional 1 sigma error
 
      double frac_scale = 1. + curr_twk_dial * fractional_frac_err;
-     double curr_frac  = genie::utils::rew::FateFraction(curr_syst, KE, frac_scale);
+     double curr_frac  = genie::utils::rew::FateFraction(curr_syst, KE, fTargetA, frac_scale);
 
-     LOG("ReW", pWARN)
+     LOG("ReW", pINFO)
          << "Systematic " << GSyst::AsString(curr_syst)
          << " (1 sigma frac. err = " << 100*fractional_frac_err
          << "%, tweak dial = " << curr_twk_dial
@@ -415,7 +422,7 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
      sum_fate_fraction_all += curr_frac;
   }
 
-  LOG("ReW", pWARN) << "Current sum of all fate fractions = " << sum_fate_fraction_all<< "  KE= " << KE;
+  LOG("ReW", pINFO) << "Current sum of all fate fractions = " << sum_fate_fraction_all<< "  KE= " << KE;
 
   if(TMath::Abs(sum_fate_fraction_all-1) > 0.01) {
       LOG("ReW", pWARN) << "Unitarity violation level exceeded 1 part in 100.";
