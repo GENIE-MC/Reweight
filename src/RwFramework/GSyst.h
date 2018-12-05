@@ -125,12 +125,12 @@ typedef enum EGSyst {
   kINukeTwkDial_MFP_N,       ///< tweak mean free path for nucleons
   kINukeTwkDial_FrCEx_pi,    ///< tweak charge exchange probability for pions, for given total rescattering probability
   // sd - hA no longer has elastic fate
-  //  kINukeTwkDial_FrElas_pi,   ///< tweak elastic         probability for pions, for given total rescattering probability
+  kINVALID_INukeTwkDial_FrElas_pi,   ///< tweak elastic         probability for pions, for given total rescattering probability
   kINukeTwkDial_FrInel_pi,   ///< tweak inelastic       probability for pions, for given total rescattering probability
   kINukeTwkDial_FrAbs_pi,    ///< tweak absorption      probability for pions, for given total rescattering probability
   kINukeTwkDial_FrPiProd_pi, ///< tweak pion production probability for pions, for given total rescattering probability
   kINukeTwkDial_FrCEx_N,     ///< tweak charge exchange probability for nucleons, for given total rescattering probability
-  //  kINukeTwkDial_FrElas_N,    ///< tweak elastic         probability for nucleons, for given total rescattering probability
+  kINVALID_INukeTwkDial_FrElas_N,    ///< tweak elastic         probability for nucleons, for given total rescattering probability
   kINukeTwkDial_FrInel_N,    ///< tweak inelastic       probability for nucleons, for given total rescattering probability
   kINukeTwkDial_FrAbs_N,     ///< tweak absorption      probability for nucleons, for given total rescattering probability
   kINukeTwkDial_FrPiProd_N,  ///< tweak pion production probability for nucleons, for given total rescattering probability
