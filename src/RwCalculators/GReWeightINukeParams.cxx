@@ -323,7 +323,7 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
 
        double curr_frac_new     = (curr_is_cushion) ? 0 : curr_frac * (1./sum_nocushion_fate_fraction_twk);
        double frac_scale_new    = genie::utils::rew::WhichFateFractionScaleFactor(curr_syst, KE, curr_frac_new);
-       double curr_twk_dial_new = (frac_scale_new != 0) ? (frac_scale_new - 1.)/fractional_frac_err : 0;
+       double curr_twk_dial_new = (frac_scale_new - 1.) / fractional_frac_err;
 
        fSystValuesActual[curr_syst] = curr_twk_dial_new;
 
@@ -341,7 +341,7 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
 
   //
   // In the normal case where the sum of all non-cushion terms was less than 1,
-  // leave them as they are. Adjust all all non-cushion terms accordingly so as to respect unitarity.
+  // leave them as they are. Adjust all non-cushion terms accordingly so as to respect unitarity.
   // There are many ways to adjust the cushion terms, if more than one such term exists.
   // Chose to tweak them so that they all change the same amount, in units of the corresponding 1 sigma error.
   //
@@ -552,7 +552,7 @@ void GReWeightINukeParams::Fates::AddCushionTerms(void)
 	LOG("ReW", pINFO)
           << "Systematic " << GSyst::AsString(syst)
           << " was already specified as a"
-          << ((is_cushion) ? " cushion " : " non-cushion ") 
+          << ((is_cushion) ? " cushion " : " non-cushion ")
           << "term";
         if(is_cushion) {
            fSystValuesUser[syst]  = 0.;
