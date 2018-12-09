@@ -445,15 +445,10 @@ double GReWeightNuXSecCCQE::CalcWeightMa(const genie::EventRecord & event)
   interaction->KinePtr()->UseSelectedKinematics();
   interaction->SetBit(kIAssumeFreeNucleon);
 
-  KinePhaseSpace_t ps;
-  if (fModelIsRunningMa)
-		ps = kPSQ2vfE;
-  else
-		ps = kPSQ2fE;
+  // Retrieve the kinematic phase space used to generate the event
+  const KinePhaseSpace_t phase_space = event.DiffXSecVars();
+  double old_xsec = event.DiffXSec();
 
-  const KinePhaseSpace_t phase_space = ps;
-
-  double old_xsec   = event.DiffXSec();
   if (!fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo) {
     double calc_old_xsec = fXSecModelDef->XSec(interaction, phase_space);
     if (fNWeightChecksDone < fNWeightChecksToDo) {
@@ -493,15 +488,10 @@ double GReWeightNuXSecCCQE::CalcWeightMaShape(const genie::EventRecord & event)
   interaction->KinePtr()->UseSelectedKinematics();
   interaction->SetBit(kIAssumeFreeNucleon);
 
-  KinePhaseSpace_t ps;
-  if (fModelIsRunningMa)
-		ps = kPSQ2vfE;
-  else
-		ps = kPSQ2fE;
+  // Retrieve the kinematic phase space used to generate the event
+  const KinePhaseSpace_t phase_space = event.DiffXSecVars();
+  double old_xsec = event.DiffXSec();
 
-  const KinePhaseSpace_t phase_space = ps;
-
-  double old_xsec   = event.DiffXSec();
   if (!fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo) {
     double calc_old_xsec = fXSecModelDef->XSec(interaction, phase_space);
     if (fNWeightChecksDone < fNWeightChecksToDo) {
@@ -560,15 +550,10 @@ double GReWeightNuXSecCCQE::CalcWeightZExp(const genie::EventRecord & event)
   interaction->KinePtr()->UseSelectedKinematics();
   interaction->SetBit(kIAssumeFreeNucleon);
 
-  KinePhaseSpace_t ps;
-  if (fModelIsRunningMa)
-		ps = kPSQ2vfE;
-  else
-		ps = kPSQ2fE;
+  // Retrieve the kinematic phase space used to generate the event
+  const KinePhaseSpace_t phase_space = event.DiffXSecVars();
+  double old_xsec = event.DiffXSec();
 
-  const KinePhaseSpace_t phase_space = ps;
-
-  double old_xsec   = event.DiffXSec();
   if (!fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo) {
     double calc_old_xsec = fXSecModelDef->XSec(interaction, phase_space);
     if (fNWeightChecksDone < fNWeightChecksToDo) {
