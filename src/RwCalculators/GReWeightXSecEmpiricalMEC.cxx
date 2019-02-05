@@ -123,8 +123,6 @@ bool GReWeightXSecEmpiricalMEC::IsHandled(GSyst_t syst) const {
 }
 void GReWeightXSecEmpiricalMEC::SetSystematic(GSyst_t syst, double twk_dial) {
   if (!this->IsHandled(syst)) {
-    LOG("ReW", pWARN) << "Systematic " << GSyst::AsString(syst)
-                      << " is not handled by GReWeightXSecEmpiricalMEC";
     return;
   }
 

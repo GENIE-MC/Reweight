@@ -129,7 +129,7 @@ double GReWeightNuXSecCCQEaxial::CalcWeight(const genie::EventRecord & event)
   // (normalized to constant integrated cross section)
   //
 
-  const KinePhaseSpace_t phase_space = kPSQ2fE;
+  const KinePhaseSpace_t phase_space = event.DiffXSecVars();
 
   interaction->KinePtr()->UseSelectedKinematics();
   interaction->SetBit(kIAssumeFreeNucleon);
