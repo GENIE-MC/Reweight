@@ -250,6 +250,7 @@ public:
      case ( kXSecTwkDial_NormDISCC        ) : return "NormDISCC";            break;
      case ( kXSecTwkDial_RnubarnuCC       ) : return "RnubarnuCC";           break;
      case ( kXSecTwkDial_DISNuclMod       ) : return "DISNuclMod";           break;
+     case ( kXSecTwkDial_NC               ) : return "NC";                   break;
      case ( kHadrAGKYTwkDial_xF1pi        ) : return "AGKYxF1pi";            break;
      case ( kHadrAGKYTwkDial_pT1pi        ) : return "AGKYpT1pi";            break;
      case ( kHadrNuclTwkDial_FormZone     ) : return "FormZone";             break;
