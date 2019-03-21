@@ -155,7 +155,7 @@ double GReWeightNuXSecNCEL::CalcWeight(const genie::EventRecord & event)
   interaction->KinePtr()->UseSelectedKinematics();
   interaction->SetBit(kIAssumeFreeNucleon);
 
-  const KinePhaseSpace_t phase_space = kPSQ2fE;
+  const KinePhaseSpace_t phase_space = event.DiffXSecVars();
 
   double old_xsec   = event.DiffXSec();
   if (!fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo) {
