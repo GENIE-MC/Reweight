@@ -198,7 +198,7 @@ void GReWeightNonResonanceBkg::Init(void)
 
   // Get the "common" (shared) parameters
   AlgConfigPool * conf_pool = AlgConfigPool::Instance();
-  Registry * user_config = conf_pool->CommonParameterList("NonResBackground");
+  Registry * user_config = conf_pool->CommonList("Param", "NonResBackground");
   if ( ! user_config ) {
     std::cerr << "no CommonParameterList(\"NonResBackground\")" << std::endl;
     exit(-1);
