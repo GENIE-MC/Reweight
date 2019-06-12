@@ -443,11 +443,14 @@ double GReWeightNuXSecCCQE::CalcWeightMa(const genie::EventRecord & event)
   Interaction * interaction = event.Summary();
 
   interaction->KinePtr()->UseSelectedKinematics();
-  interaction->SetBit(kIAssumeFreeNucleon);
 
   // Retrieve the kinematic phase space used to generate the event
   const KinePhaseSpace_t phase_space = event.DiffXSecVars();
   double old_xsec = event.DiffXSec();
+
+  if (phase_space == kPSQ2fE) {
+    interaction->SetBit(kIAssumeFreeNucleon);
+  }
 
   if (!fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo) {
     double calc_old_xsec = fXSecModelDef->XSec(interaction, phase_space);
@@ -473,7 +476,10 @@ double GReWeightNuXSecCCQE::CalcWeightMa(const genie::EventRecord & event)
 //LOG("ReW", pDEBUG) << "new weight = " << new_weight;
 
   interaction->KinePtr()->ClearRunningValues();
-  interaction->ResetBit(kIAssumeFreeNucleon);
+
+  if (phase_space == kPSQ2fE) {
+    interaction->ResetBit(kIAssumeFreeNucleon);
+  }
 
   return new_weight;
 }
@@ -486,11 +492,14 @@ double GReWeightNuXSecCCQE::CalcWeightMaShape(const genie::EventRecord & event)
   Interaction * interaction = event.Summary();
 
   interaction->KinePtr()->UseSelectedKinematics();
-  interaction->SetBit(kIAssumeFreeNucleon);
 
   // Retrieve the kinematic phase space used to generate the event
   const KinePhaseSpace_t phase_space = event.DiffXSecVars();
   double old_xsec = event.DiffXSec();
+
+  if (phase_space == kPSQ2fE) {
+    interaction->SetBit(kIAssumeFreeNucleon);
+  }
 
   if (!fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo) {
     double calc_old_xsec = fXSecModelDef->XSec(interaction, phase_space);
@@ -524,7 +533,10 @@ double GReWeightNuXSecCCQE::CalcWeightMaShape(const genie::EventRecord & event)
 //LOG("ReW", pDEBUG) << "new weight (normalized to const integral) = " << new_weight;
 
   interaction->KinePtr()->ClearRunningValues();
-  interaction->ResetBit(kIAssumeFreeNucleon);
+
+  if (phase_space == kPSQ2fE) {
+    interaction->ResetBit(kIAssumeFreeNucleon);
+  }
 
 #ifdef _G_REWEIGHT_CCQE_DEBUG_
   double E  = interaction->InitState().ProbeE(kRfHitNucRest);
@@ -548,11 +560,14 @@ double GReWeightNuXSecCCQE::CalcWeightZExp(const genie::EventRecord & event)
   Interaction * interaction = event.Summary();
 
   interaction->KinePtr()->UseSelectedKinematics();
-  interaction->SetBit(kIAssumeFreeNucleon);
 
   // Retrieve the kinematic phase space used to generate the event
   const KinePhaseSpace_t phase_space = event.DiffXSecVars();
   double old_xsec = event.DiffXSec();
+
+  if (phase_space == kPSQ2fE) {
+    interaction->SetBit(kIAssumeFreeNucleon);
+  }
 
   if (!fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo) {
     double calc_old_xsec = fXSecModelDef->XSec(interaction, phase_space);
@@ -571,7 +586,10 @@ double GReWeightNuXSecCCQE::CalcWeightZExp(const genie::EventRecord & event)
   double new_weight = old_weight * (new_xsec/old_xsec);
 
   interaction->KinePtr()->ClearRunningValues();
-  interaction->ResetBit(kIAssumeFreeNucleon);
+
+  if (phase_space == kPSQ2fE) {
+    interaction->ResetBit(kIAssumeFreeNucleon);
+  }
 
   return new_weight;
 }
