@@ -121,7 +121,7 @@ double GReWeightNuXSecHelper::NewWeight(
 
   // hack to match what was stored during event generation
   // -- is currently revisited --
-  if(interaction.ProcInfo().IsQuasiElastic())
+  if(interaction.ProcInfo().IsQuasiElastic() && kps == kPSQ2fE)
 		interaction.SetBit(kIAssumeFreeNucleon);
 
   double old_xsec   = event.DiffXSec();
@@ -137,7 +137,7 @@ double GReWeightNuXSecHelper::NewWeight(
   }
 
   // hack - closing parenthesis
-  if(interaction.ProcInfo().IsQuasiElastic())
+  if(interaction.ProcInfo().IsQuasiElastic() && kps == kPSQ2fE)
   		interaction.ResetBit(kIAssumeFreeNucleon);
 
   // Clear the 'running' kinematics buffer

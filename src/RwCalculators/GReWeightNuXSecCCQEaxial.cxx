@@ -132,7 +132,10 @@ double GReWeightNuXSecCCQEaxial::CalcWeight(const genie::EventRecord & event)
   const KinePhaseSpace_t phase_space = event.DiffXSecVars();
 
   interaction->KinePtr()->UseSelectedKinematics();
-  interaction->SetBit(kIAssumeFreeNucleon);
+
+  if (phase_space == kPSQ2fE) {
+    interaction->SetBit(kIAssumeFreeNucleon);
+  }
 
   double old_xsec   = event.DiffXSec();
   if (!fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo) {
@@ -175,6 +178,11 @@ double GReWeightNuXSecCCQEaxial::CalcWeight(const genie::EventRecord & event)
     E,Q2,weight,def_integrated_xsec,zexp_integrated_xsec,old_xsec,zexp_xsec);
 #endif
 
+  interaction->KinePtr()->ClearRunningValues();
+
+  if (phase_space == kPSQ2fE) {
+    interaction->ResetBit(kIAssumeFreeNucleon);
+  }
 
   return weight;
 }
