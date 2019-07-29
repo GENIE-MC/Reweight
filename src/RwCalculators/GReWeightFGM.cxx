@@ -69,7 +69,7 @@ bool GReWeightFGM::AppliesTo (ScatteringType_t type, bool /*is_cc*/) const
     case kScDiffractive:
     case kScNuElectronElastic:
     case kScAMNuGamma:
-    case kScCoherentElas:
+    case kScCoherentElastic:
       return false;
     default:
       return true;
