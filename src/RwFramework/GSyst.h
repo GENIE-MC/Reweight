@@ -180,6 +180,15 @@ typedef enum EGSyst {
   kXSecTwkDial_EmpMEC_FracEMQE,
 
   //
+  // General MEC dials
+  //
+
+  // MEC cross section normalization
+  kXSecTwkDial_NormCCMEC,
+  kXSecTwkDial_NormNCMEC,
+  kXSecTwkDial_NormEMMEC,
+
+  //
   // Misc
   //
 
