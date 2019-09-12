@@ -53,12 +53,12 @@ namespace rew   {
   // Return the fraction of the hadron rescatering fate described by the input
   // systematic enumeration at the input hadron kinetic energy for a hit nucleus
   // with the given mass number
-  double FateFraction(genie::rew::GSyst_t syst, double kinE, int target_A, double frac_scale_factor=1.);
+  double FateFraction(genie::rew::GSyst_t syst, double kinE, int target_A, double frac_scale_factor);
 
   // Return the required fate fraction scaling factor for the fate described by the input
   // systematic enumeration, at the input hadron kinetic energy, so that the fate fraction
   // becomes the input one.
-  double WhichFateFractionScaleFactor(genie::rew::GSyst_t syst, double kinE, double fate_frac);
+  double WhichFateFractionScaleFactor(genie::rew::GSyst_t syst, double kinE, int target_A, double fate_frac);
 
   // Check whether the input event is hadronized by AGKY
   bool  HadronizedByAGKY(const EventRecord & event);
