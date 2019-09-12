@@ -329,7 +329,7 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
        double curr_frac  = genie::utils::rew::FateFraction(curr_syst, KE, fTargetA, frac_scale);
 
        double curr_frac_new     = (curr_is_cushion) ? 0 : curr_frac * (1./sum_nocushion_fate_fraction_twk);
-       double frac_scale_new    = genie::utils::rew::WhichFateFractionScaleFactor(curr_syst, KE, curr_frac_new);
+       double frac_scale_new    = genie::utils::rew::WhichFateFractionScaleFactor(curr_syst, KE, fTargetA, curr_frac_new);
        double curr_twk_dial_new = (frac_scale_new - 1.) / fractional_frac_err;
 
        fSystValuesActual[curr_syst] = curr_twk_dial_new;

@@ -231,15 +231,22 @@ double genie::utils::rew::FateFraction(genie::rew::GSyst_t syst, double kinE,
 }
 //____________________________________________________________________________
 double genie::utils::rew::WhichFateFractionScaleFactor(
-    genie::rew::GSyst_t syst, double kinE, double fate_frac)
+    genie::rew::GSyst_t syst, double kinE, int target_A, double fate_frac)
 {
-  double fate_frac_nominal = FateFraction(syst,kinE,1.);
+  double fate_frac_nominal = FateFraction(syst, kinE, target_A, 1.0);
 
-  if(TMath::Abs(fate_frac-fate_frac_nominal) < kASmallNum) return 0;
+  // Avoid NaNs if both the nominal value and the tweaked value are zero
+  if ( fate_frac_nominal == 0. && fate_frac == 0. ) return 1.;
 
-  if(fate_frac_nominal <= 0) { return -99999; }
+  if ( fate_frac_nominal <= 0. ) {
+    // We're having some sort of problem with the fate fraction calculation
+    LOG("ReW", pERROR) << "Nonpositive nominal fate fraction"
+      << " encountered in genie::utils::rew::WhichFateFractionScaleFactor()";
+    return -99999.;
+  }
 
-  double scale = TMath::Max(0.,fate_frac)/fate_frac_nominal;
+  double scale = std::max(0., fate_frac) / fate_frac_nominal;
+
   return scale;
 }
 //____________________________________________________________________________
