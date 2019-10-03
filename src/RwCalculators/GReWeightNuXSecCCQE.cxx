@@ -29,6 +29,7 @@
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/ParticleData/PDGCodes.h"
 #include "Framework/Registry/Registry.h"
+#include "Physics/XSectionIntegration/XSecIntegratorI.h"
 
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightNuXSecCCQE.h"
@@ -361,6 +362,27 @@ void GReWeightNuXSecCCQE::Init(void)
   fXSecModel = dynamic_cast<XSecAlgorithmI*>(alg_twk);
   fXSecModel->AdoptSubstructure();
 
+  // Get the Algorithm objects that should be used to integrate the cross
+  // sections. Use the "ReweightShape" configuration, which turns off averaging
+  // over the initial state nucleon distribution.
+  AlgId alg_def_integ_ID( alg_def->GetConfig().GetAlg("XSec-Integrator").name,
+    "ReweightShape");
+
+  fXSecIntegratorDef = dynamic_cast<XSecIntegratorI*>(
+    algf->AdoptAlgorithm(alg_def_integ_ID));
+
+  assert( fXSecIntegratorDef );
+
+  AlgId alg_twk_integ_ID( alg_twk->GetConfig().GetAlg("XSec-Integrator").name,
+    "ReweightShape");
+
+  fXSecIntegrator = dynamic_cast<XSecIntegratorI*>(
+    algf->AdoptAlgorithm(alg_twk_integ_ID));
+
+  assert( fXSecIntegrator );
+
+  // Check what kind of form factors we're using in the tweaked cross section
+  // model
   fXSecModelConfig = new Registry(fXSecModel->GetConfig());
   fFFModel = fXSecModelConfig->GetAlg("FormFactorsAlg/AxialFormFactorModel").name;
 
@@ -522,9 +544,8 @@ double GReWeightNuXSecCCQE::CalcWeightMaShape(const genie::EventRecord & event)
 //LOG("ReW", pDEBUG) << "event generation weight = " << old_weight;
 //LOG("ReW", pDEBUG) << "new weight = " << new_weight;
 
-//double old_integrated_xsec = event.XSec();
-  double old_integrated_xsec = fXSecModelDef -> Integral(interaction);
-  double new_integrated_xsec = fXSecModel    -> Integral(interaction);
+  double old_integrated_xsec = fXSecIntegratorDef->Integrate(fXSecModelDef, interaction);
+  double new_integrated_xsec = fXSecIntegrator->Integrate(fXSecModel, interaction);
   assert(new_integrated_xsec > 0);
   new_weight *= (old_integrated_xsec/new_integrated_xsec);
 

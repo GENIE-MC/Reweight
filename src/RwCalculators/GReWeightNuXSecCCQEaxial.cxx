@@ -31,6 +31,7 @@
 #include "Framework/Interaction/Interaction.h"
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/ParticleData/PDGCodes.h"
+#include "Physics/XSectionIntegration/XSecIntegratorI.h"
 
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightNuXSecCCQEaxial.h"
@@ -104,22 +105,22 @@ void GReWeightNuXSecCCQEaxial::Reconfigure(void)
 double GReWeightNuXSecCCQEaxial::CalcWeight(const genie::EventRecord & event)
 {
   bool tweaked = (TMath::Abs(fFFTwkDial) > controls::kASmallNum);
-  if(!tweaked) return 1.;
+  if ( !tweaked ) return 1.;
 
   Interaction * interaction = event.Summary();
 
   bool is_qe = interaction->ProcInfo().IsQuasiElastic();
   bool is_cc = interaction->ProcInfo().IsWeakCC();
-  if(!is_qe || !is_cc) return 1.;
+  if ( !is_qe || !is_cc ) return 1.;
 
   bool charm = interaction->ExclTag().IsCharmEvent(); // skip CCQE charm
-  if(charm) return 1.;
+  if ( charm ) return 1.;
 
   int nupdg = event.Probe()->Pdg();
-  if(nupdg==kPdgNuMu     && !fRewNumu   ) return 1.;
-  if(nupdg==kPdgAntiNuMu && !fRewNumubar) return 1.;
-  if(nupdg==kPdgNuE      && !fRewNue    ) return 1.;
-  if(nupdg==kPdgAntiNuE  && !fRewNuebar ) return 1.;
+  if ( nupdg == kPdgNuMu     && !fRewNumu   ) return 1.;
+  if ( nupdg == kPdgAntiNuMu && !fRewNumubar) return 1.;
+  if ( nupdg == kPdgNuE      && !fRewNue    ) return 1.;
+  if ( nupdg == kPdgAntiNuE  && !fRewNuebar ) return 1.;
 
   //
   // Calculate weight
@@ -154,22 +155,22 @@ double GReWeightNuXSecCCQEaxial::CalcWeight(const genie::EventRecord & event)
   double old_weight           = event.Weight();
   double dial                 = fFFTwkDial;
   double zexp_xsec            = fXSecModel_zexp->XSec(interaction, phase_space);
-  //double def_integrated_xsec  = fXSecModelDef->Integral(interaction);
-  //double zexp_integrated_xsec = fXSecModel_zexp->Integral(interaction);
+
+  double def_integrated_xsec  = fXSecIntegratorDef->Integrate(fXSecModelDef, interaction);
+  double zexp_integrated_xsec = fXSecIntegrator_zexp->Integrate(fXSecModel_zexp, interaction);
 
   //assert(def_integrated_xsec > 0.);
   //assert(zexp_integrated_xsec > 0.);
-//  if(def_integrated_xsec <= 0 || zexp_integrated_xsec <= 0) return 1.;
+  if ( def_integrated_xsec <= 0. || zexp_integrated_xsec <= 0. ) {
+    LOG("ReW", pWARN) << "Non-positive total cross section encountered in"
+      << " GReWeightNuXSecCCQEaxial::CalcWeight()";
+    return 1.;
+  }
 
-  //double def_ratio  = old_xsec  / def_integrated_xsec;
-  //double zexp_ratio = zexp_xsec / zexp_integrated_xsec;
-  double def_ratio  = old_xsec ;
-  double zexp_ratio = zexp_xsec;
+  double def_ratio  = old_xsec  / def_integrated_xsec;
+  double zexp_ratio = zexp_xsec / zexp_integrated_xsec;
 
-  assert(def_ratio > 0.);
-//  if(def_ratio <= 0) return 1.;
-
-  double weight = old_weight * (dial * zexp_ratio + (1-dial)*def_ratio) / def_ratio;
+  double weight = old_weight * (dial * zexp_ratio + (1. - dial)*def_ratio) / def_ratio;
 
 #ifdef _G_REWEIGHT_CCQE_AXFF_DEBUG_
   double E  = interaction->InitState().ProbeE(kRfHitNucRest);
@@ -217,6 +218,25 @@ void GReWeightNuXSecCCQEaxial::Init(void)
   Algorithm * alg1 = algf->AdoptAlgorithm(zexp_id);
   fXSecModel_zexp = dynamic_cast<XSecAlgorithmI*>(alg1);
   fXSecModel_zexp->AdoptSubstructure();
+
+  // Get the Algorithm objects that should be used to integrate the cross
+  // sections. Use the "ReweightShape" configuration, which turns off averaging
+  // over the initial state nucleon distribution.
+  AlgId alg0_integ_ID( alg0->GetConfig().GetAlg("XSec-Integrator").name,
+    "ReweightShape");
+
+  fXSecIntegratorDef = dynamic_cast<XSecIntegratorI*>(
+    algf->AdoptAlgorithm(alg0_integ_ID));
+
+  assert( fXSecIntegratorDef );
+
+  AlgId alg1_integ_ID( alg1->GetConfig().GetAlg("XSec-Integrator").name,
+    "ReweightShape");
+
+  fXSecIntegrator_zexp = dynamic_cast<XSecIntegratorI*>(
+    algf->AdoptAlgorithm(alg1_integ_ID));
+
+  assert( fXSecIntegrator_zexp );
 
   this->RewNue    (true);
   this->RewNuebar (true);

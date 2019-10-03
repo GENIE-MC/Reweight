@@ -35,6 +35,7 @@ class TNtupleD;
 namespace genie {
 
 class XSecAlgorithmI;
+class XSecIntegratorI;
 
 namespace rew   {
 
@@ -63,8 +64,11 @@ namespace rew   {
 
    void Init (void);
 
-   XSecAlgorithmI * fXSecModelDef;   ///< Model loaded from the XML, with dipole FF
-   XSecAlgorithmI * fXSecModel_zexp;  ///< CCQE model with z-expansion f/f ("maximally" tweaked)
+   XSecAlgorithmI * fXSecModelDef; ///< Model loaded from the XML, with dipole FF
+   XSecAlgorithmI * fXSecModel_zexp; ///< CCQE model with z-expansion f/f ("maximally" tweaked)
+
+   XSecIntegratorI* fXSecIntegratorDef; ///< Integrator for the dipole cross section
+   XSecIntegratorI* fXSecIntegrator_zexp; ///< Integrator for the z-expansion
 
    double fFFTwkDial;    ///< tweaking dial (0: bba/default, +1: dipole)
 

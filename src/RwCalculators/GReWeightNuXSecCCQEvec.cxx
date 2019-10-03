@@ -28,6 +28,7 @@
 #include "Framework/Interaction/Interaction.h"
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/ParticleData/PDGCodes.h"
+#include "Physics/XSectionIntegration/XSecIntegratorI.h"
 
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightNuXSecCCQEvec.h"
@@ -151,20 +152,26 @@ double GReWeightNuXSecCCQEvec::CalcWeight(const genie::EventRecord & event)
   double dial                = fFFTwkDial;
   double old_weight          = event.Weight();
   double dpl_xsec            = fXSecModel_dpl->XSec(interaction, phase_space);
-  double def_integrated_xsec = fXSecModel_bba->Integral(interaction);
-  double dpl_integrated_xsec = fXSecModel_dpl->Integral(interaction);
 
-  assert(def_integrated_xsec > 0.);
-  assert(dpl_integrated_xsec > 0.);
-//  if(def_integrated_xsec <= 0 || dpl_integrated_xsec <= 0) return 1.;
+  double def_integrated_xsec = fXSecIntegrator_bba->Integrate(fXSecModel_bba, interaction);
+  double dpl_integrated_xsec = fXSecIntegrator_dpl->Integrate(fXSecModel_dpl, interaction);
+
+  LOG("ReW", pERROR) << "def_integ = " << def_integrated_xsec;
+  LOG("ReW", pERROR) << "dpl_integ = " << dpl_integrated_xsec;
+
+  if ( def_integrated_xsec <= 0. || dpl_integrated_xsec <= 0. ) {
+    LOG("ReW", pWARN) << "Non-positive total cross section encountered in"
+      << " GReWeightNuXSecCCQEvec::CalcWeight()";
+    return 1.;
+  }
 
   double def_ratio = old_xsec / def_integrated_xsec;
   double dpl_ratio = dpl_xsec / dpl_integrated_xsec;
 
-  assert(def_ratio > 0.);
+//  assert(def_ratio > 0.);
 //  if(def_ratio <= 0) return 1.;
 
-  double weight = old_weight * (dial * dpl_ratio + (1-dial)*def_ratio) / def_ratio;
+  double weight = old_weight * (dial * dpl_ratio + (1. - dial)*def_ratio) / def_ratio;
 
 #ifdef _G_REWEIGHT_CCQE_VEC_DEBUG_
   double E  = interaction->InitState().ProbeE(kRfHitNucRest);
@@ -206,6 +213,25 @@ void GReWeightNuXSecCCQEvec::Init(void)
   Algorithm * alg1 = algf->AdoptAlgorithm(elff_id);
   fXSecModel_dpl = dynamic_cast<XSecAlgorithmI*>(alg1);
   fXSecModel_dpl->AdoptSubstructure();
+
+  // Get the Algorithm objects that should be used to integrate the cross
+  // sections. Use the "ReweightShape" configuration, which turns off averaging
+  // over the initial state nucleon distribution.
+  AlgId alg0_integ_ID( alg0->GetConfig().GetAlg("XSec-Integrator").name,
+    "ReweightShape");
+
+  fXSecIntegrator_bba = dynamic_cast<XSecIntegratorI*>(
+    algf->AdoptAlgorithm(alg0_integ_ID));
+
+  assert( fXSecIntegrator_bba );
+
+  AlgId alg1_integ_ID( alg1->GetConfig().GetAlg("XSec-Integrator").name,
+    "ReweightShape");
+
+  fXSecIntegrator_dpl = dynamic_cast<XSecIntegratorI*>(
+    algf->AdoptAlgorithm(alg1_integ_ID));
+
+  assert( fXSecIntegrator_dpl );
 
   this->RewNue    (true);
   this->RewNuebar (true);

@@ -34,6 +34,7 @@ class TNtupleD;
 namespace genie {
 
 class XSecAlgorithmI;
+class XSecIntegratorI;
 class Registry;
 
 namespace rew   {
@@ -81,6 +82,10 @@ namespace rew   {
 
    XSecAlgorithmI * fXSecModelDef;    ///< default model
    XSecAlgorithmI * fXSecModel;       ///< tweaked model
+
+   XSecIntegratorI * fXSecIntegratorDef; ///< integrator for default model
+   XSecIntegratorI * fXSecIntegrator; ///< integrator for tweaked model
+
    Registry *       fXSecModelConfig; ///< config in tweaked model
    string fFFModel; ///< String name of form factor model
    bool fModelIsDipole;           ///< Using dipole form factors?

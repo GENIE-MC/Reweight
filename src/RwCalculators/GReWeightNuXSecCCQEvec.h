@@ -67,6 +67,9 @@ namespace rew   {
    XSecAlgorithmI * fXSecModel_bba;  ///< CCQE model with BBA05  f/f (default)
    XSecAlgorithmI * fXSecModel_dpl;  ///< CCQE model with dipole f/f ("maximally" tweaked)
 
+   XSecIntegratorI * fXSecIntegrator_bba;  ///< Integrator for BBA05 cross section
+   XSecIntegratorI * fXSecIntegrator_dpl;  ///< Integrator for Dipole cross section
+
    double fFFTwkDial;    ///< tweaking dial (0: bba/default, +1: dipole)
 
    bool   fRewNue;       ///< reweight nu_e CC?
