@@ -17,8 +17,7 @@
 #include "Framework/EventGen/EventRecord.h"
 #include "Framework/GHEP/GHepParticle.h"
 #include "Framework/Messenger/Messenger.h"
-#include "Physics/NuclearState/FermiMomentumTablePool.h"
-#include "Physics/NuclearState/FermiMomentumTable.h"
+#include "Physics/NuclearState/PauliBlocker.h"
 #include "Physics/NuclearState/NuclearModelI.h"
 #include "Physics/NuclearState/NuclearUtils.h"
 #include "Framework/ParticleData/PDGCodes.h"
@@ -114,32 +113,88 @@ double GReWeightFGM::CalcWeight(const EventRecord & event)
 double GReWeightFGM::RewCCQEPauliSupViaKF(const EventRecord & event)
 {
   bool kF_tweaked = (TMath::Abs(fKFTwkDial) > controls::kASmallNum);
-  if(!kF_tweaked) return 1.;
+  if ( !kF_tweaked ) return 1.;
 
   bool is_qe = event.Summary()->ProcInfo().IsQuasiElastic();
   bool is_cc = event.Summary()->ProcInfo().IsWeakCC();
-  if(!is_qe || !is_cc) return 1.;
+  if ( !is_qe || !is_cc ) return 1.;
 
   const Target & target = event.Summary()->InitState().Tgt();
-  if (!target.IsNucleus()) {
+  if ( !target.IsNucleus() ) {
      return 1.;
   }
 
+  // Don't bother to compute weights for very light nuclear targets
   double A = target.A();
-  if(A <= 4) {
-     return 1.;
+  if ( A <= 4 ) {
+    return 1.;
   }
 
-  int target_pdgc         = target.Pdg();
+  // Skip CCQE channels that do not produce a final-state nucleon
+  // (e.g., Charm-CCQE)
+  int final_nucleon_pdgc  = event.Summary()->RecoilNucleonPdg();
+  if ( !pdg::IsNucleon(final_nucleon_pdgc) ) return 1.;
+
+  // Use the PauliBlocker to look up the Fermi momentum. This is a bit
+  // of a hack, but it will allow us to get the correct value regardless
+  // of whether the current tune is using the local Fermi gas model
+  // or not.
+  AlgFactory* algf = AlgFactory::Instance();
+
+  // TODO: Make this more robust. Right now it assumes that the
+  // default PauliBlocker configuration is always being used.
+  // This may not be the case forever.
+  const PauliBlocker* pb = dynamic_cast<const PauliBlocker*>(
+    algf->GetAlgorithm("genie::PauliBlocker", "Default"));
+
+  assert( pb );
+
   int struck_nucleon_pdgc = target.HitNucPdg();
-  int final_nucleon_pdgc  = pdg::SwitchProtonNeutron(struck_nucleon_pdgc);
+  double hit_nuc_radius = target.HitNucPosition();
 
-  FermiMomentumTablePool * kftp = FermiMomentumTablePool::Instance();
-  const FermiMomentumTable * kft  = kftp->GetTable("Default");
+  // Fermi momentum for the final nucleon
+  double kFf = pb->GetFermiMomentum(target, final_nucleon_pdgc,
+    hit_nuc_radius);
 
-  // Fermi momentum for initial, final nucleons
-  double kFi = kft->FindClosestKF(target_pdgc, struck_nucleon_pdgc);
-  double kFf = kft->FindClosestKF(target_pdgc, final_nucleon_pdgc );
+  // Get the fractional error for tweaking kF
+  GSystUncertainty * uncertainty = GSystUncertainty::Instance();
+  double kF_fracerr = uncertainty->OneSigmaErr(kSystNucl_CCQEPauliSupViaKF);
+
+  // Tweaked kF for the final nucleon
+  double kFf_twk = kFf * (1 + fKFTwkDial * kF_fracerr);
+
+  // For QELEventGenerator, Pauli blocking is now handled by the cross
+  // section models themselves. The calculation doesn't rely on the
+  // analytic Pauli suppression factor used previously (which was only
+  // really valid for the FGMBodekRitchie nuclear model). Here we check
+  // whether the phase space for the CCQE event matches that used by
+  // QELEventGenerator. Admittedly, this is also a bit of a hack.
+  if ( event.DiffXSecVars() == kPSQELEvGen ) {
+
+    // Final nucleon momentum
+    double pNf = event.Summary()->Kine().HadSystP4().P();
+
+    // This event was generated using QELEventGenerator, so
+    // just check whether the final nucleon momentum is below the
+    // tweaked Fermi momentum. If it is, set the event weight to
+    // zero. Otherwise, set it to unity.
+    double weight = 1.;
+    if ( pNf < kFf_twk ) weight = 0.;
+
+    return weight;
+  }
+
+  // ************
+  // This code preserves the old behavior of this tweak dial for
+  // cases where QELEventGenerator was not used
+  // ************
+
+  // Fermi momentum for the initial nucleon
+  double kFi = pb->GetFermiMomentum(target, struck_nucleon_pdgc,
+    hit_nuc_radius);
+
+  // Tweaked kF for the initial nucleon
+  double kFi_twk = kFi * (1 + fKFTwkDial * kF_fracerr);
 
   // hit nucleon mass
   double Mn = target.HitNucP4Ptr()->M(); // can be off m/shell
@@ -154,13 +209,6 @@ double GReWeightFGM::RewCCQEPauliSupViaKF(const EventRecord & event)
   // default nuclear suppression
   double R = utils::nuclear::RQEFG_generic(q2, Mn, kFi, kFf, pmax);
 
-  // tweak kF
-  GSystUncertainty * uncertainty = GSystUncertainty::Instance();
-  double kF_fracerr = uncertainty->OneSigmaErr(kSystNucl_CCQEPauliSupViaKF);
-
-  double kFi_twk = kFi * (1 + fKFTwkDial * kF_fracerr);
-  double kFf_twk = kFf * (1 + fKFTwkDial * kF_fracerr);
-
   // calculate tweaked nuclear suppression factor
   double Rtwk = nuclear::RQEFG_generic(q2, Mn, kFi_twk, kFf_twk, pmax);
 
@@ -168,7 +216,7 @@ double GReWeightFGM::RewCCQEPauliSupViaKF(const EventRecord & event)
 
   double wght = 1.0;
 
-  if(R>0 && Rtwk>0) {
+  if ( R > 0. && Rtwk > 0. ) {
     wght = Rtwk/R;
   }
 

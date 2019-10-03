@@ -156,9 +156,6 @@ double GReWeightNuXSecCCQEvec::CalcWeight(const genie::EventRecord & event)
   double def_integrated_xsec = fXSecIntegrator_bba->Integrate(fXSecModel_bba, interaction);
   double dpl_integrated_xsec = fXSecIntegrator_dpl->Integrate(fXSecModel_dpl, interaction);
 
-  LOG("ReW", pERROR) << "def_integ = " << def_integrated_xsec;
-  LOG("ReW", pERROR) << "dpl_integ = " << dpl_integrated_xsec;
-
   if ( def_integrated_xsec <= 0. || dpl_integrated_xsec <= 0. ) {
     LOG("ReW", pWARN) << "Non-positive total cross section encountered in"
       << " GReWeightNuXSecCCQEvec::CalcWeight()";
