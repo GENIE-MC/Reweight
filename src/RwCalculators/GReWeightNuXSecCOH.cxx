@@ -181,7 +181,8 @@ void GReWeightNuXSecCOH::Init(void)
 {
   AlgConfigPool * conf_pool = AlgConfigPool::Instance();
   Registry * gpl = conf_pool->GlobalParameterList();
-  RgAlg xsec_alg = gpl->GetAlg("XSecModel@genie::EventGenerator/COH-CC");
+// -->  RgAlg xsec_alg = gpl->GetAlg("XSecModel@genie::EventGenerator/COH-CC");
+  RgAlg xsec_alg = gpl->GetAlg("XSecModel@genie::EventGenerator/COH-CC-PION");
 
   AlgId id(xsec_alg);
 
