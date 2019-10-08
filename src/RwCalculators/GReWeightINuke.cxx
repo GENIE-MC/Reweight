@@ -93,7 +93,7 @@ bool GReWeightINuke::IsHandled(GSyst_t syst) const
 bool GReWeightINuke::AppliesTo(ScatteringType_t type, bool /*is_cc*/) const
 {
   switch (type) {
-    case kScCoherent:
+    case kScCoherentProduction:
     case kScDiffractive:
     case kScNuElectronElastic:
     case kScAMNuGamma:

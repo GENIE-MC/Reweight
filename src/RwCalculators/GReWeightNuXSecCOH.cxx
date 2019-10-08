@@ -74,7 +74,7 @@ bool GReWeightNuXSecCOH::IsHandled(GSyst_t syst) const
 //_______________________________________________________________________________________
 bool GReWeightNuXSecCOH::AppliesTo(ScatteringType_t type, bool /*is_cc*/) const
 {
-  if (type==kScCoherent) {
+  if (type==kScCoherentProduction) {
     return true;
   }
   return false;
@@ -131,7 +131,7 @@ double GReWeightNuXSecCOH::CalcWeight(const genie::EventRecord & event)
 {
   Interaction * interaction = event.Summary();
 
-  bool is_coh = interaction->ProcInfo().IsCoherent();
+  bool is_coh = interaction->ProcInfo().IsCoherentProduction();
   if(!is_coh) return 1.;
 
   bool tweaked =
