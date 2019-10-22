@@ -9,16 +9,14 @@ MAKEFILE = Makefile
 
 # Include machine specific flags and locations (inc. files & libs)
 #
-include $(GENIE)/src/make/Make.include
+include $(GENIE_REWEIGHT)/src/make/Make.include
 
 doxygen: FORCE
-	$(DOXYGEN) dox/genie-doxygen;
+	$(DOXYGEN) dox/genie-reweight-doxygen;
 
 install: FORCE
-	cp setup/genie-config $(GENIE_BIN_PATH); \
-	cp gcint/genie $(GENIE_BIN_PATH); \
-	chmod 755 $(GENIE_BIN_PATH)/genie-config; \
-	chmod 755 $(GENIE_BIN_PATH)/genie; 
+	cp setup/genie-reweight-config $(GENIE_REWEIGHT_BIN_PATH); \
+	chmod 755 $(GENIE_REWEIGHT_BIN_PATH)/genie-reweight-config;
 
 #
 #install_db: FORCE
@@ -27,17 +25,15 @@ install: FORCE
 #
 
 clean: FORCE
-	$(RM) $(GENIE_BIN_PATH)/genie-config 
-	$(RM) $(GENIE_BIN_PATH)/genie
+	$(RM) $(GENIE_REWEIGHT_BIN_PATH)/genie-reweight-config
 
 #
 #clean_db: FORCE
-#	$(RM) $(GENIE_BIN_PATH)/gnuvld_dbbootstrap 
+#	$(RM) $(GENIE_REWEIGHT_BIN_PATH)/gnuvld_dbbootstrap 
 #
 
 distclean: FORCE
-	$(RM) $(GENIE_BIN_INSTALLATION_PATH)/genie-config 
-	$(RM) $(GENIE_BIN_INSTALLATION_PATH)/genie
+	$(RM) $(GENIE_REWEIGHT_BIN_PATH)/genie-reweight-config
 
 FORCE:
 
