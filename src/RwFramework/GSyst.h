@@ -188,6 +188,9 @@ typedef enum EGSyst {
   kXSecTwkDial_NormNCMEC,
   kXSecTwkDial_NormEMMEC,
 
+  // MEC nucleon cluster decay angular distribution
+  kXSecTwkDial_DecayAngMEC,
+
   //
   // Misc
   //

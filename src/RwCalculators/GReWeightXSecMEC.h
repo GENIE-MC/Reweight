@@ -49,6 +49,7 @@ namespace rew   {
 
    void Init(void);
    double CalcWeightNorm(const EventRecord& event);
+   double CalcWeightAngularDist(const EventRecord& event);
 
    /// Simple struct containing tweak dial information for the
    /// normalization of one MEC interaction type (CC, NC, EM)
@@ -67,6 +68,10 @@ namespace rew   {
    /// Lookup table linking MEC GSyst_t tweak dial enum labels to
    /// interaction modes
    static std::map<GSyst_t, InteractionType_t> fGSystToIntTypeMap;
+
+   /// Tweak dial value for adjusting the nucleon cluster decay angular
+   /// distribution
+   double fDecayAngTwkDial;
  };
 
 } // rew   namespace
