@@ -50,6 +50,7 @@ namespace rew   {
    void Init(void);
    double CalcWeightNorm(const EventRecord& event);
    double CalcWeightAngularDist(const EventRecord& event);
+   double CalcWeightPN(const EventRecord& event);
 
    /// Simple struct containing tweak dial information for the
    /// normalization of one MEC interaction type (CC, NC, EM)
@@ -72,7 +73,18 @@ namespace rew   {
    /// Tweak dial value for adjusting the nucleon cluster decay angular
    /// distribution
    double fDecayAngTwkDial;
- };
+
+   /// Tweak dial value for adjusting the fraction of CC events that
+   /// involve an initial pn pair
+   double fFracPN_CCTwkDial;
+
+   /// CCMEC cross section model used to generate the events (untweaked)
+   XSecAlgorithmI* fXSecAlgCCDef;
+
+   ///// Tweak dial value for adjusting the fraction of CC events that
+   ///// involve an internal Delta
+   //double fFracDelta_CC;
+};
 
 } // rew   namespace
 } // genie namespace
