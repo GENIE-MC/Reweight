@@ -51,6 +51,9 @@ namespace rew   {
    double CalcWeightNorm(const EventRecord& event);
    double CalcWeightAngularDist(const EventRecord& event);
    double CalcWeightPNDelta(const EventRecord& event);
+   double CalcWeightXSecShape(const EventRecord& event);
+
+   double TotalXSecEmpiricalMEC(const Interaction* interaction);
 
    /// Simple struct containing tweak dial information for the
    /// normalization of one MEC interaction type (CC, NC, EM)
@@ -78,12 +81,22 @@ namespace rew   {
    /// involve an initial pn pair
    double fFracPN_CCTwkDial;
 
-   ///// Tweak dial value for adjusting the fraction of CC events that
-   ///// involve an internal Delta
+   /// Tweak dial value for adjusting the fraction of CC events that
+   /// involve an internal Delta
    double fFracDelta_CCTwkDial;
 
    /// CCMEC cross section model used to generate the events (untweaked)
    XSecAlgorithmI* fXSecAlgCCDef;
+
+   /// Alternate CCMEC cross section model
+   XSecAlgorithmI* fXSecAlgCCAlt;
+
+   /// Phase space used by the alternate CCMEC cross section model
+   KinePhaseSpace_t fXSecCCAltPhaseSpace;
+
+   /// Tweak dial that interpolates the shape of the CCMEC differential cross
+   /// section between models
+   double fCCXSecShapeTwkDial;
 };
 
 } // rew   namespace

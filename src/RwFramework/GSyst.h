@@ -198,6 +198,10 @@ typedef enum EGSyst {
   // (currently only used by Valencia MEC)
   kXSecTwkDial_FracDelta_CCMEC,
 
+  // Shape of CCMEC differential cross section (interpolates
+  // between models)
+  kXSecTwkDial_XSecShape_CCMEC,
+
   //
   // Misc
   //
