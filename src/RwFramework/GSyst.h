@@ -194,6 +194,10 @@ typedef enum EGSyst {
   // Fraction of CCMEC initial nucleon clusters that are p+n
   kXSecTwkDial_FracPN_CCMEC,
 
+  // Fraction of CCMEC events involving an internal delta line
+  // (currently only used by Valencia MEC)
+  kXSecTwkDial_FracDelta_CCMEC,
+
   //
   // Misc
   //

@@ -78,6 +78,7 @@ bool GReWeightXSecMEC::IsHandled(GSyst_t syst) const
   // whether we can handle these first.
   if ( syst == kXSecTwkDial_DecayAngMEC ) return true;
   if ( syst == kXSecTwkDial_FracPN_CCMEC ) return true;
+  if ( syst == kXSecTwkDial_FracDelta_CCMEC ) return true;
 
   // If we have an entry for a knob that is interaction type dependent in the
   // GSyst_t -> InteractionType_t map, then this calculator can handle it.
@@ -106,6 +107,10 @@ void GReWeightXSecMEC::SetSystematic(GSyst_t syst, double twk_dial)
     fFracPN_CCTwkDial = twk_dial;
     return;
   }
+  else if ( syst == kXSecTwkDial_FracDelta_CCMEC ) {
+    fFracDelta_CCTwkDial = twk_dial;
+    return;
+  }
 
   // We've already checked that there is an entry for the given knob in the map
   // during the previous call to IsHandled(). Therefore, just retrieve the
@@ -131,6 +136,7 @@ void GReWeightXSecMEC::Reset(void)
   fDecayAngTwkDial = 0.;
 
   fFracPN_CCTwkDial = 0.;
+  fFracDelta_CCTwkDial = 0.;
 
   this->Reconfigure();
 }
@@ -168,7 +174,7 @@ double GReWeightXSecMEC::CalcWeight(const genie::EventRecord& event)
 
   double weight = this->CalcWeightNorm( event );
   weight *= this->CalcWeightAngularDist( event );
-  weight *= this->CalcWeightPN( event );
+  weight *= this->CalcWeightPNDelta( event );
   return weight;
 }
 //_______________________________________________________________________________________
@@ -177,6 +183,7 @@ void GReWeightXSecMEC::Init(void) {
   // Set the tweak dials to their default values
   fDecayAngTwkDial = 0.;
   fFracPN_CCTwkDial = 0.;
+  fFracDelta_CCTwkDial = 0.;
 
   // Set the default normalization for each interaction type (tweak dial = 0
   // corresponds to a normalization factor of 1)
@@ -337,7 +344,7 @@ double GReWeightXSecMEC::CalcWeightAngularDist(const genie::EventRecord& event)
   return weight;
 }
 //_______________________________________________________________________________________
-double GReWeightXSecMEC::CalcWeightPN(const genie::EventRecord& event)
+double GReWeightXSecMEC::CalcWeightPNDelta(const genie::EventRecord& event)
 {
   // Only handle CC events for now (and return unit weight for the others)
   // TODO: Add capability to tweak nucleon pair isospin for NC, EM
@@ -346,7 +353,8 @@ double GReWeightXSecMEC::CalcWeightPN(const genie::EventRecord& event)
 
   // If the tweak dial is set to zero (or is really small) then just return a
   // weight of unity
-  bool tweaked = ( std::abs(fFracPN_CCTwkDial) > controls::kASmallNum );
+  bool tweaked = ( std::abs(fFracPN_CCTwkDial) > controls::kASmallNum
+    || std::abs(fFracDelta_CCTwkDial) > controls::kASmallNum );
   if ( !tweaked ) return 1.;
 
   // Enforce that the current event involves an initial nucleon cluster.
@@ -357,7 +365,13 @@ double GReWeightXSecMEC::CalcWeightPN(const genie::EventRecord& event)
   int two_nuc_pdg = initial_nucleon_cluster->Pdg();
   assert( pdg::Is2NucleonCluster(two_nuc_pdg) );
 
+  // Whether the current event involved an initial pn nucleon cluster
   bool is_pn_event = ( two_nuc_pdg == kPdgClusterNP );
+
+  // Whether the current event involved a virtual delta resonance
+  // (currently only used by the Valencia model). If this is the
+  // case, then a resonance will be set in the interaction.
+  bool is_delta_event = event.Summary()->ExclTag().KnownResonance();
 
   // Calculate the model's default fraction of initial pn pairs. For empirical
   // MEC, this is just a fixed number from the configuration. For Valencia, it's
@@ -365,11 +379,19 @@ double GReWeightXSecMEC::CalcWeightPN(const genie::EventRecord& event)
   // differential cross sections.
   double pn_frac_def = 0.;
 
+  // Also calculate the model's default fraction of internal deltas. This
+  // is only used by the Valencia model for now.
+  double delta_frac_def = 0.;
+
   std::string cc_def_alg_name = fXSecAlgCCDef->Id().Name();
   if ( cc_def_alg_name == "genie::EmpiricalMECPXSec2015" ) {
     // For GENIE's empirical MEC model, the pn fraction is not dependent on
     // kinematics. We can just retrieve the value from the model configuration.
     pn_frac_def = fXSecAlgCCDef->GetConfig().GetDouble( "EmpiricalMEC-FracPN_CC" );
+    // The empirical MEC model doesn't account for internal delta resonances
+    // explicitly. We've set the default delta fraction to zero above, but just in
+    // case, let's repeat that here.
+    delta_frac_def = 0.;
   }
   else if ( cc_def_alg_name == "genie::NievesSimoVacasMECPXSec2016" ) {
     // For the Valencia MEC model, the pn fraction can vary with q0 and q3. We
@@ -389,19 +411,46 @@ double GReWeightXSecMEC::CalcWeightPN(const genie::EventRecord& event)
     // this for use those. Unlike CC, all three pair types can participate in
     // NC & EM.
 
-    // Get the differential cross section for an initial pn pair
+    // Get the differential cross section for an initial pn pair. Clear any
+    // set resonance so that we get the total differential cross section.
     interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( kPdgClusterNP );
+    interaction->ExclTagPtr()->SetResonance( kNoResonance );
     double xsec_pn = fXSecAlgCCDef->XSec( interaction, kPSTlctl );
 
-    // Get the total differential cross section
+    // Get the total differential cross section (the resonance is still
+    // cleared)
     interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( 0 );
     double xsec_tot = fXSecAlgCCDef->XSec( interaction, kPSTlctl );
+
+    // Get the total differential cross section for an internal resonance
+    interaction->ExclTagPtr()->SetResonance( kP33_1232 );
+    double xsec_tot_delta = fXSecAlgCCDef->XSec( interaction, kPSTlctl );
+
+    // Get the differential cross section for an internal resonance and an
+    // initial pn pair (the resonance is still set)
+    interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( kPdgClusterNP );
+    double xsec_pn_delta = fXSecAlgCCDef->XSec( interaction, kPSTlctl );
 
     // We don't need the cloned interaction anymore, so delete it
     delete interaction;
 
     assert( xsec_tot > 0. );
     pn_frac_def = xsec_pn / xsec_tot;
+
+    // Compute the delta fraction appropriate for the initial nucleon cluster
+    // type sampled in this event. This allows us to maintain consistency when
+    // potentially tweaking both the pn fraction and delta fraction.
+    if ( is_pn_event ) {
+      assert( xsec_pn > 0. );
+      delta_frac_def = xsec_pn_delta / xsec_pn;
+    }
+    else {
+      double xsec_nn = xsec_tot - xsec_pn;
+      double xsec_nn_delta = xsec_tot_delta - xsec_pn_delta;
+      assert( xsec_nn > 0. );
+      delta_frac_def = xsec_nn_delta / xsec_nn;
+    }
+
   }
   else if ( cc_def_alg_name == "genie::SuSAv2MECPXSec" ) {
     // TODO: actually implement this
@@ -410,31 +459,42 @@ double GReWeightXSecMEC::CalcWeightPN(const genie::EventRecord& event)
   }
   else {
     LOG("ReW", pERROR) << "Unrecognized MEC model " << cc_def_alg_name
-      << " encountered in genie::rew::GReWeightXSecMEC::CalcWeightPN()";
+      << " encountered in genie::rew::GReWeightXSecMEC::CalcWeightPNDelta()";
     return 1.;
   }
 
   // Check that the pn fraction computed above is sane. If not, complain and
   // return a unit weight.
   bool impossible_pp_or_nn_event = ( pn_frac_def == 1. && !is_pn_event );
-  if ( pn_frac_def <= 0. || pn_frac_def > 1. || impossible_pp_or_nn_event ) {
+  if ( pn_frac_def < 0. || pn_frac_def > 1. || impossible_pp_or_nn_event ) {
     LOG("ReW", pERROR) << "Invalid pn fraction value " << pn_frac_def
-      << " encountered in genie::rew::GReWeightXSecMEC::CalcWeightPN()";
+      << " encountered in genie::rew::GReWeightXSecMEC::CalcWeightPNDelta()";
+    return 1.;
+  }
+
+  // Do the same for the delta fraction.
+  bool impossible_delta_event = ( delta_frac_def == 1. && !is_delta_event );
+  if ( delta_frac_def < 0. || delta_frac_def > 1. || impossible_delta_event ) {
+    LOG("ReW", pERROR) << "Invalid delta fraction value " << delta_frac_def
+      << " encountered in genie::rew::GReWeightXSecMEC::CalcWeightPNDelta()";
     return 1.;
   }
 
   // TODO: add support for asymmetric errors here
   GSystUncertainty* gsu = GSystUncertainty::Instance();
   double frac_err_pn_cc = gsu->OneSigmaErr( kXSecTwkDial_FracPN_CCMEC );
+  double frac_err_delta_cc = gsu->OneSigmaErr( kXSecTwkDial_FracDelta_CCMEC );
 
   // Compute the scaling factor for the pn fraction that corresponds to the
   // current tweak dial setting
   double pn_tweak_factor = ( 1. + fFracPN_CCTwkDial * frac_err_pn_cc );
+  double delta_tweak_factor = ( 1. + fFracDelta_CCTwkDial * frac_err_delta_cc );
 
   // To conserve the total cross section (which is separately controlled by the
   // normalization tweak dials), enforce that the tweaked pn fraction lies on
-  // the interval [0, 1]
+  // the interval [0, 1]. Do the same for the delta fraction.
   double pn_frac_tweak = std::max( std::min(1., pn_frac_def * pn_tweak_factor), 0. );
+  double delta_frac_tweak = std::max( std::min(1., delta_frac_def * delta_tweak_factor), 0. );
 
   // Assign the appropriate likelihood ratio as the weight. Note that
   // we've already checked that pn_frac_def lies in a reasonable range
@@ -443,10 +503,18 @@ double GReWeightXSecMEC::CalcWeightPN(const genie::EventRecord& event)
   if ( is_pn_event ) weight = pn_frac_tweak / pn_frac_def;
   else weight = ( 1. - pn_frac_tweak ) / ( 1. - pn_frac_def );
 
-  LOG("ReW", pERROR) << "twk_dial = " << fFracPN_CCTwkDial << ", frac_err = "
+  // Also multiply by the tweaked delta fraction
+  if ( is_delta_event ) weight *= delta_frac_tweak / delta_frac_def;
+  else weight *= ( 1. - delta_frac_tweak ) / ( 1. - delta_frac_def );
+
+  LOG("ReW", pDEBUG) << "pn_twk_dial = " << fFracPN_CCTwkDial << ", frac_err = "
     << frac_err_pn_cc;
-  LOG("ReW", pERROR) << "pn_frac_def = " << pn_frac_def << ", pn_frac_tweak = "
-    << pn_frac_tweak << ", weight = " << weight;
+  LOG("ReW", pDEBUG) << "pn_frac_def = " << pn_frac_def << ", pn_frac_tweak = "
+    << pn_frac_tweak;
+  LOG("ReW", pDEBUG) << "delta_twk_dial = " << fFracDelta_CCTwkDial << ", frac_err = "
+    << frac_err_delta_cc;
+  LOG("ReW", pDEBUG) << "delta_frac_def = " << delta_frac_def << ", delta_frac_tweak = "
+    << delta_frac_tweak << ", weight = " << weight;
 
   return weight;
 }
