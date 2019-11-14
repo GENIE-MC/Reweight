@@ -79,6 +79,7 @@ namespace rew   {
    double CalcWeightMaShape   (const EventRecord & event);
    double CalcWeightMa        (const EventRecord & event);
    double CalcWeightZExp      (const EventRecord & event);
+   double CalcWeightRPA       (const EventRecord & event);
 
    XSecAlgorithmI * fXSecModelDef;    ///< default model
    XSecAlgorithmI * fXSecModel;       ///< tweaked model
@@ -119,6 +120,10 @@ namespace rew   {
    double  fZExpTwkDial[fZExpMaxSyst]; ///<
    double  fZExpDef    [fZExpMaxSyst]; ///<
    double  fZExpCurr   [fZExpMaxSyst]; ///< array of current parameter values
+
+   double fRPATwkDial; ///< 0 = default, 1 = RPA off (changes Nieves CCQE only)
+   /// Copy of the default cross section model with RPA turned off
+   XSecAlgorithmI* fXSecModelDefNoRPA;
 
 #ifdef _G_REWEIGHT_CCQE_DEBUG_
    TFile *    fTestFile;

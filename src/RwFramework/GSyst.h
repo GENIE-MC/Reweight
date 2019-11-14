@@ -202,6 +202,10 @@ typedef enum EGSyst {
   // between models)
   kXSecTwkDial_XSecShape_CCMEC,
 
+  // Interpolates between the default CCQE model and the same
+  // one with RPA off (only gives non-unit weights for Nieves CCQE)
+  kXSecTwkDial_RPA_CCQE,
+
   //
   // Misc
   //

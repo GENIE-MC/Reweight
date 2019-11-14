@@ -69,6 +69,15 @@ fManualModelType(type)
 //_______________________________________________________________________________________
 GReWeightNuXSecCCQE::~GReWeightNuXSecCCQE()
 {
+  if ( fXSecModelConfig ) delete fXSecModelConfig;
+
+  if ( fXSecModel ) delete fXSecModel;
+  if ( fXSecModelDef ) delete fXSecModelDef;
+  if ( fXSecModelDefNoRPA ) delete fXSecModelDefNoRPA;
+
+  if ( fXSecIntegrator ) delete fXSecIntegrator;
+  if ( fXSecIntegratorDef ) delete fXSecIntegratorDef;
+
 #ifdef _G_REWEIGHT_CCQE_DEBUG_
   fTestFile->cd();
   fTestNtp ->Write();
@@ -83,6 +92,10 @@ bool GReWeightNuXSecCCQE::IsHandled(GSyst_t syst) const
    bool handle;
 
    switch(syst) {
+
+     case ( kXSecTwkDial_RPA_CCQE ) :
+       handle = true;
+       break;
 
      case ( kXSecTwkDial_NormCCQE    ) :
        if(fMode==kModeNormAndMaShape && (fModelIsDipole || fModelIsRunningMa))
@@ -184,6 +197,9 @@ void GReWeightNuXSecCCQE::SetSystematic(GSyst_t syst, double twk_dial)
       case ( kXSecTwkDial_ZExpA4CCQE ) :
         if(fZExpMaxCoef>3){ fZExpTwkDial[3] = twk_dial; }
         break;
+      case ( kXSecTwkDial_RPA_CCQE ) :
+        fRPATwkDial = twk_dial;
+        break;
       default:
         break;
     }
@@ -202,6 +218,8 @@ void GReWeightNuXSecCCQE::Reset(void)
     fZExpTwkDial[i] = 0.;
     fZExpCurr   [i] = fZExpDef[i];
   }
+
+  fRPATwkDial = 0.;
 
   this->Reconfigure();
 }
@@ -306,33 +324,31 @@ double GReWeightNuXSecCCQE::CalcWeight(const genie::EventRecord & event)
 {
   bool is_qe = event.Summary()->ProcInfo().IsQuasiElastic();
   bool is_cc = event.Summary()->ProcInfo().IsWeakCC();
-  if(!is_qe || !is_cc) return 1.;
+  if ( !is_qe || !is_cc ) return 1.;
 
   bool charm = event.Summary()->ExclTag().IsCharmEvent(); // skip CCQE charm
-  if(charm) return 1.;
+  if ( charm ) return 1.;
 
   int nupdg = event.Probe()->Pdg();
-  if(nupdg==kPdgNuMu     && !fRewNumu   ) return 1.;
-  if(nupdg==kPdgAntiNuMu && !fRewNumubar) return 1.;
-  if(nupdg==kPdgNuE      && !fRewNue    ) return 1.;
-  if(nupdg==kPdgAntiNuE  && !fRewNuebar ) return 1.;
+  if ( nupdg==kPdgNuMu     && !fRewNumu   ) return 1.;
+  if ( nupdg==kPdgAntiNuMu && !fRewNumubar) return 1.;
+  if ( nupdg==kPdgNuE      && !fRewNue    ) return 1.;
+  if ( nupdg==kPdgAntiNuE  && !fRewNuebar ) return 1.;
 
-  if(fMode==kModeMa && (fModelIsDipole || fModelIsRunningMa)) {
-     double wght = this->CalcWeightMa(event);
+  double wght = this->CalcWeightRPA( event );
+
+  if ( fMode==kModeMa && (fModelIsDipole || fModelIsRunningMa) ) {
+     wght *= this->CalcWeightMa(event);
      return wght;
   }
   else
-  if(fMode==kModeNormAndMaShape && (fModelIsDipole || fModelIsRunningMa)) {
-     double wght =
-         this->CalcWeightNorm    (event) *
-         this->CalcWeightMaShape (event);
+  if ( fMode==kModeNormAndMaShape && (fModelIsDipole || fModelIsRunningMa) ) {
+     wght *= this->CalcWeightNorm( event ) * this->CalcWeightMaShape( event );
      return wght;
   }
   else
-  if(fMode==kModeZExp && fModelIsZExp) {
-     double wght =
-         this->CalcWeightNorm(event) *
-         this->CalcWeightZExp(event);
+  if ( fMode==kModeZExp && fModelIsZExp ) {
+     wght *= this->CalcWeightNorm( event ) * this->CalcWeightZExp( event );
      return wght;
   }
 
@@ -441,6 +457,18 @@ void GReWeightNuXSecCCQE::Init(void)
     fZExpTwkDial[i] = 0.;
     fZExpCurr   [i] = fZExpDef[i];
   }
+
+  fRPATwkDial = 0.;
+
+  // Make a copy of the default cross section model that has RPA turned off
+  Algorithm* alg_def_copy = algf->AdoptAlgorithm( id );
+  fXSecModelDefNoRPA = dynamic_cast<XSecAlgorithmI*>( alg_def_copy );
+  fXSecModelDefNoRPA->AdoptSubstructure();
+
+  Registry* rpa_off_reg = fXSecModelDef->GetOwnedConfig();
+  rpa_off_reg->Set("RPA", false);
+
+  fXSecModelDefNoRPA->Configure( *rpa_off_reg );
 
 #ifdef _G_REWEIGHT_CCQE_DEBUG_
   fTestFile = new TFile("./ccqe_reweight_test.root","recreate");
@@ -615,3 +643,47 @@ double GReWeightNuXSecCCQE::CalcWeightZExp(const genie::EventRecord & event)
   return new_weight;
 }
 //_______________________________________________________________________________________
+double GReWeightNuXSecCCQE::CalcWeightRPA(const genie::EventRecord& event)
+{
+  // Only bother to do the calculation if the tweak dial value was noticeably
+  // altered
+  bool tweaked = ( std::abs(fRPATwkDial) > controls::kASmallNum );
+  if ( !tweaked ) return 1.;
+
+  Interaction* interaction = event.Summary();
+
+  interaction->KinePtr()->UseSelectedKinematics();
+
+  // Retrieve the kinematic phase space used to generate the event
+  const KinePhaseSpace_t phase_space = event.DiffXSecVars();
+  double old_xsec = event.DiffXSec();
+
+  if ( phase_space == kPSQ2fE ) interaction->SetBit(kIAssumeFreeNucleon);
+
+  if  ( !fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo ) {
+    double calc_old_xsec = fXSecModelDef->XSec( interaction, phase_space );
+    if ( fNWeightChecksDone < fNWeightChecksToDo ) {
+      if ( std::abs(calc_old_xsec - old_xsec) / old_xsec > controls::kASmallNum ) {
+        LOG("ReW", pWARN) << "Warning - default dxsec does not match dxsec"
+          << " saved in tree. Does the config match?";
+      }
+      ++fNWeightChecksDone;
+    }
+    if ( !fUseOldWeightFromFile ) old_xsec = calc_old_xsec;
+  }
+
+  assert( old_xsec > 0. );
+
+  double rpa_off_xsec = fXSecModelDefNoRPA->XSec( interaction, phase_space );
+
+  LOG("ReW", pDEBUG) << "old_xsec = " << old_xsec << ", RPA off = " << rpa_off_xsec;
+
+  double new_xsec = fRPATwkDial*rpa_off_xsec + (1. - fRPATwkDial)*old_xsec;
+  double weight = new_xsec / old_xsec;
+
+  interaction->KinePtr()->ClearRunningValues();
+
+  if ( phase_space == kPSQ2fE ) interaction->ResetBit(kIAssumeFreeNucleon);
+
+  return weight;
+}
