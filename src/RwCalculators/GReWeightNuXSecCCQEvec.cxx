@@ -47,6 +47,9 @@ GReWeightModel("CCQEvec")
 //_______________________________________________________________________________________
 GReWeightNuXSecCCQEvec::~GReWeightNuXSecCCQEvec()
 {
+  if ( fXSecModel_bba ) delete fXSecModel_bba;
+  if ( fXSecModel_dpl ) delete fXSecModel_dpl;
+
 #ifdef _G_REWEIGHT_CCQE_VEC_DEBUG_
   fTestFile->cd();
   fTestNtp ->Write();
@@ -188,28 +191,51 @@ double GReWeightNuXSecCCQEvec::CalcWeight(const genie::EventRecord & event)
 //_______________________________________________________________________________________
 void GReWeightNuXSecCCQEvec::Init(void)
 {
-  AlgConfigPool * conf_pool = AlgConfigPool::Instance();
-  Registry * gpl = conf_pool->GlobalParameterList();
-  RgAlg xsec_alg = gpl->GetAlg("XSecModel@genie::EventGenerator/QEL-CC");
+  AlgConfigPool* conf_pool = AlgConfigPool::Instance();
+  Registry* gpl = conf_pool->GlobalParameterList();
+  RgAlg xsec_alg = gpl->GetAlg( "XSecModel@genie::EventGenerator/QEL-CC" );
 
-  AlgId def_id(xsec_alg); // no "default" anymore
-  AlgId elff_id(AlgId(xsec_alg).Name(),"Dipole");
+  // Get the algorithm ID corresponding to the active CCQE cross section model
+  // for the current tune
+  AlgId def_id( xsec_alg );
 
-  // I can't see why we'd want a non-default model name here, so this bit is unnecessary for now
-  //~ if (fManualModelName.size()) {
-    //~ def_id   = AlgId(fManualModelName,"Dipole");
-    //~ elff_id  = AlgId(fManualModelName,"DipoleELFF");
-  //~ }
+  AlgFactory* algf = AlgFactory::Instance();
 
-  AlgFactory * algf = AlgFactory::Instance();
-
-  Algorithm * alg0 = algf->AdoptAlgorithm(def_id);
-  fXSecModel_bba = dynamic_cast<XSecAlgorithmI*>(alg0);
+  // Instantiate a copy of the default CCQE cross section model
+  // (typically with BBA vector form factors)
+  Algorithm* alg0 = algf->AdoptAlgorithm( def_id );
+  fXSecModel_bba = dynamic_cast<XSecAlgorithmI*>( alg0 );
   fXSecModel_bba->AdoptSubstructure();
 
-  Algorithm * alg1 = algf->AdoptAlgorithm(elff_id);
-  fXSecModel_dpl = dynamic_cast<XSecAlgorithmI*>(alg1);
+  // Make a copy of the default cross section model.
+  // We'll reconfigure this one to use dipole elastic form factors.
+  Algorithm* alg1 = algf->AdoptAlgorithm( def_id );
+  fXSecModel_dpl = dynamic_cast<XSecAlgorithmI*>( alg1 );
   fXSecModel_dpl->AdoptSubstructure();
+
+  // Reconfigure the FormFactorsAlg sub-algorithm to use dipole
+  // elastic form factors
+  Registry temp_reg = fXSecModel_dpl->GetConfig();
+  RgAlg new_effm( "genie::DipoleELFormFactorsModel", "Default" );
+  temp_reg.Set( "FormFactorsAlg/ElasticFormFactorsModel", new_effm );
+
+  fXSecModel_dpl->Configure( temp_reg );
+
+  // The const_cast here is evil, but we need to delete the old
+  // elastic form factors model in favor of the new one.
+  // There doesn't seem to be any easy way of doing that for
+  // a sub-subalgorithm with the current configuration framework.
+  // Calling AdoptSubstructure() here accomplishes that.
+  // TODO: See if there's a better way of doing this. The
+  // technique used here is pretty ugly. - S. Gardiner
+  Algorithm* ffalg = const_cast< Algorithm* >(
+    fXSecModel_dpl->SubAlg("FormFactorsAlg") );
+  ffalg->AdoptSubstructure();
+
+  // Now that we have a new elastic form factors model, call Configure() for
+  // the CCQE cross section model again. This will ensure that the new form
+  // factors model is properly set up.
+  fXSecModel_dpl->Configure( temp_reg );
 
   // Get the Algorithm objects that should be used to integrate the cross
   // sections. Use the "ReweightShape" configuration, which turns off averaging
