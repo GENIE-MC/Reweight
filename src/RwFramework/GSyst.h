@@ -147,6 +147,7 @@ typedef enum EGSyst {
   kRDcyTwkDial_BR1gamma,        ///< tweak Resonance -> X + gamma branching ratio, eg Delta+(1232) -> p gamma
   kRDcyTwkDial_BR1eta,          ///< tweak Resonance -> X + eta   branching ratio, eg N+(1440) -> p eta
   kRDcyTwkDial_Theta_Delta2Npi,  ///< distort pi angular distribution in Delta -> N + pi
+   kRDcyTwkDial_Theta_Delta2NRad,  ///< distort photon angular distribution in Delta -> N + photon
 
   //
   // Alternative approach to CCQE form factors (z-expansion)
