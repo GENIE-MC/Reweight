@@ -1,27 +1,25 @@
 //____________________________________________________________________________
 /*!
 
-\class    genie::rew::GReWeightResonanceDecay
+\class    genie::rew::GReWeightDeltaradAngle
 
 \brief    Reweighting resonance decays
 
-\author   Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
-          University of Liverpool & STFC Rutherford Appleton Lab
+\author   Gray Yarbrough <gyarbrou \at vols.utk.edu>
+          University of Tennessee, Knoxvile
 
-          Jim Dobson <J.Dobson07 \at imperial.ac.uk>
-          Imperial College London
+          Steven Gardiner <gardiner \at fnal.gov>
+          Fermi National Accelerator Laboratory
 
-\created  Apr 26, 2010
+\created  Mar 2, 2020
 
-\cpright  Copyright (c) 2003-2018, The GENIE Collaboration
+\cpright  Copyright (c) 2003-2020, The GENIE Collaboration
           For the full text of the license visit http://copyright.genie-mc.org
 */
 //____________________________________________________________________________
 
-#ifndef _G_REWEIGHT_RESDEC_H_
-#define _G_REWEIGHT_RESDEC_H_
-
-//#define _G_REWEIGHT_RESDEC_DEBUG_
+#ifndef _G_REWEIGHT_DELTARAD_ANGLE_H_
+#define _G_REWEIGHT_DELTARAD_ANGLE_H_
 
 #include <map>
 
@@ -52,39 +50,15 @@ namespace rew   {
    void   Reconfigure    (void);
    double CalcWeight     (const EventRecord & event);
 
-   // various config options
-   void RewNue      (bool tf ) { fRewNue     = tf; }
-   void RewNuebar   (bool tf ) { fRewNuebar  = tf; }
-   void RewNumu     (bool tf ) { fRewNumu    = tf; }
-   void RewNumubar  (bool tf ) { fRewNumubar = tf; }
-   void RewCC       (bool tf ) { fRewCC      = tf; }
-   void RewNC       (bool tf ) { fRewNC      = tf; }
-
  private:
 
-   void   Init              (void);
-   double RewBR             (const EventRecord & event);
+   void   Init(void);
    double RewThetaDelta2NRad (const EventRecord & event);
 
    double fThetaDelta2NRadTwkDial;
-
-   bool   fRewNue;       ///< reweight nu_e?
-   bool   fRewNuebar;    ///< reweight nu_e_bar?
-   bool   fRewNumu;      ///< reweight nu_mu?
-   bool   fRewNumubar;   ///< reweight nu_mu_bar?
-   bool   fRewCC;        ///< reweight CC?
-   bool   fRewNC;        ///< reweight NC?
-
-   std::map<int, TH1D*> fMpBR1gammaDef; // resonance pdg -> X + 1gamma, default BR = f(W)
-   std::map<int, TH1D*> fMpBR1etaDef;   // resonance pdg -> X + 1eta,   default BR = f(W)
-
-#ifdef _G_REWEIGHT_RESDEC_DEBUG_
-   TFile *    fTestFile;
-   TNtupleD * fTestNtp;
-#endif
  };
 
 } // rew
 } // genie
 
-#endif
+#endif // _G_REWEIGHT_DELTARAD_ANGLE_H_
