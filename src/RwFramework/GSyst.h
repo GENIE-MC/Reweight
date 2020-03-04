@@ -209,6 +209,10 @@ typedef enum EGSyst {
   /// Distort photon angular distribution in Delta -> N + photon
   kRDcyTwkDial_Theta_Delta2NRad,
 
+  // Tweak the value of the EM potential used when computing the Coulomb
+  // correction factor in the Nieves CCQE model
+  kXSecTwkDial_CoulombCCQE,
+
   //
   // Misc
   //

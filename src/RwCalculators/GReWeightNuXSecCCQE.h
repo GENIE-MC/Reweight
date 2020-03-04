@@ -80,6 +80,7 @@ namespace rew   {
    double CalcWeightMa        (const EventRecord & event);
    double CalcWeightZExp      (const EventRecord & event);
    double CalcWeightRPA       (const EventRecord & event);
+   double CalcWeightCoulomb   (const EventRecord & event);
 
    XSecAlgorithmI * fXSecModelDef;    ///< default model
    XSecAlgorithmI * fXSecModel;       ///< tweaked model
@@ -122,8 +123,17 @@ namespace rew   {
    double  fZExpCurr   [fZExpMaxSyst]; ///< array of current parameter values
 
    double fRPATwkDial; ///< 0 = default, 1 = RPA off (changes Nieves CCQE only)
+
+   /// Scales the EM potential used for Coulomb corrections (changes Nieves CCQE
+   /// only)
+   double fCoulombTwkDial;
+
    /// Copy of the default cross section model with RPA turned off
    XSecAlgorithmI* fXSecModelDefNoRPA;
+
+   /// Copy of the default cross section model with a tweaked value of the EM
+   /// potential used for Coulomb corrections
+   XSecAlgorithmI* fXSecModelDefCoulomb;
 
 #ifdef _G_REWEIGHT_CCQE_DEBUG_
    TFile *    fTestFile;
