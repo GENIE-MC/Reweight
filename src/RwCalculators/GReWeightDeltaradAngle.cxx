@@ -108,20 +108,24 @@ double GReWeightDeltaradAngle::RewThetaDelta2NRad(const EventRecord & event)
   GHepParticle* p = 0;
   TIter iter( &event );
   while ( (p = dynamic_cast< GHepParticle* >(iter.Next())) ) {
-    bool is_Deltap = ( p->Pdg() == kPdgP33m1232_DeltaP );
-    if ( is_Deltap ) {
+    // Handle radiative decays of Delta+ and Delta0
+    bool is_DeltaP = ( p->Pdg() == kPdgP33m1232_DeltaP );
+    bool is_Delta0 = ( p->Pdg() == kPdgP33m1232_Delta0 );
+    if ( is_DeltaP || is_Delta0 ) {
+      // Determine the final nucleon PDG code based on the resonance charge
+      int final_nuc_pdg = is_DeltaP ? kPdgProton : kPdgNeutron;
       ir = i;
       int fd = p->FirstDaughter();
       int ld = p->LastDaughter();
       int nd = 1 + ld - fd;
-      if ( nd==2 ) {
+      if ( nd == 2 ) {
         int fpdg = event.Particle( fd )->Pdg();
         int lpdg = event.Particle( ld )->Pdg();
-        if ( fpdg == kPdgGamma && lpdg == kPdgProton) {
+        if ( fpdg == kPdgGamma && lpdg == final_nuc_pdg ) {
           is_Delta_rad = true;
           ig = fd;
         }
-        if ( fpdg==kPdgProton && lpdg==kPdgGamma ) {
+        else if ( fpdg == final_nuc_pdg && lpdg == kPdgGamma ) {
           is_Delta_rad = true;
           ig = ld;
         }
@@ -134,7 +138,7 @@ double GReWeightDeltaradAngle::RewThetaDelta2NRad(const EventRecord & event)
 
   if ( !is_Delta_rad ) return 1.;
 
-  LOG("ReW", pDEBUG) << "A Delta+ -> p photon event:";
+  LOG("ReW", pDEBUG) << "A Delta -> N + photon event:";
   LOG("ReW", pDEBUG) << "Resonance is at position: " << ir;
   LOG("ReW", pDEBUG) << "Gamma is at position: " << ig;
 
