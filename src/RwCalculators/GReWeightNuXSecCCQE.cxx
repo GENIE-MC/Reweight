@@ -332,7 +332,7 @@ void GReWeightNuXSecCCQE::Reconfigure(void)
   double scaleC = (1. + fCoulombTwkDial * frac_sigma_C);
 
   // Update the configuration for the Coulomb-tweaked cross section model
-  Registry coulomb_reg = *fXSecModelDef->GetOwnedConfig();
+  Registry coulomb_reg = fXSecModelDef->GetConfig();
   coulomb_reg.Set( "CoulombScale", scaleC );
   fXSecModelDefCoulomb->Configure( coulomb_reg );
 }
@@ -485,10 +485,10 @@ void GReWeightNuXSecCCQE::Init(void)
   fXSecModelDefNoRPA = dynamic_cast<XSecAlgorithmI*>( alg_def_copy );
   fXSecModelDefNoRPA->AdoptSubstructure();
 
-  Registry* rpa_off_reg = fXSecModelDef->GetOwnedConfig();
-  rpa_off_reg->Set("RPA", false);
+  Registry rpa_off_reg = fXSecModelDef->GetConfig();
+  rpa_off_reg.Set("RPA", false);
 
-  fXSecModelDefNoRPA->Configure( *rpa_off_reg );
+  fXSecModelDefNoRPA->Configure( rpa_off_reg );
 
   // Make a copy of the default cross section model with a tweaked
   // value of the scaling factor for the Coulomb potential
