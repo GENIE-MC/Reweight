@@ -370,6 +370,7 @@ void GReWeightResonanceDecay::Init(void)
 
   const int respdgarray[] = {
     kPdgP33m1232_DeltaM, kPdgP33m1232_Delta0, kPdgP33m1232_DeltaP, kPdgP33m1232_DeltaPP,
+    kPdgP33m1600_DeltaM, kPdgP33m1600_Delta0, kPdgP33m1600_DeltaP, kPdgP33m1600_DeltaPP,
     kPdgS31m1620_DeltaM, kPdgS31m1620_Delta0, kPdgS31m1620_DeltaP, kPdgS31m1620_DeltaPP,
     kPdgD33m1700_DeltaM, kPdgD33m1700_Delta0, kPdgD33m1700_DeltaP, kPdgD33m1700_DeltaPP,
     kPdgF35m1905_DeltaM, kPdgF35m1905_Delta0, kPdgF35m1905_DeltaP, kPdgF35m1905_DeltaPP,
