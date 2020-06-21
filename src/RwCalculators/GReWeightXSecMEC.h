@@ -23,6 +23,7 @@
 
 // GENIE includes
 #include "Framework/Interaction/InteractionType.h"
+#include "Physics/XSectionIntegration/XSecIntegratorI.h"
 #include "RwCalculators/GReWeightModel.h"
 #include "RwFramework/GSyst.h"
 
@@ -52,8 +53,6 @@ namespace rew   {
    double CalcWeightAngularDist(const EventRecord& event);
    double CalcWeightPNDelta(const EventRecord& event);
    double CalcWeightXSecShape(const EventRecord& event);
-
-   double TotalXSecEmpiricalMEC(const Interaction* interaction);
 
    /// Simple struct containing tweak dial information for the
    /// normalization of one MEC interaction type (CC, NC, EM)
@@ -91,8 +90,8 @@ namespace rew   {
    /// Alternate CCMEC cross section model
    XSecAlgorithmI* fXSecAlgCCAlt;
 
-   /// Phase space used by the alternate CCMEC cross section model
-   KinePhaseSpace_t fXSecCCAltPhaseSpace;
+   /// Integrator used by the CalcWeightXSecShape function
+   const XSecIntegratorI* fXSecIntegrator;
 
    /// Tweak dial that interpolates the shape of the CCMEC differential cross
    /// section between models

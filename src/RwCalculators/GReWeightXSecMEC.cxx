@@ -31,11 +31,6 @@
 #include "RwFramework/GSystSet.h"
 #include "RwFramework/GSystUncertainty.h"
 
-// ROOT includes (needed for TotalXSecEmpiricalMEC() member function)
-#include "TMath.h"
-#include "Math/IFunction.h"
-#include "Math/IntegratorMultiDim.h"
-
 using namespace genie;
 using namespace genie::rew;
 
@@ -53,23 +48,23 @@ namespace {
     return temp_map;
   }
 
-  // MECGenerator::SelectEmpiricalKinematics() uses bogus hard-coded
-  // limits which are copied below for consistency.
-  // TODO: Do something better in MECGenerator, then change this
-  // code for consistency
-  Range1D_t getQ2LimitsEmpiricalMEC() {
-    const double Q2min =  0.01;
-    const double Q2max =  8.00;
-    Range1D_t rQ2( Q2min, Q2max );
-    return rQ2;
-  }
+  //// MECGenerator::SelectEmpiricalKinematics() uses bogus hard-coded
+  //// limits which are copied below for consistency.
+  //// TODO: Do something better in MECGenerator, then change this
+  //// code for consistency
+  //Range1D_t getQ2LimitsEmpiricalMEC() {
+  //  const double Q2min =  0.01;
+  //  const double Q2max =  8.00;
+  //  Range1D_t rQ2( Q2min, Q2max );
+  //  return rQ2;
+  //}
 
-  Range1D_t getWLimitsEmpiricalMEC() {
-    const double Wmin  =  1.88;
-    const double Wmax  =  3.00;
-    Range1D_t rW( Wmin, Wmax );
-    return rW;
-  }
+  //Range1D_t getWLimitsEmpiricalMEC() {
+  //  const double Wmin  =  1.88;
+  //  const double Wmax  =  3.00;
+  //  Range1D_t rW( Wmin, Wmax );
+  //  return rW;
+  //}
 
 }
 
@@ -242,6 +237,21 @@ void GReWeightXSecMEC::Init(void) {
   assert( fXSecAlgCCDef );
   fXSecAlgCCDef->AdoptSubstructure();
 
+  //// Pull out the integrator used for the default model so we
+  //// can integrate the alternate one using the same kinematic limits.
+  //// This ensures proper PDF normalization for the XSecShape weight
+  //// calculation.
+  //fXSecIntegrator = dynamic_cast<const XSecIntegratorI*>(
+  //  fXSecAlgCCDef->SubAlg("NumericalIntegrationAlg") );
+  //assert( fXSecIntegrator );
+
+
+  // Get the "fast" configuration of MECXSec to use to integrate
+  // the alternate MEC model in the CalcWeightShape member function
+  fXSecIntegrator = dynamic_cast<const XSecIntegratorI*>( algf->AdoptAlgorithm(
+    "genie::MECXSec", "Fast") );
+  assert( fXSecIntegrator );
+
   // Get an alternate CCMEC cross section model for reshaping the default
   // TODO: change hard-coding here, or add different knobs for different
   // target models
@@ -249,10 +259,6 @@ void GReWeightXSecMEC::Init(void) {
   fXSecAlgCCAlt = dynamic_cast< XSecAlgorithmI* >( algf->AdoptAlgorithm(alt_id) );
   assert( fXSecAlgCCAlt );
   fXSecAlgCCAlt->AdoptSubstructure();
-
-  // Phase space used by the empirical MEC model
-  // TODO: change hard-coding here as well
-  fXSecCCAltPhaseSpace = kPSWQ2fE;
 }
 //_______________________________________________________________________________________
 double GReWeightXSecMEC::CalcWeightNorm(const genie::EventRecord& event)
@@ -591,16 +597,14 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
   bool tweaked = ( std::abs(twk_dial) > controls::kASmallNum );
   if ( !tweaked ) return 1.;
 
-  // Compute the probability of generating the selected kinematics under the
-  // default cross section model
+  // Compute the probability density for generating the selected kinematics
+  // under the default cross section model
   // TODO: add check that the default model predictions match those stored
   // in the event record
 
-  // Clone the input interaction so that we can modify the stored
-  // kinematic variables for the alternate empirical model (Valencia does
-  // not set unselected Q2 or W) and clear the set nucleon cluster PDG
-  // code and resonance flags (since the stored total cross section for
-  // Valencia includes all contributions)
+  // Clone the input interaction so that we can clear the set nucleon cluster
+  // PDG code and resonance flags. The total cross section stored in the
+  // event record for the Valencia model includes all contributions.
   Interaction* interaction = new Interaction( *event.Summary() );
 
   // Get the differential and total cross section for the default
@@ -619,42 +623,36 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
   //double check_tot_xsec_def = fXSecAlgCCDef->Integral( interaction );
   //LOG("ReW", pDEBUG) << "check_tot_xsec_def = " << check_tot_xsec_def;
 
-  // Get corresponding information from the alternate model. First, set
-  // kinematics for the empirical model by copying the selected versions
-  // to the expected unselected ones.
-  interaction->KinePtr()->UseSelectedKinematics();
-
   // Set the hit nucleon cluster PDG code to its sampled value
   // (empirical MEC needs it)
   interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( hit_nuc_pdg );
 
-  // The empirical MEC differential cross section doesn't check the
-  // kinematic limits imposed by MECGenerator, so enforce them here.
-  // If we're outside, then don't bother calculating the alternative
-  // model differential cross section.
-  double diff_xsec_alt = 0.;
-  Range1D_t rW = getWLimitsEmpiricalMEC();
-  Range1D_t rQ2 = getQ2LimitsEmpiricalMEC();
+  //// The empirical MEC differential cross section doesn't check the
+  //// kinematic limits imposed by MECGenerator, so enforce them here.
+  //// If we're outside, then don't bother calculating the alternative
+  //// model differential cross section.
+  //double diff_xsec_alt = 0.;
+  //Range1D_t rW = getWLimitsEmpiricalMEC();
+  //Range1D_t rQ2 = getQ2LimitsEmpiricalMEC();
 
-  double W = interaction->Kine().W();
-  double Q2 = interaction->Kine().Q2();
+  //double W = interaction->Kine().W();
+  //double Q2 = interaction->Kine().Q2();
 
-  if ( rW.min <= W && rW.max >= W && rQ2.min <= Q2 && rQ2.max >= Q2 ) {
-    diff_xsec_alt = fXSecAlgCCAlt->XSec( interaction, fXSecCCAltPhaseSpace );
-  }
+  //LOG("RwMEC", pERROR) << "NIEVES: W = " << W << ", Q2 = " << Q2;
+  //if ( rW.min <= W && rW.max >= W && rQ2.min <= Q2 && rQ2.max >= Q2 ) {
 
-  // NOTE: We can't do fXSecAlgCCAlt->Integral( interaction ) here because the
-  // empirical MEC model uses a fraction of the CCQE cross section as the
-  // integral instead of computing it from its own differential cross section.
-  // We need to do the latter here in order to get the correct shape
-  // reweighting. The TotalXSecEmpiricalMEC takes care of this.
-  double tot_xsec_alt = this->TotalXSecEmpiricalMEC( interaction );
+  double diff_xsec_alt = fXSecAlgCCAlt->XSec( interaction, kPSTlctl );
 
-  // Occasionally we'll have issues with the numerical integration where the
-  // differential cross section is tiny (but nonzero) and the total cross
-  // section is zero. In these edge cases, zero out the differential cross
-  // section and set the total to unity to avoid NaNs when computing the
-  // alternate model probability density.
+  //}
+
+  double tot_xsec_alt = fXSecIntegrator->Integrate( fXSecAlgCCAlt, interaction );
+
+  LOG("RwMEC", pERROR) << "diff_xsec_alt = " << diff_xsec_alt << ", tot_xsec_alt = " << tot_xsec_alt;
+
+  if ( tot_xsec_alt == 0. && diff_xsec_alt != 0. ) LOG("RwMEC", pERROR) << "OH NO!";
+
+  // Protect against NaNs when the total cross section for the alternative
+  // model is zero
   if ( tot_xsec_alt == 0. ) {
     diff_xsec_alt = 0.;
     tot_xsec_alt = 1.;
@@ -677,38 +675,4 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
   delete interaction;
 
   return weight;
-}
-//_______________________________________________________________________________________
-double GReWeightXSecMEC::TotalXSecEmpiricalMEC(const Interaction* interaction)
-{
-  ROOT::Math::IBaseFunctionMultiDim* func =
-    new utils::gsl::d2XSec_dWdQ2_E( fXSecAlgCCAlt, interaction );
-
-  ROOT::Math::IntegrationMultiDim::Type ig_type =
-    utils::gsl::IntegrationNDimTypeFromString( "adaptive" );
-
-  // Based on settings in ReinSehgalRESXSec.xml
-  const int gsl_max_eval = 5000;
-  const double gsl_rel_tolerance = 1e-2;
-  ROOT::Math::IntegratorMultiDim ig( ig_type, 0, gsl_rel_tolerance, gsl_max_eval );
-  ig.SetFunction( *func );
-
-  // NOTE: Doing this in the usual way doesn't work for MEC.
-  // Get the kinematic limits for W and Q2
-  //const KPhaseSpace& kps = interaction->PhaseSpace();
-  //Range1D_t rW  = kps.Limits( kKVW );
-  //Range1D_t rQ2 = kps.Limits( kKVQ2 );
-  Range1D_t rW = getWLimitsEmpiricalMEC();
-  Range1D_t rQ2 = getQ2LimitsEmpiricalMEC();
-
-  // Store them in the format needed by the integrator
-  double kine_min[2] = { rW.min, rQ2.min };
-  double kine_max[2] = { rW.max, rQ2.max };
-
-  // Evaluate the integral. The hard-coded factor here is needed to cancel one
-  // in the d2XSec_dWdQ2_E class.
-  double xsec = ig.Integral(kine_min, kine_max) * (1E-38 * units::cm2);
-
-  delete func;
-  return xsec;
 }

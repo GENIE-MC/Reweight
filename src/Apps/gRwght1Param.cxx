@@ -329,6 +329,22 @@ int main(int argc, char ** argv)
           EventRecord & event = *(mcrec->event);
           LOG("grwght1scan", pINFO) << "Event: " << iev << "\n" << event;
 
+          // Manually set Tl, ctl for reweighting MEC
+          genie::Interaction* interaction = event.Summary();
+          genie::Kinematics* kine_ptr = interaction->KinePtr();
+
+          // Final lepton mass
+          double ml = interaction->FSPrimLepton()->Mass();
+          // Final lepton 4-momentum
+          const TLorentzVector& p4l = kine_ptr->FSLeptonP4();
+          // Final lepton kinetic energy
+          double Tl = p4l.E() - ml;
+          // Final lepton scattering cosine
+          double ctl = p4l.CosTheta();
+
+          kine_ptr->SetKV( kKVTl, Tl );
+          kine_ptr->SetKV( kKVctl, ctl );
+
           // Reset arrays
           int idx = iev - nfirst;
           weights  [idx][ith_dial] = -99999.0;
