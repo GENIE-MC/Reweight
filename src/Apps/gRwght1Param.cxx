@@ -583,6 +583,14 @@ void GetCommandLineArgs(int argc, char ** argv)
      gOptMaxTwk = -5;
   }
 
+  // Get the splines file
+  if ( parser.OptionExists("cross-sections") ) {
+    LOG("grwght1scan", pINFO) << "Loading cross-section splines";
+    std::string spl_file_name = parser.ArgAsString( "cross-sections" );
+    genie::XSecSplineList* xssl = genie::XSecSplineList::Instance();
+    xssl->LoadFromXml( spl_file_name );
+  }
+
 }
 //_________________________________________________________________________________
 void GetEventRange(Long64_t nev_in_file, Long64_t & nfirst, Long64_t & nlast)

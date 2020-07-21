@@ -20,10 +20,12 @@
 #include "Framework/Interaction/InteractionType.h"
 #include "Framework/Interaction/Interaction.h"
 #include "Framework/Numerical/GSLUtils.h"
+#include "Framework/Numerical/Spline.h"
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/ParticleData/PDGCodes.h"
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Registry/Registry.h"
+#include "Framework/Utils/XSecSplineList.h"
 #include "Physics/XSectionIntegration/GSLXSecFunc.h"
 
 // GENIE/Reweight includes
@@ -255,7 +257,7 @@ void GReWeightXSecMEC::Init(void) {
   // Get an alternate CCMEC cross section model for reshaping the default
   // TODO: change hard-coding here, or add different knobs for different
   // target models
-  AlgId alt_id( "genie::EmpiricalMECPXSec2015", "Default" );
+  AlgId alt_id( "genie::EmpiricalMECPXSec2015", "Reweight" );
   fXSecAlgCCAlt = dynamic_cast< XSecAlgorithmI* >( algf->AdoptAlgorithm(alt_id) );
   assert( fXSecAlgCCAlt );
   fXSecAlgCCAlt->AdoptSubstructure();
@@ -645,11 +647,11 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
 
   //}
 
-  double tot_xsec_alt = fXSecIntegrator->Integrate( fXSecAlgCCAlt, interaction );
+  double tot_xsec_alt = this->GetXSecIntegral( fXSecAlgCCAlt, interaction );
 
-  LOG("RwMEC", pERROR) << "diff_xsec_alt = " << diff_xsec_alt << ", tot_xsec_alt = " << tot_xsec_alt;
+  //LOG("RwMEC", pERROR) << "diff_xsec_alt = " << diff_xsec_alt << ", tot_xsec_alt = " << tot_xsec_alt;
 
-  if ( tot_xsec_alt == 0. && diff_xsec_alt != 0. ) LOG("RwMEC", pERROR) << "OH NO!";
+  //if ( tot_xsec_alt == 0. && diff_xsec_alt != 0. ) LOG("RwMEC", pERROR) << "OH NO!";
 
   // Protect against NaNs when the total cross section for the alternative
   // model is zero
@@ -675,4 +677,35 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
   delete interaction;
 
   return weight;
+}
+//_______________________________________________________________________________________
+double GReWeightXSecMEC::GetXSecIntegral(const XSecAlgorithmI* xsec_alg,
+  const Interaction* interaction)
+{
+  double xsec = 0.;
+
+  XSecSplineList* xssl = XSecSplineList::Instance();
+  assert( xssl );
+
+  // First check if a total cross section spline is already available
+  // for the requested cross section model and interaction. If it is,
+  // use it to get the integrated cross section.
+  std::string curr_tune = xssl->CurrentTune();
+  bool spline_computed = xssl->HasSplineFromTune( curr_tune )
+    && xssl->SplineExists( xsec_alg, interaction );
+  if ( spline_computed ) {
+    const Spline* spl = xssl->GetSpline( xsec_alg, interaction );
+    double Ev = interaction->InitState().ProbeE( kRfLab ); // kRfHitNucRest?
+    if ( spl->ClosestKnotValueIsZero(Ev, "-") ) xsec = 0.;
+    else xsec = spl->Evaluate( Ev );
+  }
+  // If not, fall back to doing the integration directly
+  else {
+    xsec = xsec_alg->Integral( interaction );
+  }
+
+  LOG("ReW", pDEBUG) << "MECshape spline check: "
+    << ( spline_computed ? "found" : "not found" );
+
+  return xsec;
 }

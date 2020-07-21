@@ -54,6 +54,10 @@ namespace rew   {
    double CalcWeightPNDelta(const EventRecord& event);
    double CalcWeightXSecShape(const EventRecord& event);
 
+   /// Helper function for CalcWeightXSecShape
+   double GetXSecIntegral(const XSecAlgorithmI* xsec_alg,
+     const Interaction* interaction);
+
    /// Simple struct containing tweak dial information for the
    /// normalization of one MEC interaction type (CC, NC, EM)
    struct NormMapEntry {
