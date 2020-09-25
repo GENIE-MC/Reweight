@@ -707,6 +707,10 @@ double GReWeightNuXSecCCQE::CalcWeightRPA(const genie::EventRecord& event)
   double new_xsec = fRPATwkDial*rpa_off_xsec + (1. - fRPATwkDial)*old_xsec;
   double weight = new_xsec / old_xsec;
 
+  // Allow extrapolations outside of the nominal [0, 1] range of the RPA_CCQE
+  // dial by zeroing out negative weights
+  if ( weight < 0. ) weight = 0.;
+
   interaction->KinePtr()->ClearRunningValues();
 
   if ( phase_space == kPSQ2fE ) interaction->ResetBit(kIAssumeFreeNucleon);
