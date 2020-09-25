@@ -609,6 +609,25 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
   // event record for the Valencia model includes all contributions.
   Interaction* interaction = new Interaction( *event.Summary() );
 
+  // Double-check that the running value of the lepton kinetic energy
+  // is set in the input interaction. If it isn't, set it manually
+  // using the lepton 4-momentum.
+  genie::Kinematics* kine_ptr = interaction->KinePtr();
+  if ( !kine_ptr->KVSet(kKVTl) ) {
+
+    // Final lepton mass
+    double ml = interaction->FSPrimLepton()->Mass();
+    // Final lepton 4-momentum
+    const TLorentzVector& p4l = kine_ptr->FSLeptonP4();
+    // Final lepton kinetic energy
+    double Tl = p4l.E() - ml;
+    // Final lepton scattering cosine
+    double ctl = p4l.CosTheta();
+
+    kine_ptr->SetKV( kKVTl, Tl );
+    kine_ptr->SetKV( kKVctl, ctl );
+  }
+
   // Get the differential and total cross section for the default
   // MEC model (including contributions from both kinds of
   // initial nucleon clusters and both kinds of diagrams)
