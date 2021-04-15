@@ -41,11 +41,7 @@ rootcint: $(DICTIONARY).o
 $(DICTIONARY).cc: LinkDef.h $(DICTGEN_OBJECTS)
 	$(RM) $(DICTIONARY).*
 	@echo "[package: $(PACKAGE)] Generating ROOT dictionary ..."
-ifeq ($(ROOT_MAJOR),5)
-        # add -p flag to use cpp rather than CINT
-	rootcint -f $(DICTIONARY).cc -c -p $(ROOT_DICT_GEN_INCLUDES) $(DICTGEN_HEADERS) LinkDef.h
-        #
-else
+ifeq ($(ROOT_MAJOR),6)
         # to make pcm relocatable we have to set it to strip these off
         # lots of possible include paths to try to catch all cases of in situ,
         # installed and re-packages into UPS
