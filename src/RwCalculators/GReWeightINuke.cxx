@@ -28,9 +28,9 @@
 #include "Framework/Numerical/Spline.h"
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Physics/NuclearState/NuclearUtils.h"
-#include "Physics/HadronTransport/INukeHadroData.h"
-#include "Physics/HadronTransport/INukeHadroFates.h"
-#include "Physics/HadronTransport/INukeUtils.h"
+#include "Physics/HadronTransport/INukeHadroData2018.h"
+#include "Physics/HadronTransport/INukeHadroFates2018.h"
+#include "Physics/HadronTransport/INukeUtils2018.h"
 
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightINuke.h"
@@ -218,8 +218,8 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
 
      // Debug info
 #ifdef _G_REWEIGHT_INUKE_DEBUG_NTP_
-     double d        = utils::intranuke::Dist2Exit(x4,p4,A);
-     double d_mfp    = utils::intranuke::Dist2ExitMFP(pdgc,x4,p4,A,Z);
+     double d        = utils::intranuke2018::Dist2Exit(x4,p4,A);
+     double d_mfp    = utils::intranuke2018::Dist2ExitMFP(pdgc,x4,p4,A,Z);
      double Eh       = p->E();
      double iflag    = (interacted) ? 1 : 0;
      fTestNtp->Fill(pdgc, Eh, mfp_scale_factor, d, d_mfp, fsi_code, iflag, w_mfp, w_fate);
