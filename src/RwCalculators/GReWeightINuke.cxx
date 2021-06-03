@@ -21,13 +21,18 @@
 #include <TVector.h>
 
 // GENIE/Generator includes
+#include "Framework/Algorithm/AlgFactory.h"
+#include "Framework/Algorithm/AlgConfigPool.h"
 #include "Framework/Conventions/Units.h"
 #include "Framework/EventGen/EventRecord.h"
 #include "Framework/GHEP/GHepParticle.h"
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/Numerical/Spline.h"
 #include "Framework/ParticleData/PDGUtils.h"
+#include "Framework/Registry/Registry.h"
 #include "Physics/NuclearState/NuclearUtils.h"
+#include "Physics/HadronTransport/HAIntranuke2018.h"
+#include "Physics/HadronTransport/Intranuke2018.h"
 #include "Physics/HadronTransport/INukeHadroData2018.h"
 #include "Physics/HadronTransport/INukeHadroFates2018.h"
 #include "Physics/HadronTransport/INukeUtils2018.h"
@@ -48,6 +53,34 @@ GReWeightModel("IntraNuke")
   fTestFile = new TFile("./intranuke_reweight_test.root","recreate");
   fTestNtp  = new TNtuple("testntp","","pdg:E:mfp_twk_dial:d:d_mfp:fate:interact:w_mfp:w_fate");
 #endif
+
+  // Look up the FSI model for the current tune. Also check whether FSIs are
+  // actually enabled.
+  AlgConfigPool* conf_pool = AlgConfigPool::Instance();
+  Registry* gpl = conf_pool->GlobalParameterList();
+  RgAlg fsi_alg = gpl->GetAlg( "HadronTransp-Model" );
+  bool fsi_enabled = gpl->GetBool( "HadronTransp-Enable" );
+
+  if ( !fsi_enabled ) {
+    LOG( "ReW", pERROR ) << "FSIs are not enabled for the current tune."
+      << " Refusing to reweight FSIs.";
+    std::exit( 1 );
+  }
+
+  AlgId id( fsi_alg );
+
+  AlgFactory* algf = AlgFactory::Instance();
+
+  Algorithm* alg = algf->AdoptAlgorithm( id );
+  fFSIModel = dynamic_cast< HAIntranuke2018* >( alg );
+
+  if ( !fFSIModel ) {
+    LOG( "ReW", pERROR ) << "Reweighting events produced with the FSI model "
+      << fsi_alg << " is not currently supported.";
+    std::exit( 1 );
+  }
+
+  fFSIModel->AdoptSubstructure();
 }
 //_______________________________________________________________________________________
 GReWeightINuke::~GReWeightINuke()
@@ -193,7 +226,8 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
      if(calc_w_mfp)
      {
         mfp_scale_factor = fINukeRwParams.MeanFreePathParams(pdgc)->ScaleFactor();
-        w_mfp = utils::rew::MeanFreePathWeight(pdgc,x4,p4,A,Z,mfp_scale_factor,interacted);
+        w_mfp = utils::rew::MeanFreePathWeight( pdgc, x4, p4, A, Z,
+          mfp_scale_factor, interacted, *fFSIModel );
      } // calculate mfp weight?
 
      // Compute weight to account for changes in relative fractions of reaction channels

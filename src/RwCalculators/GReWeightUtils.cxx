@@ -23,6 +23,7 @@
 #include "Framework/Numerical/Spline.h"
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/ParticleData/PDGCodes.h"
+#include "Physics/HadronTransport/Intranuke2018.h"
 #include "Physics/HadronTransport/INukeHadroData2018.h"
 #include "Physics/HadronTransport/INukeHadroFates2018.h"
 #include "Physics/HadronTransport/INukeUtils2018.h"
@@ -38,26 +39,22 @@ using namespace genie::controls;
 double genie::utils::rew::MeanFreePathWeight(
   int pdgc, const TLorentzVector & x4, const TLorentzVector & p4,
   double A, double Z,
-  double mfp_scale_factor, bool interacted,
-  double nRpi, double nRnuc, double NR, double R0)
+  double mfp_scale_factor, bool interacted, const Intranuke2018& fsi_model )
 {
    LOG("ReW", pINFO)
      << "Calculating mean free path weight: "
      << "A = " << A << ", Z = " << Z << ", mfp_scale = " << mfp_scale_factor
      << ", interacted = " << interacted;
-   LOG("ReW", pDEBUG)
-     << "nR_pion = " << nRpi << ", nR_nucleon = " << nRnuc
-     << ", NR = " << NR << ", R0 = " << R0;
 
    // Get the nominal survival probability
    double pdef = utils::intranuke2018::ProbSurvival(
-      pdgc,x4,p4,A,Z,1.,nRpi,nRnuc,NR,R0);
+      pdgc, x4, p4, A, Z, 1., fsi_model );
    LOG("ReW", pINFO)  << "Probability(default mfp) = " << pdef;
    if(pdef<=0) return 1.;
 
    // Get the survival probability for the tweaked mean free path
    double ptwk = utils::intranuke2018::ProbSurvival(
-      pdgc,x4,p4,A,Z,mfp_scale_factor,nRpi,nRnuc,NR,R0);
+      pdgc, x4, p4, A, Z, mfp_scale_factor, fsi_model );
    LOG("ReW", pINFO)  << "Probability(tweaked mfp) = " << ptwk;
    if(ptwk<=0) return 1.;
 
@@ -70,8 +67,7 @@ double genie::utils::rew::MeanFreePathWeight(
 double genie::utils::rew::FZoneWeight(
   int pdgc, const TLorentzVector & vtx, const TLorentzVector & x4,
   const TLorentzVector & p4, double A, double Z,
-  double fz_scale_factor, bool interacted,
-  double nRpi, double nRnuc, double NR, double R0)
+  double fz_scale_factor, bool interacted, const Intranuke2018& fsi_model )
 {
    // Calculate hadron start assuming tweaked formation zone
    TLorentzVector fz    = x4 - vtx;
@@ -82,7 +78,7 @@ double genie::utils::rew::FZoneWeight(
 
    // Get nominal survival probability.
    double pdef = utils::intranuke2018::ProbSurvival(
-      pdgc,x4,p4,A,Z,1.,nRpi,nRnuc,NR,R0);
+      pdgc, x4, p4, A, Z, 1., fsi_model );
    LOG("ReW", pDEBUG)  << "Survival probability (nominal) = "<< pdef;
    if(pdef<=0) return 1.;
    if(pdef>=1.){
@@ -94,7 +90,7 @@ double genie::utils::rew::FZoneWeight(
 
    // Get tweaked survival probability.
    double ptwk = utils::intranuke2018::ProbSurvival(
-      pdgc,x4twk,p4,A,Z,1.,nRpi,nRnuc,NR,R0);
+      pdgc, x4twk, p4, A, Z, 1., fsi_model );
    if(ptwk<=0) return 1.;
    LOG("ReW", pDEBUG)  << "Survival probability (tweaked) = "<< ptwk;
 

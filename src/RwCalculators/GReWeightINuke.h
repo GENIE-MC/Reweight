@@ -46,6 +46,9 @@ class TNtuple;
 class TLorentzVector;
 
 namespace genie {
+
+ class HAIntranuke2018;
+
 namespace rew   {
 
  class GReWeightINuke : public GReWeightModel
@@ -65,6 +68,8 @@ namespace rew   {
  private:
 
    GReWeightINukeParams fINukeRwParams;
+
+   HAIntranuke2018* fFSIModel;
 
 #ifdef _G_REWEIGHT_INUKE_DEBUG_NTP_
    TFile *              fTestFile;
