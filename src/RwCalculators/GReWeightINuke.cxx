@@ -167,6 +167,48 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
 
   fINukeRwParams.SetTargetA( A );
 
+  // Get the pre-FSI nuclear remnant. The A and Z values for this particle
+  // (distinct from both the post-FSI remnant and the target nucleus)
+  // are used to compute mean free paths in Intranuke2018.
+  GHepParticle* pre_fsi_remnant = 0;
+  TObjArrayIter piter( &event );
+  // First loop over all particles in the event record and find the
+  // final-state nuclear remnant (i.e., the post-FSI nuclear remnant)
+  while( GHepParticle* p = dynamic_cast<GHepParticle*>(piter.Next()) ) {
+    if ( p->Status() == genie::kIStFinalStateNuclearRemnant ) {
+      // The pre-FSI nuclear remnant is set to be the first mother for
+      // the post-FSI one by Intranuke2018
+      int mother_idx = p->FirstMother();
+      pre_fsi_remnant = event.Particle( mother_idx );
+      break;
+    }
+  }
+
+  // Skip this event if we couldn't find a pre-FSI nuclear remnant that
+  // is an ion (something went wrong in the search above)
+  bool pre_fsi_remnant_ok = false;
+  if ( pre_fsi_remnant ) {
+   pre_fsi_remnant_ok = genie::pdg::IsIon( pre_fsi_remnant->Pdg() );
+  }
+  if ( !pre_fsi_remnant_ok ) {
+    LOG( "ReW", pWARN ) << "Could not find a suitable pre-FSI remnant"
+      << " in GReWeightINuke::CalcWeight()";
+    return 1.;
+  }
+
+  // Store the nucleon and proton numbers for the pre-FSI remnant.
+  // These will be used for mean free path calculations in
+  // genie::utils::rew::MeanFreePathWeight
+  int remnA = pre_fsi_remnant->A();
+  int remnZ = pre_fsi_remnant->Z();
+  LOG( "ReW", pDEBUG ) << "Found pre-FSI remnant with A = " << remnA
+    << ", Z = " << remnZ << ". Target had A = " << A << ", Z = " << Z;
+
+  // Tell the FSI model about the remnant A and Z. Normally these values are
+  // set at the start of Intranuke2018::TransportHadrons.
+  fFSIModel->SetRemnA( remnA );
+  fFSIModel->SetRemnZ( remnZ );
+
   double event_weight  = 1.0;
 
   // Loop over stdhep entries and only calculate weights for particles.
@@ -210,8 +252,18 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
      bool interacted = !escaped;
 
      // Get 4-momentum and 4-position
-     TLorentzVector x4 (p->Vx(), p->Vy(), p->Vz(), 0.    );
      TLorentzVector p4 (p->Px(), p->Py(), p->Pz(), p->E());
+
+     // NOTE: Unlike Intranuke, the new Intranuke2018 shifts the
+     // position of the original particle with the kIStHadronInTheNucleus
+     // status code. This screws up the mean free path reweighting.
+     // See line 315 of Generator/src/Physics/HadronTransport/Intranuke2018.cxx.
+     // As a stopgap solution, use the 4-position of the first mother of
+     // the current particle instead. Plan on fixing Generator for GENIE v3.2.
+     // -- S. Gardiner, 6 June 2021
+     //TLorentzVector x4 (p->Vx(), p->Vy(), p->Vz(), 0.    );
+     GHepParticle* temp_mother = event.Particle( p->FirstMother() );
+     const TLorentzVector& x4 = *temp_mother->X4();
 
      // Init current hadron weights
      double w_mfp  = 1.0;
@@ -252,6 +304,7 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
 
      // Debug info
 #ifdef _G_REWEIGHT_INUKE_DEBUG_NTP_
+     // TODO: Fix the debugging functions here for the hA2018 updates
      double d        = utils::intranuke2018::Dist2Exit(x4,p4,A);
      double d_mfp    = utils::intranuke2018::Dist2ExitMFP(pdgc,x4,p4,A,Z);
      double Eh       = p->E();

@@ -43,7 +43,8 @@ double genie::utils::rew::MeanFreePathWeight(
 {
    LOG("ReW", pINFO)
      << "Calculating mean free path weight: "
-     << "A = " << A << ", Z = " << Z << ", mfp_scale = " << mfp_scale_factor
+     << "target A = " << A << ", target Z = " << Z
+     << ", mfp_scale = " << mfp_scale_factor
      << ", interacted = " << interacted;
 
    // Get the nominal survival probability
