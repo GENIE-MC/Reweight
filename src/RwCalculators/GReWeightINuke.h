@@ -71,6 +71,13 @@ namespace rew   {
 
    HAIntranuke2018* fFSIModel;
 
+   // Parameters needed to recreate the formation zone
+   double fCt0_pion;
+   double fCt0_nucleon;
+   double fKpt2;
+   double fNucl_R0;
+   double fNucl_NR;
+
 #ifdef _G_REWEIGHT_INUKE_DEBUG_NTP_
    TFile *              fTestFile;
    TNtuple *            fTestNtp;

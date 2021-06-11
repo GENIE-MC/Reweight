@@ -26,11 +26,14 @@
 #include "Framework/Conventions/Units.h"
 #include "Framework/EventGen/EventRecord.h"
 #include "Framework/GHEP/GHepParticle.h"
+#include "Framework/Interaction/ScatteringType.h"
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/Numerical/Spline.h"
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Registry/Registry.h"
+#include "Framework/Utils/PhysUtils.h"
 #include "Physics/NuclearState/NuclearUtils.h"
+#include "Physics/DeepInelastic/EventGen/DISHadronicSystemGenerator.h"
 #include "Physics/HadronTransport/HAIntranuke2018.h"
 #include "Physics/HadronTransport/Intranuke2018.h"
 #include "Physics/HadronTransport/INukeHadroData2018.h"
@@ -81,6 +84,17 @@ GReWeightModel("IntraNuke")
   }
 
   fFSIModel->AdoptSubstructure();
+
+  // Also get the formation zone settings from the DISHadronicSystemGenerator
+  const genie::Algorithm* dis_hs_alg = algf->GetAlgorithm(
+    "genie::DISHadronicSystemGenerator", "Default" );
+  const genie::Registry& dis_hs_reg = dis_hs_alg->GetConfig();
+
+  fCt0_pion = dis_hs_reg.GetDouble( "FZONE-ct0pion" );
+  fCt0_nucleon = dis_hs_reg.GetDouble( "FZONE-ct0nucleon" );
+  fKpt2 = dis_hs_reg.GetDouble( "FZONE-KPt2" );
+  fNucl_R0 = dis_hs_reg.GetDouble( "NUCL-R0" );
+  fNucl_NR = dis_hs_reg.GetDouble( "NUCL-NR" );
 }
 //_______________________________________________________________________________________
 GReWeightINuke::~GReWeightINuke()
@@ -258,12 +272,57 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
      // position of the original particle with the kIStHadronInTheNucleus
      // status code. This screws up the mean free path reweighting.
      // See line 315 of Generator/src/Physics/HadronTransport/Intranuke2018.cxx.
-     // As a stopgap solution, use the 4-position of the first mother of
-     // the current particle instead. Plan on fixing Generator for GENIE v3.2.
-     // -- S. Gardiner, 6 June 2021
-     //TLorentzVector x4 (p->Vx(), p->Vy(), p->Vz(), 0.    );
-     GHepParticle* temp_mother = event.Particle( p->FirstMother() );
-     const TLorentzVector& x4 = *temp_mother->X4();
+     // As a stopgap solution, reconstruct the starting position of the
+     // particle using other information from the event. For events other than
+     // DIS, this is easy: just use the 4-position of the first mother of the
+     // current particle. For DIS, apply the appropriate formation zone step
+     // from the location of the initial struck nucleon (see the source code
+     // for DISHadronicSystemGenerator). Plan on fixing Generator for
+     // GENIE v3.2 to make this section of the reweighting code obsolete.
+     // -- S. Gardiner, 11 June 2021
+     TLorentzVector x4;
+     genie::ScatteringType_t scatter_type = event.Summary()
+      ->ProcInfo().ScatteringTypeId();
+     if ( scatter_type == genie::kScDeepInelastic ) {
+       // Compute the usual tracking radius for FSIs
+       // TODO: add a check that this is consistent with the one used
+       // by Intranuke2018
+       double tracking_R = fNucl_NR * fNucl_R0 * std::pow( A, 1./3. );
+
+       // Get the 3-momentum of the pre-fragmentation hadronic system
+       genie::GHepParticle* had_syst = event.FinalStateHadronicSystem();
+       TVector3 p3_had_syst = had_syst->P4()->Vect();
+
+       double mass = p->Mass(); // On-shell mass of the current particle
+       int pdg = p->Pdg();
+       double ct0 = genie::pdg::IsNucleon( pdg ) ? fCt0_nucleon : fCt0_pion;
+
+       // Compute the formation zone that was used for this particle
+       double fzone = genie::utils::phys::FormationZone( mass, p4,
+         p3_had_syst, ct0, fKpt2 );
+
+       // Step one formation zone length away from the vertex in the direction
+       // of the particle's 3-momentum.
+       TVector3 step3 = p4.Vect().Unit();
+       step3.SetMag( fzone );
+       TLorentzVector step4( step3, 0. );
+
+       const TLorentzVector& vtx4 = *event.HitNucleon()->X4();
+
+       x4 = vtx4 + step4;
+
+       // See hard-coded stuff in DISHadronicSystemGenerator
+       double r_max = tracking_R + 2.; // fm
+       double r = x4.P();
+       if ( r > r_max ) {
+         double scale = r_max / r;
+         x4 *= scale;
+       }
+     }
+     else {
+       GHepParticle* temp_mother = event.Particle( p->FirstMother() );
+       x4 = *temp_mother->X4();
+     }
 
      // Init current hadron weights
      double w_mfp  = 1.0;
