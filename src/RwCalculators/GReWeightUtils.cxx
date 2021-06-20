@@ -304,3 +304,37 @@ int genie::utils::rew::Sign(double twkdial)
   return 0;
 }
 //____________________________________________________________________________
+int genie::utils::rew::GetParticleA( int pdg ) {
+  bool is_nucleon = genie::pdg::IsNucleon( pdg );
+  if ( is_nucleon ) return 1;
+  bool is_ion = genie::pdg::IsIon( pdg );
+  int A = 0;
+  if ( is_ion ) {
+    A = genie::pdg::IonPdgCodeToA( pdg );
+  }
+  return A;
+}
+//____________________________________________________________________________
+// Sums the nucleon number and electric charge (in units of the up quark
+// charge) for all "stable final state" daughters of a given GHepParticle in a
+// GHepRecord.
+void genie::utils::rew::TallyAQ( const genie::GHepRecord& event,
+    const genie::GHepParticle& p, int& A, int& Q )
+{
+  LOG( "ReW", pDEBUG ) << "Checking particle " << p.Name();
+  int first_daughter_idx = p.FirstDaughter();
+  if ( first_daughter_idx < 0 ) return;
+  int last_daughter_idx = p.LastDaughter();
+  for ( int idx = first_daughter_idx; idx <= last_daughter_idx; ++idx ) {
+    genie::GHepParticle* d = event.Particle( idx );
+    LOG( "ReW", pDEBUG ) << "Had daughter " << d->Name();
+    if ( d->Status() == genie::kIStStableFinalState ) {
+      int dA = genie::utils::rew::GetParticleA( d->Pdg() );
+      int dQ = d->Charge();
+      A += dA;
+      Q += dQ;
+    }
+    // Use recursion to check daughters-of-daughters, etc.
+    genie::utils::rew::TallyAQ( event, *d, A, Q );
+  }
+}

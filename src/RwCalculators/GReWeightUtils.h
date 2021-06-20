@@ -79,6 +79,15 @@ namespace rew   {
   // in case of asymmetric errors
   int Sign(double twkdial);
 
+  // Get the nucleon number corresponding to a given PDG code
+  int GetParticleA( int pdg );
+
+  // Sums the nucleon number and electric charge (in units of the up quark
+  // charge) for all "stable final state" daughters of a given GHepParticle in a
+  // GHepRecord.
+  void TallyAQ( const genie::GHepRecord& event, const genie::GHepParticle& p,
+    int& A, int& Q );
+
 }  // rew   namespace
 }  // utils namespace
 }  // genie namespace

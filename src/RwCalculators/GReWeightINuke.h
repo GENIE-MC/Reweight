@@ -67,6 +67,11 @@ namespace rew   {
 
  private:
 
+   void CalcDeltaAZ( const EventRecord& event, const GHepParticle& p,
+     int& deltaA, int& deltaZ );
+
+   void UpdateRemnantAZ( int deltaA, int deltaZ );
+
    GReWeightINukeParams fINukeRwParams;
 
    HAIntranuke2018* fFSIModel;
