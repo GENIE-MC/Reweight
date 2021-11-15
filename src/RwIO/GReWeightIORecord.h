@@ -19,6 +19,7 @@
 #define GRWIORECORD_H_
 
 #include <vector>
+using std::vector;
 
 #include <TObject.h>
 
