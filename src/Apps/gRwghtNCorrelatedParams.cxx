@@ -85,6 +85,8 @@
 #include "Framework/Ntuple/NtpMCEventRecord.h"
 #include "Framework/Numerical/RandomGen.h"
 #include "Framework/Messenger/Messenger.h"
+#include "Framework/Utils/AppInit.h"
+#include "Framework/Utils/RunOpt.h"
 #include "Framework/Utils/CmdLnArgParser.h"
 #include "Framework/Numerical/MathUtils.h"
 #include "Framework/Utils/StringUtils.h"
@@ -131,12 +133,22 @@ Long64_t gOptNEvt2;
 int      gOptRunKey= 0;
 int      gOptNSyst = 0;
 int      gOptNTwk  = 0;
-TRandom *tRnd = new TRandom(); // to access normal distribution
+long int gOptRanSeed;     ///< random number seed
 
 //___________________________________________________________________
 int main(int argc, char ** argv)
 {
   GetCommandLineArgs (argc, argv);
+
+  utils::app_init::MesgThresholds(RunOpt::Instance()->MesgThresholdFiles());
+  utils::app_init::RandGen(gOptRanSeed);
+  GHepRecord::SetPrintLevel(RunOpt::Instance()->EventRecordPrintLevel());
+
+  if ( ! RunOpt::Instance()->Tune() ) {
+    LOG("greweight", pFATAL) << " No TuneId in RunOption";
+    exit(-1);
+  }
+  RunOpt::Instance()->BuildTune();
 
   // open the ROOT file and get the TTree & its header
   TTree *           tree = 0;
@@ -401,6 +413,9 @@ int main(int argc, char ** argv)
 void GetCommandLineArgs(int argc, char ** argv)
 {
   LOG("grwghtnp", pINFO) << "*** Parsing command line arguments";
+
+  // Common run options. Set defaults and read.
+  RunOpt::Instance()->ReadFromCommandLine(argc,argv);
 
   CmdLnArgParser parser(argc,argv);
 
