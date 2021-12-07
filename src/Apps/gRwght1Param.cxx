@@ -218,8 +218,14 @@ int main(int argc, char ** argv)
 
   // Declare the weights and twkdial arrays
   const int n_events = (const int) nev;
-  float weights  [n_events][n_points];
-  float twkdials [n_events][n_points];
+  float** weights = new float*[n_events];
+  for ( int e = 0; e < n_events; ++e ) {
+    weights[e] = new float[n_points];
+  }
+  float** twkdials = new float*[n_events];
+  for ( int e = 0; e < n_events; ++e ) {
+    twkdials[e] = new float[n_points];
+  }
 
   // Create a GReWeight object and add to it a set of weight calculators
 
@@ -249,7 +255,7 @@ int main(int argc, char ** argv)
   rw.AdoptWghtCalc( "xsec_nc",         new GReWeightNuXSecNC        );
   rw.AdoptWghtCalc( "res_dk",          new GReWeightResonanceDecay  );
   rw.AdoptWghtCalc( "xsec_empmec",     new GReWeightXSecEmpiricalMEC);
-  rw.AdoptWghtCalc( "xsec_mec",        new GReWeightXSecMEC);
+  rw.AdoptWghtCalc( "xsec_mec",        new GReWeightXSecMEC );
 
   // Get GSystSet and include the (single) input systematic parameter
 
@@ -386,6 +392,13 @@ int main(int argc, char ** argv)
   wght_file->Close();
 
   LOG("grwght1scan", pNOTICE)  << "Done!";
+
+  for ( int e = 0; e < n_events; ++e ) {
+    delete [] weights[e];
+    delete [] twkdials[e];
+  }
+  delete [] weights;
+  delete [] twkdials;
 
   return 0;
 }
