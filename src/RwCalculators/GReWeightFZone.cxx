@@ -9,6 +9,8 @@
 //____________________________________________________________________________
 
 // GENIE/Generator includes
+#include "Framework/Algorithm/AlgFactory.h"
+#include "Framework/Algorithm/AlgConfigPool.h"
 #include "Framework/Conventions/Controls.h"
 #include "Framework/Conventions/Units.h"
 #include "Framework/EventGen/EventRecord.h"
@@ -17,8 +19,10 @@
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/ParticleData/PDGCodes.h"
 #include "Framework/ParticleData/PDGUtils.h"
+#include "Framework/Registry/Registry.h"
 #include "Framework/Utils/PrintUtils.h"
 #include "Framework/Utils/PhysUtils.h"
+#include "Physics/HadronTransport/HAIntranuke2018.h"
 
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightFZone.h"
@@ -189,7 +193,7 @@ double GReWeightFZone::CalcWeight(const EventRecord & event)
 
      // Calculate particle weight
      double hadron_weight = genie::utils::rew::FZoneWeight(
-        pdgc, vtx, x4, *p4, A, Z, fz_scale_factor, interacted);
+        pdgc, vtx, x4, *p4, A, Z, fz_scale_factor, interacted, *fFSIModel );
 
      // Update event weight
      event_weight *= hadron_weight;
@@ -202,10 +206,37 @@ void GReWeightFZone::Init(void)
 {
   fFZoneTwkDial = 0.;
 
-  this->SetR0         (1.3);//fm
-  this->SetNR         (3.);
   this->SetCT0Pion    (0.342);//fm
   this->SetCT0Nucleon (2.300);//fm
   this->SetK          (0.);
+
+  // TODO: reduce code duplication from the constructor for GReWeightINuke
+  // Look up the FSI model for the current tune. Also check whether FSIs are
+  // actually enabled.
+  AlgConfigPool* conf_pool = AlgConfigPool::Instance();
+  Registry* gpl = conf_pool->GlobalParameterList();
+  RgAlg fsi_alg = gpl->GetAlg( "HadronTransp-Model" );
+  bool fsi_enabled = gpl->GetBool( "HadronTransp-Enable" );
+
+  if ( !fsi_enabled ) {
+    LOG( "ReW", pERROR ) << "FSIs are not enabled for the current tune."
+      << " Refusing to reweight the formation zone.";
+    std::exit( 1 );
+  }
+
+  AlgId id( fsi_alg );
+
+  AlgFactory* algf = AlgFactory::Instance();
+
+  Algorithm* alg = algf->AdoptAlgorithm( id );
+  fFSIModel = dynamic_cast< HAIntranuke2018* >( alg );
+
+  if ( !fFSIModel ) {
+    LOG( "ReW", pERROR ) << "Reweighting events produced with the FSI model "
+      << fsi_alg << " is not currently supported.";
+    std::exit( 1 );
+  }
+
+  fFSIModel->AdoptSubstructure();
 }
 //_______________________________________________________________________________________

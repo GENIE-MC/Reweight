@@ -23,7 +23,7 @@
 // GENIE/Generator includes
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Interaction/InteractionType.h"
-#include "Physics/HadronTransport/INukeHadroFates.h"
+#include "Physics/HadronTransport/INukeHadroFates2018.h"
 
 using std::string;
 

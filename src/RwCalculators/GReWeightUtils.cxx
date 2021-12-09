@@ -23,9 +23,10 @@
 #include "Framework/Numerical/Spline.h"
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/ParticleData/PDGCodes.h"
+#include "Physics/HadronTransport/Intranuke2018.h"
 #include "Physics/HadronTransport/INukeHadroData2018.h"
-#include "Physics/HadronTransport/INukeHadroFates.h"
-#include "Physics/HadronTransport/INukeUtils.h"
+#include "Physics/HadronTransport/INukeHadroFates2018.h"
+#include "Physics/HadronTransport/INukeUtils2018.h"
 
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightUtils.h"
@@ -38,26 +39,23 @@ using namespace genie::controls;
 double genie::utils::rew::MeanFreePathWeight(
   int pdgc, const TLorentzVector & x4, const TLorentzVector & p4,
   double A, double Z,
-  double mfp_scale_factor, bool interacted,
-  double nRpi, double nRnuc, double NR, double R0)
+  double mfp_scale_factor, bool interacted, const Intranuke2018& fsi_model )
 {
    LOG("ReW", pINFO)
      << "Calculating mean free path weight: "
-     << "A = " << A << ", Z = " << Z << ", mfp_scale = " << mfp_scale_factor
+     << "target A = " << A << ", target Z = " << Z
+     << ", mfp_scale = " << mfp_scale_factor
      << ", interacted = " << interacted;
-   LOG("ReW", pDEBUG)
-     << "nR_pion = " << nRpi << ", nR_nucleon = " << nRnuc
-     << ", NR = " << NR << ", R0 = " << R0;
 
    // Get the nominal survival probability
-   double pdef = utils::intranuke::ProbSurvival(
-      pdgc,x4,p4,A,Z,1.,nRpi,nRnuc,NR,R0);
+   double pdef = utils::intranuke2018::ProbSurvival(
+      pdgc, x4, p4, A, Z, 1., fsi_model );
    LOG("ReW", pINFO)  << "Probability(default mfp) = " << pdef;
    if(pdef<=0) return 1.;
 
    // Get the survival probability for the tweaked mean free path
-   double ptwk = utils::intranuke::ProbSurvival(
-      pdgc,x4,p4,A,Z,mfp_scale_factor,nRpi,nRnuc,NR,R0);
+   double ptwk = utils::intranuke2018::ProbSurvival(
+      pdgc, x4, p4, A, Z, mfp_scale_factor, fsi_model );
    LOG("ReW", pINFO)  << "Probability(tweaked mfp) = " << ptwk;
    if(ptwk<=0) return 1.;
 
@@ -70,8 +68,7 @@ double genie::utils::rew::MeanFreePathWeight(
 double genie::utils::rew::FZoneWeight(
   int pdgc, const TLorentzVector & vtx, const TLorentzVector & x4,
   const TLorentzVector & p4, double A, double Z,
-  double fz_scale_factor, bool interacted,
-  double nRpi, double nRnuc, double NR, double R0)
+  double fz_scale_factor, bool interacted, const Intranuke2018& fsi_model )
 {
    // Calculate hadron start assuming tweaked formation zone
    TLorentzVector fz    = x4 - vtx;
@@ -81,8 +78,8 @@ double genie::utils::rew::FZoneWeight(
    LOG("ReW", pDEBUG)  << "Formation zone = "<< fz.Vect().Mag() << " fm";
 
    // Get nominal survival probability.
-   double pdef = utils::intranuke::ProbSurvival(
-      pdgc,x4,p4,A,Z,1.,nRpi,nRnuc,NR,R0);
+   double pdef = utils::intranuke2018::ProbSurvival(
+      pdgc, x4, p4, A, Z, 1., fsi_model );
    LOG("ReW", pDEBUG)  << "Survival probability (nominal) = "<< pdef;
    if(pdef<=0) return 1.;
    if(pdef>=1.){
@@ -93,8 +90,8 @@ double genie::utils::rew::FZoneWeight(
    }
 
    // Get tweaked survival probability.
-   double ptwk = utils::intranuke::ProbSurvival(
-      pdgc,x4twk,p4,A,Z,1.,nRpi,nRnuc,NR,R0);
+   double ptwk = utils::intranuke2018::ProbSurvival(
+      pdgc, x4twk, p4, A, Z, 1., fsi_model );
    if(ptwk<=0) return 1.;
    LOG("ReW", pDEBUG)  << "Survival probability (tweaked) = "<< ptwk;
 
@@ -116,7 +113,7 @@ double genie::utils::rew::MeanFreePathWeight(
 //   ptwk : survival probability for the tweaked mean free path
 //   interacted : flag indicating whether the hadron interacted or escaped
 //
-// See utils::intranuke::ProbSurvival() for the calculation of probabilities.
+// See utils::intranuke2018::ProbSurvival() for the calculation of probabilities.
 //
   double w_mfp = 1.;
 
@@ -307,3 +304,37 @@ int genie::utils::rew::Sign(double twkdial)
   return 0;
 }
 //____________________________________________________________________________
+int genie::utils::rew::GetParticleA( int pdg ) {
+  bool is_nucleon = genie::pdg::IsNucleon( pdg );
+  if ( is_nucleon ) return 1;
+  bool is_ion = genie::pdg::IsIon( pdg );
+  int A = 0;
+  if ( is_ion ) {
+    A = genie::pdg::IonPdgCodeToA( pdg );
+  }
+  return A;
+}
+//____________________________________________________________________________
+// Sums the nucleon number and electric charge (in units of the up quark
+// charge) for all "stable final state" daughters of a given GHepParticle in a
+// GHepRecord.
+void genie::utils::rew::TallyAQ( const genie::GHepRecord& event,
+    const genie::GHepParticle& p, int& A, int& Q )
+{
+  LOG( "ReW", pDEBUG ) << "Checking particle " << p.Name();
+  int first_daughter_idx = p.FirstDaughter();
+  if ( first_daughter_idx < 0 ) return;
+  int last_daughter_idx = p.LastDaughter();
+  for ( int idx = first_daughter_idx; idx <= last_daughter_idx; ++idx ) {
+    genie::GHepParticle* d = event.Particle( idx );
+    LOG( "ReW", pDEBUG ) << "Had daughter " << d->Name();
+    if ( d->Status() == genie::kIStStableFinalState ) {
+      int dA = genie::utils::rew::GetParticleA( d->Pdg() );
+      int dQ = d->Charge();
+      A += dA;
+      Q += dQ;
+    }
+    // Use recursion to check daughters-of-daughters, etc.
+    genie::utils::rew::TallyAQ( event, *d, A, Q );
+  }
+}

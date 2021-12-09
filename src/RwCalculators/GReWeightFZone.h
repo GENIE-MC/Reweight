@@ -28,6 +28,9 @@ using namespace genie::rew;
 using namespace genie;
 
 namespace genie {
+
+ class HAIntranuke2018;
+
 namespace rew   {
 
  class GReWeightFZone : public GReWeightModel
@@ -46,8 +49,6 @@ namespace rew   {
 
    // other config options
    // set to match values used at event generation
-   void SetR0 (double R0 )        { fR0         = R0;  }
-   void SetNR (double NR )        { fNR         = NR;  }
    void SetCT0Pion(double ct0)    { fct0pion    = ct0; }
    void SetCT0Nucleon(double ct0) { fct0nucleon = ct0; }
    void SetK  (double k  )        { fK          = k;   }
@@ -58,11 +59,11 @@ namespace rew   {
 
    double fFZoneTwkDial; ///< formation zone tweaking dial
 
-   double fNR;         ///<
-   double fR0;         ///<
    double fct0pion;    ///<
    double fct0nucleon; ///<
    double fK;          ///<
+
+   HAIntranuke2018* fFSIModel;
 
  };
 

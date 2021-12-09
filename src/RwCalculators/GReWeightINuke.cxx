@@ -21,16 +21,21 @@
 #include <TVector.h>
 
 // GENIE/Generator includes
+#include "Framework/Algorithm/AlgFactory.h"
+#include "Framework/Algorithm/AlgConfigPool.h"
 #include "Framework/Conventions/Units.h"
 #include "Framework/EventGen/EventRecord.h"
 #include "Framework/GHEP/GHepParticle.h"
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/Numerical/Spline.h"
 #include "Framework/ParticleData/PDGUtils.h"
+#include "Framework/Registry/Registry.h"
 #include "Physics/NuclearState/NuclearUtils.h"
-#include "Physics/HadronTransport/INukeHadroData.h"
-#include "Physics/HadronTransport/INukeHadroFates.h"
-#include "Physics/HadronTransport/INukeUtils.h"
+#include "Physics/HadronTransport/HAIntranuke2018.h"
+#include "Physics/HadronTransport/Intranuke2018.h"
+#include "Physics/HadronTransport/INukeHadroData2018.h"
+#include "Physics/HadronTransport/INukeHadroFates2018.h"
+#include "Physics/HadronTransport/INukeUtils2018.h"
 
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightINuke.h"
@@ -48,6 +53,34 @@ GReWeightModel("IntraNuke")
   fTestFile = new TFile("./intranuke_reweight_test.root","recreate");
   fTestNtp  = new TNtuple("testntp","","pdg:E:mfp_twk_dial:d:d_mfp:fate:interact:w_mfp:w_fate");
 #endif
+
+  // Look up the FSI model for the current tune. Also check whether FSIs are
+  // actually enabled.
+  AlgConfigPool* conf_pool = AlgConfigPool::Instance();
+  Registry* gpl = conf_pool->GlobalParameterList();
+  RgAlg fsi_alg = gpl->GetAlg( "HadronTransp-Model" );
+  bool fsi_enabled = gpl->GetBool( "HadronTransp-Enable" );
+
+  if ( !fsi_enabled ) {
+    LOG( "ReW", pERROR ) << "FSIs are not enabled for the current tune."
+      << " Refusing to reweight FSIs.";
+    std::exit( 1 );
+  }
+
+  AlgId id( fsi_alg );
+
+  AlgFactory* algf = AlgFactory::Instance();
+
+  Algorithm* alg = algf->AdoptAlgorithm( id );
+  fFSIModel = dynamic_cast< HAIntranuke2018* >( alg );
+
+  if ( !fFSIModel ) {
+    LOG( "ReW", pERROR ) << "Reweighting events produced with the FSI model "
+      << fsi_alg << " is not currently supported.";
+    std::exit( 1 );
+  }
+
+  fFSIModel->AdoptSubstructure();
 }
 //_______________________________________________________________________________________
 GReWeightINuke::~GReWeightINuke()
@@ -134,6 +167,48 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
 
   fINukeRwParams.SetTargetA( A );
 
+  // Get the pre-FSI nuclear remnant. The A and Z values for this particle
+  // (distinct from both the post-FSI remnant and the target nucleus)
+  // are used to compute mean free paths in Intranuke2018.
+  GHepParticle* pre_fsi_remnant = 0;
+  TObjArrayIter piter( &event );
+  // First loop over all particles in the event record and find the
+  // final-state nuclear remnant (i.e., the post-FSI nuclear remnant)
+  while( GHepParticle* p = dynamic_cast<GHepParticle*>(piter.Next()) ) {
+    if ( p->Status() == genie::kIStFinalStateNuclearRemnant ) {
+      // The pre-FSI nuclear remnant is set to be the first mother for
+      // the post-FSI one by Intranuke2018
+      int mother_idx = p->FirstMother();
+      pre_fsi_remnant = event.Particle( mother_idx );
+      break;
+    }
+  }
+
+  // Skip this event if we couldn't find a pre-FSI nuclear remnant that
+  // is an ion (something went wrong in the search above)
+  bool pre_fsi_remnant_ok = false;
+  if ( pre_fsi_remnant ) {
+   pre_fsi_remnant_ok = genie::pdg::IsIon( pre_fsi_remnant->Pdg() );
+  }
+  if ( !pre_fsi_remnant_ok ) {
+    LOG( "ReW", pWARN ) << "Could not find a suitable pre-FSI remnant"
+      << " in GReWeightINuke::CalcWeight()";
+    return 1.;
+  }
+
+  // Store the nucleon and proton numbers for the pre-FSI remnant.
+  // These will be used for mean free path calculations in
+  // genie::utils::rew::MeanFreePathWeight
+  int remnA = pre_fsi_remnant->A();
+  int remnZ = pre_fsi_remnant->Z();
+  LOG( "ReW", pDEBUG ) << "Found pre-FSI remnant with A = " << remnA
+    << ", Z = " << remnZ << ". Target had A = " << A << ", Z = " << Z;
+
+  // Tell the FSI model about the remnant A and Z. Normally these values are
+  // set at the start of Intranuke2018::TransportHadrons.
+  fFSIModel->SetRemnA( remnA );
+  fFSIModel->SetRemnZ( remnZ );
+
   double event_weight  = 1.0;
 
   // Loop over stdhep entries and only calculate weights for particles.
@@ -148,7 +223,8 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
      int  pdgc       = p->Pdg();
      bool is_pion    = pdg::IsPion   (pdgc);
      bool is_nucleon = pdg::IsNucleon(pdgc);
-     if(!is_pion && !is_nucleon)
+     bool is_kaon = pdg::IsKaon( pdgc );
+     if(!is_pion && !is_nucleon && !is_kaon)
      {
         continue;
      }
@@ -158,6 +234,18 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
      if(ist != kIStHadronInTheNucleus)
      {
         continue;
+     }
+
+     // Calculate how the nuclear (A, Z) values changed due to FSIs experienced
+     // by the current particle
+     int deltaA, deltaZ;
+     this->CalcDeltaAZ( event, *p, deltaA, deltaZ );
+
+     // Kaon FSIs can't currently be reweighted. Just update (A, Z) based on
+     // the particle's daughters and move on.
+     if ( is_kaon ) {
+       this->UpdateRemnantAZ( deltaA, deltaZ );
+       continue;
      }
 
      // Determine the interaction type for current hadron in nucleus, if any
@@ -193,7 +281,8 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
      if(calc_w_mfp)
      {
         mfp_scale_factor = fINukeRwParams.MeanFreePathParams(pdgc)->ScaleFactor();
-        w_mfp = utils::rew::MeanFreePathWeight(pdgc,x4,p4,A,Z,mfp_scale_factor,interacted);
+        w_mfp = utils::rew::MeanFreePathWeight( pdgc, x4, p4, A, Z,
+          mfp_scale_factor, interacted, *fFSIModel );
      } // calculate mfp weight?
 
      // Compute weight to account for changes in relative fractions of reaction channels
@@ -218,8 +307,9 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
 
      // Debug info
 #ifdef _G_REWEIGHT_INUKE_DEBUG_NTP_
-     double d        = utils::intranuke::Dist2Exit(x4,p4,A);
-     double d_mfp    = utils::intranuke::Dist2ExitMFP(pdgc,x4,p4,A,Z);
+     // TODO: Fix the debugging functions here for the hA2018 updates
+     double d        = utils::intranuke2018::Dist2Exit(x4,p4,A);
+     double d_mfp    = utils::intranuke2018::Dist2ExitMFP(pdgc,x4,p4,A,Z);
      double Eh       = p->E();
      double iflag    = (interacted) ? 1 : 0;
      fTestNtp->Fill(pdgc, Eh, mfp_scale_factor, d, d_mfp, fsi_code, iflag, w_mfp, w_fate);
@@ -228,8 +318,66 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
      // Update the current event weight
      event_weight *= hadron_weight;
 
+     // Now that we've handled the current hadron, update the nuclear (A, Z)
+     // values to what they were when FSIs were simulated for the next hadron.
+     this->UpdateRemnantAZ( deltaA, deltaZ );
+
   }//particle loop
 
   return event_weight;
 }
 //_______________________________________________________________________________________
+void GReWeightINuke::CalcDeltaAZ( const EventRecord& event,
+  const GHepParticle& p, int& deltaA, int& deltaZ )
+{
+  // Compute the total nucleon number and electric charge (in units of the up
+  // quark charge) for all "stable final state" daughters of the current
+  // GHepParticle
+  int myA = 0;
+  int myQ = 0;
+  genie::utils::rew::TallyAQ( event, p, myA, myQ );
+
+  deltaA = genie::utils::rew::GetParticleA( p.Pdg() ) - myA;
+  // Convert to units of the elementary charge
+  deltaZ = ( p.Charge() - myQ ) / 3;
+
+  // Deal with apparent charge conservation issues in the absorption fate. Note
+  // that there are also some failure modes for "too few nucleon" cases which
+  // appear to yield irrecoverable changes to (A, Z). I don't attempt to
+  // address those here since the information is simply lost. The good news is
+  // that it shouldn't be a big deal for FSI reweighting.
+  // -- S. Gardiner, 19 June 2021
+  if ( p.RescatterCode() == genie::kIHAFtAbs ) {
+
+    if ( p.Pdg() == genie::kPdgPiM ) {
+      int daught = p.FirstDaughter();
+      int d_pdg = event.Particle( daught )->Pdg();
+      // If the first daughter is a nucleon cluster, then a multinucleon
+      // absorption reaction was simulated which doesn't suffer from the
+      // charge conservation issue. If the first daughter is a pi minus,
+      // then the absorption simulation failed and terminated early.
+      if ( d_pdg != genie::kPdgCompNuclCluster
+        && d_pdg != genie::kPdgPiM ) deltaZ--;
+    } // Pi-
+
+    else if ( p.Pdg() == genie::kPdgKP ) {
+      int daught = p.FirstDaughter();
+      if ( event.Particle(daught)->Pdg()
+        == genie::kPdgCompNuclCluster )
+      {
+        deltaZ++;
+      }
+    } // K+
+  } // absorption fate
+}
+//_______________________________________________________________________________________
+void GReWeightINuke::UpdateRemnantAZ( int deltaA, int deltaZ ) {
+  int remnA = fFSIModel->GetRemnA();
+  int remnZ = fFSIModel->GetRemnZ();
+
+  remnA += deltaA;
+  remnZ += deltaZ;
+
+  fFSIModel->SetRemnA( remnA );
+  fFSIModel->SetRemnZ( remnZ );
+}

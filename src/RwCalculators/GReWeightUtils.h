@@ -30,6 +30,9 @@
 #include "RwFramework/GSyst.h"
 
 namespace genie {
+
+  class Intranuke2018;
+
 namespace utils {
 namespace rew   {
 
@@ -37,8 +40,8 @@ namespace rew   {
   double MeanFreePathWeight(
     int pdgc, const TLorentzVector & x4, const TLorentzVector & p4,
     double A, double Z,
-    double mfp_scale_factor, bool interacted,
-    double nRpi=0.5, double nRnuc=1.0, double NR=3, double R0=1.4);
+    double mfp_scale_factor, bool interacted, const Intranuke2018& fsi_model );
+
   double MeanFreePathWeight(
       double prob_def, double prob_twk, bool interacted);
 
@@ -48,7 +51,7 @@ namespace rew   {
   double FZoneWeight(
     int pdgc, const TLorentzVector & vtx, const TLorentzVector & x4,
     const TLorentzVector & p4, double A, double Z, double fz_scale_factor, bool interacted,
-    double nRpi=0.5, double nRnuc=1.0, double NR=3, double R0=1.4);
+    const Intranuke2018& fsi_model );
 
   // Return the fraction of the hadron rescatering fate described by the input
   // systematic enumeration at the input hadron kinetic energy for a hit nucleus
@@ -75,6 +78,15 @@ namespace rew   {
   // Get the sign of the tweaking dial so as to correctly pick-p the +err or the -err,
   // in case of asymmetric errors
   int Sign(double twkdial);
+
+  // Get the nucleon number corresponding to a given PDG code
+  int GetParticleA( int pdg );
+
+  // Sums the nucleon number and electric charge (in units of the up quark
+  // charge) for all "stable final state" daughters of a given GHepParticle in a
+  // GHepRecord.
+  void TallyAQ( const genie::GHepRecord& event, const genie::GHepParticle& p,
+    int& A, int& Q );
 
 }  // rew   namespace
 }  // utils namespace
