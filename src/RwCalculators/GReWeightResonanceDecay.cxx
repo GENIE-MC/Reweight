@@ -337,8 +337,8 @@ double GReWeightResonanceDecay::RewThetaDelta2Npi(const EventRecord & event)
   double Wiso     = 1 - p32iso * P2 + p12iso * P2; // = 1.0
   double Wrs      = 1 - p32rs  * P2 + p12rs  * P2;
   double dial     = fThetaDelta2NpiTwkDial;
-  double Wdef     = Wiso;
-  double Wtwk     = dial*Wrs + (1-dial)*Wiso;
+  double Wdef     = Wrs;
+  double Wtwk     = dial*Wiso + (1-dial)*Wrs;
 
   double wght = 1.;
   if(Wdef>0. && Wtwk>0.) {
