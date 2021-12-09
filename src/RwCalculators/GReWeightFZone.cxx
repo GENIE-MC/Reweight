@@ -23,6 +23,7 @@
 #include "Framework/Utils/PrintUtils.h"
 #include "Framework/Utils/PhysUtils.h"
 #include "Physics/HadronTransport/HAIntranuke2018.h"
+#include "Physics/DeepInelastic/EventGen/DISHadronicSystemGenerator.h"
 
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightFZone.h"
@@ -206,9 +207,16 @@ void GReWeightFZone::Init(void)
 {
   fFZoneTwkDial = 0.;
 
-  this->SetCT0Pion    (0.342);//fm
-  this->SetCT0Nucleon (2.300);//fm
-  this->SetK          (0.);
+  // Obtain the formation zone parameters needed for reweighting from the
+  // DISHadronicSystemGenerator configuration.
+  AlgFactory* algf = AlgFactory::Instance();
+  const genie::Algorithm* dis_hs_alg = algf->GetAlgorithm(
+    "genie::DISHadronicSystemGenerator", "Default" );
+  const genie::Registry& dis_hs_reg = dis_hs_alg->GetConfig();
+
+  fct0pion = dis_hs_reg.GetDouble( "FZONE-ct0pion" ); // fm
+  fct0nucleon = dis_hs_reg.GetDouble( "FZONE-ct0nucleon" ); // fm
+  fK = dis_hs_reg.GetDouble( "FZONE-KPt2" );
 
   // TODO: reduce code duplication from the constructor for GReWeightINuke
   // Look up the FSI model for the current tune. Also check whether FSIs are
@@ -225,8 +233,6 @@ void GReWeightFZone::Init(void)
   }
 
   AlgId id( fsi_alg );
-
-  AlgFactory* algf = AlgFactory::Instance();
 
   Algorithm* alg = algf->AdoptAlgorithm( id );
   fFSIModel = dynamic_cast< HAIntranuke2018* >( alg );
