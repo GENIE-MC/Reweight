@@ -337,8 +337,8 @@ double GReWeightResonanceDecay::RewThetaDelta2Npi(const EventRecord & event)
   double Wiso     = 1 - p32iso * P2 + p12iso * P2; // = 1.0
   double Wrs      = 1 - p32rs  * P2 + p12rs  * P2;
   double dial     = fThetaDelta2NpiTwkDial;
-  double Wdef     = Wiso;
-  double Wtwk     = dial*Wrs + (1-dial)*Wiso;
+  double Wdef     = Wrs;
+  double Wtwk     = dial*Wiso + (1-dial)*Wrs;
 
   double wght = 1.;
   if(Wdef>0. && Wtwk>0.) {
@@ -370,6 +370,7 @@ void GReWeightResonanceDecay::Init(void)
 
   const int respdgarray[] = {
     kPdgP33m1232_DeltaM, kPdgP33m1232_Delta0, kPdgP33m1232_DeltaP, kPdgP33m1232_DeltaPP,
+    kPdgP33m1600_DeltaM, kPdgP33m1600_Delta0, kPdgP33m1600_DeltaP, kPdgP33m1600_DeltaPP,
     kPdgS31m1620_DeltaM, kPdgS31m1620_Delta0, kPdgS31m1620_DeltaP, kPdgS31m1620_DeltaPP,
     kPdgD33m1700_DeltaM, kPdgD33m1700_Delta0, kPdgD33m1700_DeltaP, kPdgD33m1700_DeltaPP,
     kPdgF35m1905_DeltaM, kPdgF35m1905_Delta0, kPdgF35m1905_DeltaP, kPdgF35m1905_DeltaPP,

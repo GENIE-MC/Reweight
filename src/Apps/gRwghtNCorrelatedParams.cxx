@@ -109,6 +109,8 @@
 #include "RwCalculators/GReWeightNuXSecDIS.h"
 #include "RwCalculators/GReWeightNuXSecCOH.h"
 #include "RwCalculators/GReWeightResonanceDecay.h"
+#include "RwCalculators/GReWeightXSecEmpiricalMEC.h"
+#include "RwCalculators/GReWeightXSecMEC.h"
 
 using namespace genie;
 using namespace genie::constants;
@@ -884,6 +886,13 @@ void AdoptWeightCalcs (vector<GSyst_t> lsyst, GReWeight & rw)
         rwncres->SetMode(GReWeightNuXSecNCRES::kModeNormAndMaMvShape);
       }
     break;
+    case kXSecTwkDial_NormCCMEC:
+    case kXSecTwkDial_NormNCMEC:
+    case kXSecTwkDial_NormEMMEC:
+      if ( ! rw.WghtCalc("xsec_mec") ) {
+        LOG("grwghtnp", pNOTICE) << "Adopting xsec_mec weight calc";
+        rw.AdoptWghtCalc( "xsec_mec", new GReWeightXSecMEC );
+      }
     default: // no fine-tuning needed
     break;
     }

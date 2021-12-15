@@ -126,7 +126,8 @@
 #include "RwCalculators/GReWeightINukeParams.h"
 #include "RwCalculators/GReWeightNuXSecNC.h"
 #include "RwCalculators/GReWeightXSecEmpiricalMEC.h"
-
+#include "RwCalculators/GReWeightXSecMEC.h"
+#include "RwCalculators/GReWeightDeltaradAngle.h"
 
 using std::string;
 using std::ostringstream;
@@ -218,8 +219,14 @@ int main(int argc, char ** argv)
 
   // Declare the weights and twkdial arrays
   const int n_events = (const int) nev;
-  float weights  [n_events][n_points];
-  float twkdials [n_events][n_points];
+  float** weights = new float*[n_events];
+  for ( int e = 0; e < n_events; ++e ) {
+    weights[e] = new float[n_points];
+  }
+  float** twkdials = new float*[n_events];
+  for ( int e = 0; e < n_events; ++e ) {
+    twkdials[e] = new float[n_points];
+  }
 
   // Create a GReWeight object and add to it a set of weight calculators
 
@@ -249,6 +256,8 @@ int main(int argc, char ** argv)
   rw.AdoptWghtCalc( "xsec_nc",         new GReWeightNuXSecNC        );
   rw.AdoptWghtCalc( "res_dk",          new GReWeightResonanceDecay  );
   rw.AdoptWghtCalc( "xsec_empmec",     new GReWeightXSecEmpiricalMEC);
+  rw.AdoptWghtCalc( "xsec_mec",        new GReWeightXSecMEC );
+  rw.AdoptWghtCalc( "delta_rad",       new GReWeightDeltaradAngle);
 
   // Get GSystSet and include the (single) input systematic parameter
 
@@ -320,6 +329,22 @@ int main(int argc, char ** argv)
           EventRecord & event = *(mcrec->event);
           LOG("grwght1scan", pINFO) << "Event: " << iev << "\n" << event;
 
+          // Manually set Tl, ctl for reweighting MEC
+          genie::Interaction* interaction = event.Summary();
+          genie::Kinematics* kine_ptr = interaction->KinePtr();
+
+          // Final lepton mass
+          double ml = interaction->FSPrimLepton()->Mass();
+          // Final lepton 4-momentum
+          const TLorentzVector& p4l = kine_ptr->FSLeptonP4();
+          // Final lepton kinetic energy
+          double Tl = p4l.E() - ml;
+          // Final lepton scattering cosine
+          double ctl = p4l.CosTheta();
+
+          kine_ptr->SetKV( kKVTl, Tl );
+          kine_ptr->SetKV( kKVctl, ctl );
+
           // Reset arrays
           int idx = iev - nfirst;
           weights  [idx][ith_dial] = -99999.0;
@@ -385,6 +410,13 @@ int main(int argc, char ** argv)
   wght_file->Close();
 
   LOG("grwght1scan", pNOTICE)  << "Done!";
+
+  for ( int e = 0; e < n_events; ++e ) {
+    delete [] weights[e];
+    delete [] twkdials[e];
+  }
+  delete [] weights;
+  delete [] twkdials;
 
   return 0;
 }
@@ -549,6 +581,14 @@ void GetCommandLineArgs(int argc, char ** argv)
      gOptMaxTwk =  parser.ArgAsDouble("max-tweak");
   } else {
      gOptMaxTwk = -5;
+  }
+
+  // Get the splines file
+  if ( parser.OptionExists("cross-sections") ) {
+    LOG("grwght1scan", pINFO) << "Loading cross-section splines";
+    std::string spl_file_name = parser.ArgAsString( "cross-sections" );
+    genie::XSecSplineList* xssl = genie::XSecSplineList::Instance();
+    xssl->LoadFromXml( spl_file_name );
   }
 
 }

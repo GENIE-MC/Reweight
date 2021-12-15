@@ -3,13 +3,16 @@
 
 \class    genie::rew::GSystUncertainty
 
-\brief    
+\brief    Singleton class for looking up reweight tweak dial uncertainties
 
 \author   Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
           University of Liverpool & STFC Rutherford Appleton Lab
 
           Jim Dobson <J.Dobson07 \at imperial.ac.uk>
           Imperial College London
+
+          Steven Gardiner <gardiner \at fnal.gov>
+          Fermi National Accelerator Laboratory
 
 \created  Sep 1, 2009
 
@@ -25,6 +28,7 @@
 
 // GENIE/Reweight includes
 #include "RwFramework/GSyst.h"
+#include "RwFramework/GSystUncertaintyTable.h"
 
 using std::map;
 
@@ -33,7 +37,8 @@ namespace rew   {
 
 class GSystUncertainty {
 
-public:  
+public:
+
   static GSystUncertainty * Instance (void);
 
   double OneSigmaErr    (GSyst_t syst, int sign=0) const;
@@ -41,16 +46,15 @@ public:
 
 private:
 
+  GSystUncertaintyTable* fTable;
+
   void SetDefaults(void);
 
-  map<GSyst_t, double> fOneSigPlusErrMap; // + err
-  map<GSyst_t, double> fOneSigMnusErrMap; // - err
-
   GSystUncertainty();
-  GSystUncertainty(const GSystUncertainty & err);
+  GSystUncertainty(const GSystUncertainty& err);
  ~GSystUncertainty();
-  
-  static GSystUncertainty * fInstance;
+
+  static GSystUncertainty* fInstance;
 
   struct Cleaner {
       void DummyMethodAndSilentCompiler() { }
@@ -67,5 +71,4 @@ private:
 } // rew   namespace
 } // genie namespace
 
-#endif 
-
+#endif

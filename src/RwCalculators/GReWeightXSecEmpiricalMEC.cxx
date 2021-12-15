@@ -283,6 +283,22 @@ double GReWeightXSecEmpiricalMEC::CalcWeight(const genie::EventRecord &event) {
   if (!fAnyTwk)
     return 1.0;
 
+  // Look up the MEC cross section model being used in the current tune
+  // for the appropriate interaction type. If it is not Empirical MEC,
+  // then return a unit weight.
+  std::string type_str;
+  InteractionType_t type = event.Summary()->ProcInfo().InteractionTypeId();
+  if ( type == kIntWeakCC ) type_str = "CC";
+  else if ( type == kIntWeakNC ) type_str = "NC";
+  else if ( type == kIntEM ) type_str = "EM";
+  else return 1.0;
+
+  genie::AlgConfigPool* conf_pool = genie::AlgConfigPool::Instance();
+  genie::Registry* gpl = conf_pool->GlobalParameterList();
+  RgAlg mec_id = gpl->GetAlg( "XSecModel@genie::EventGenerator/MEC-"
+    + type_str );
+  if ( mec_id.name != "genie::EmpiricalMECPXSec2015" ) return 1.0;
+
   Interaction *interaction = event.Summary();
 
   interaction->KinePtr()->UseSelectedKinematics();

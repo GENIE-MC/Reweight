@@ -29,6 +29,7 @@
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/ParticleData/PDGCodes.h"
 #include "Framework/Registry/Registry.h"
+#include "Physics/XSectionIntegration/XSecIntegratorI.h"
 
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightNuXSecCCQE.h"
@@ -68,6 +69,16 @@ fManualModelType(type)
 //_______________________________________________________________________________________
 GReWeightNuXSecCCQE::~GReWeightNuXSecCCQE()
 {
+  if ( fXSecModelConfig ) delete fXSecModelConfig;
+
+  if ( fXSecModel ) delete fXSecModel;
+  if ( fXSecModelDef ) delete fXSecModelDef;
+  if ( fXSecModelDefNoRPA ) delete fXSecModelDefNoRPA;
+  if ( fXSecModelDefCoulomb ) delete fXSecModelDefCoulomb;
+
+  if ( fXSecIntegrator ) delete fXSecIntegrator;
+  if ( fXSecIntegratorDef ) delete fXSecIntegratorDef;
+
 #ifdef _G_REWEIGHT_CCQE_DEBUG_
   fTestFile->cd();
   fTestNtp ->Write();
@@ -82,6 +93,11 @@ bool GReWeightNuXSecCCQE::IsHandled(GSyst_t syst) const
    bool handle;
 
    switch(syst) {
+
+     case ( kXSecTwkDial_RPA_CCQE ) :
+     case ( kXSecTwkDial_CoulombCCQE ) :
+       handle = true;
+       break;
 
      case ( kXSecTwkDial_NormCCQE    ) :
        if(fMode==kModeNormAndMaShape && (fModelIsDipole || fModelIsRunningMa))
@@ -183,6 +199,12 @@ void GReWeightNuXSecCCQE::SetSystematic(GSyst_t syst, double twk_dial)
       case ( kXSecTwkDial_ZExpA4CCQE ) :
         if(fZExpMaxCoef>3){ fZExpTwkDial[3] = twk_dial; }
         break;
+      case ( kXSecTwkDial_RPA_CCQE ) :
+        fRPATwkDial = twk_dial;
+        break;
+      case ( kXSecTwkDial_CoulombCCQE ) :
+        fCoulombTwkDial = twk_dial;
+        break;
       default:
         break;
     }
@@ -201,6 +223,9 @@ void GReWeightNuXSecCCQE::Reset(void)
     fZExpTwkDial[i] = 0.;
     fZExpCurr   [i] = fZExpDef[i];
   }
+
+  fRPATwkDial = 0.;
+  fCoulombTwkDial = 0.;
 
   this->Reconfigure();
 }
@@ -299,39 +324,55 @@ void GReWeightNuXSecCCQE::Reconfigure(void)
     }
   }
   fXSecModel->Configure(r);
+
+  // Update the tweaked value of the Coulomb scaling factor
+  int sign_twk_C = utils::rew::Sign( fCoulombTwkDial );
+  double frac_sigma_C = fracerr->OneSigmaErr( kXSecTwkDial_CoulombCCQE,
+    sign_twk_C );
+  double scaleC = (1. + fCoulombTwkDial * frac_sigma_C);
+
+  // Update the configuration for the Coulomb-tweaked cross section model
+  Registry coulomb_reg = fXSecModelDef->GetConfig();
+  coulomb_reg.Set( "CoulombScale", scaleC );
+  fXSecModelDefCoulomb->Configure( coulomb_reg );
 }
 //_______________________________________________________________________________________
 double GReWeightNuXSecCCQE::CalcWeight(const genie::EventRecord & event)
 {
   bool is_qe = event.Summary()->ProcInfo().IsQuasiElastic();
   bool is_cc = event.Summary()->ProcInfo().IsWeakCC();
-  if(!is_qe || !is_cc) return 1.;
+  if ( !is_qe || !is_cc ) return 1.;
 
   bool charm = event.Summary()->ExclTag().IsCharmEvent(); // skip CCQE charm
-  if(charm) return 1.;
+  if ( charm ) return 1.;
+
+  // Skip other CCQE channels that do not produce a final-state nucleon
+  // (e.g., Lambda-CCQE)
+  int final_nucleon_pdgc = event.Summary()->RecoilNucleonPdg();
+  if ( !pdg::IsNucleon(final_nucleon_pdgc) ) return 1.;
 
   int nupdg = event.Probe()->Pdg();
-  if(nupdg==kPdgNuMu     && !fRewNumu   ) return 1.;
-  if(nupdg==kPdgAntiNuMu && !fRewNumubar) return 1.;
-  if(nupdg==kPdgNuE      && !fRewNue    ) return 1.;
-  if(nupdg==kPdgAntiNuE  && !fRewNuebar ) return 1.;
+  if ( nupdg==kPdgNuMu     && !fRewNumu   ) return 1.;
+  if ( nupdg==kPdgAntiNuMu && !fRewNumubar) return 1.;
+  if ( nupdg==kPdgNuE      && !fRewNue    ) return 1.;
+  if ( nupdg==kPdgAntiNuE  && !fRewNuebar ) return 1.;
 
-  if(fMode==kModeMa && (fModelIsDipole || fModelIsRunningMa)) {
-     double wght = this->CalcWeightMa(event);
+  double wght = this->CalcWeightRPA( event );
+
+  wght *= this->CalcWeightCoulomb( event );
+
+  if ( fMode==kModeMa && (fModelIsDipole || fModelIsRunningMa) ) {
+     wght *= this->CalcWeightMa(event);
      return wght;
   }
   else
-  if(fMode==kModeNormAndMaShape && (fModelIsDipole || fModelIsRunningMa)) {
-     double wght =
-         this->CalcWeightNorm    (event) *
-         this->CalcWeightMaShape (event);
+  if ( fMode==kModeNormAndMaShape && (fModelIsDipole || fModelIsRunningMa) ) {
+     wght *= this->CalcWeightNorm( event ) * this->CalcWeightMaShape( event );
      return wght;
   }
   else
-  if(fMode==kModeZExp && fModelIsZExp) {
-     double wght =
-         this->CalcWeightNorm(event) *
-         this->CalcWeightZExp(event);
+  if ( fMode==kModeZExp && fModelIsZExp ) {
+     wght *= this->CalcWeightNorm( event ) * this->CalcWeightZExp( event );
      return wght;
   }
 
@@ -361,6 +402,27 @@ void GReWeightNuXSecCCQE::Init(void)
   fXSecModel = dynamic_cast<XSecAlgorithmI*>(alg_twk);
   fXSecModel->AdoptSubstructure();
 
+  // Get the Algorithm objects that should be used to integrate the cross
+  // sections. Use the "ReweightShape" configuration, which turns off averaging
+  // over the initial state nucleon distribution.
+  AlgId alg_def_integ_ID( alg_def->GetConfig().GetAlg("XSec-Integrator").name,
+    "ReweightShape");
+
+  fXSecIntegratorDef = dynamic_cast<XSecIntegratorI*>(
+    algf->AdoptAlgorithm(alg_def_integ_ID));
+
+  assert( fXSecIntegratorDef );
+
+  AlgId alg_twk_integ_ID( alg_twk->GetConfig().GetAlg("XSec-Integrator").name,
+    "ReweightShape");
+
+  fXSecIntegrator = dynamic_cast<XSecIntegratorI*>(
+    algf->AdoptAlgorithm(alg_twk_integ_ID));
+
+  assert( fXSecIntegrator );
+
+  // Check what kind of form factors we're using in the tweaked cross section
+  // model
   fXSecModelConfig = new Registry(fXSecModel->GetConfig());
   fFFModel = fXSecModelConfig->GetAlg("FormFactorsAlg/AxialFormFactorModel").name;
 
@@ -419,6 +481,25 @@ void GReWeightNuXSecCCQE::Init(void)
     fZExpTwkDial[i] = 0.;
     fZExpCurr   [i] = fZExpDef[i];
   }
+
+  fRPATwkDial = 0.;
+  fCoulombTwkDial = 0.;
+
+  // Make a copy of the default cross section model that has RPA turned off
+  Algorithm* alg_def_copy = algf->AdoptAlgorithm( id );
+  fXSecModelDefNoRPA = dynamic_cast<XSecAlgorithmI*>( alg_def_copy );
+  fXSecModelDefNoRPA->AdoptSubstructure();
+
+  Registry rpa_off_reg = fXSecModelDef->GetConfig();
+  rpa_off_reg.Set("RPA", false);
+
+  fXSecModelDefNoRPA->Configure( rpa_off_reg );
+
+  // Make a copy of the default cross section model with a tweaked
+  // value of the scaling factor for the Coulomb potential
+  Algorithm* alg_def_copy2 = algf->AdoptAlgorithm( id );
+  fXSecModelDefCoulomb = dynamic_cast<XSecAlgorithmI*>( alg_def_copy2 );
+  fXSecModelDefCoulomb->AdoptSubstructure();
 
 #ifdef _G_REWEIGHT_CCQE_DEBUG_
   fTestFile = new TFile("./ccqe_reweight_test.root","recreate");
@@ -522,9 +603,8 @@ double GReWeightNuXSecCCQE::CalcWeightMaShape(const genie::EventRecord & event)
 //LOG("ReW", pDEBUG) << "event generation weight = " << old_weight;
 //LOG("ReW", pDEBUG) << "new weight = " << new_weight;
 
-//double old_integrated_xsec = event.XSec();
-  double old_integrated_xsec = fXSecModelDef -> Integral(interaction);
-  double new_integrated_xsec = fXSecModel    -> Integral(interaction);
+  double old_integrated_xsec = fXSecIntegratorDef->Integrate(fXSecModelDef, interaction);
+  double new_integrated_xsec = fXSecIntegrator->Integrate(fXSecModel, interaction);
   assert(new_integrated_xsec > 0);
   new_weight *= (old_integrated_xsec/new_integrated_xsec);
 
@@ -594,3 +674,96 @@ double GReWeightNuXSecCCQE::CalcWeightZExp(const genie::EventRecord & event)
   return new_weight;
 }
 //_______________________________________________________________________________________
+double GReWeightNuXSecCCQE::CalcWeightRPA(const genie::EventRecord& event)
+{
+  // Only bother to do the calculation if the tweak dial value was noticeably
+  // altered
+  bool tweaked = ( std::abs(fRPATwkDial) > controls::kASmallNum );
+  if ( !tweaked ) return 1.;
+
+  Interaction* interaction = event.Summary();
+
+  interaction->KinePtr()->UseSelectedKinematics();
+
+  // Retrieve the kinematic phase space used to generate the event
+  const KinePhaseSpace_t phase_space = event.DiffXSecVars();
+  double old_xsec = event.DiffXSec();
+
+  if ( phase_space == kPSQ2fE ) interaction->SetBit(kIAssumeFreeNucleon);
+
+  if  ( !fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo ) {
+    double calc_old_xsec = fXSecModelDef->XSec( interaction, phase_space );
+    if ( fNWeightChecksDone < fNWeightChecksToDo ) {
+      if ( std::abs(calc_old_xsec - old_xsec) / old_xsec > controls::kASmallNum ) {
+        LOG("ReW", pWARN) << "Warning - default dxsec does not match dxsec"
+          << " saved in tree. Does the config match?";
+      }
+      ++fNWeightChecksDone;
+    }
+    if ( !fUseOldWeightFromFile ) old_xsec = calc_old_xsec;
+  }
+
+  assert( old_xsec > 0. );
+
+  double rpa_off_xsec = fXSecModelDefNoRPA->XSec( interaction, phase_space );
+
+  LOG("ReW", pDEBUG) << "old_xsec = " << old_xsec << ", RPA off = " << rpa_off_xsec;
+
+  double new_xsec = fRPATwkDial*rpa_off_xsec + (1. - fRPATwkDial)*old_xsec;
+  double weight = new_xsec / old_xsec;
+
+  // Allow extrapolations outside of the nominal [0, 1] range of the RPA_CCQE
+  // dial by zeroing out negative weights
+  if ( weight < 0. ) weight = 0.;
+
+  interaction->KinePtr()->ClearRunningValues();
+
+  if ( phase_space == kPSQ2fE ) interaction->ResetBit(kIAssumeFreeNucleon);
+
+  return weight;
+}
+//_______________________________________________________________________________________
+double GReWeightNuXSecCCQE::CalcWeightCoulomb(const genie::EventRecord& event)
+{
+  // Only bother to do the calculation if the tweak dial value was noticeably
+  // altered
+  bool tweaked = ( std::abs(fCoulombTwkDial) > controls::kASmallNum );
+  if ( !tweaked ) return 1.;
+
+  Interaction* interaction = event.Summary();
+
+  interaction->KinePtr()->UseSelectedKinematics();
+
+  // Retrieve the kinematic phase space used to generate the event
+  const KinePhaseSpace_t phase_space = event.DiffXSecVars();
+  double old_xsec = event.DiffXSec();
+
+  if ( phase_space == kPSQ2fE ) interaction->SetBit(kIAssumeFreeNucleon);
+
+  if  ( !fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo ) {
+    double calc_old_xsec = fXSecModelDef->XSec( interaction, phase_space );
+    if ( fNWeightChecksDone < fNWeightChecksToDo ) {
+      if ( std::abs(calc_old_xsec - old_xsec) / old_xsec > controls::kASmallNum ) {
+        LOG("ReW", pWARN) << "Warning - default dxsec does not match dxsec"
+          << " saved in tree. Does the config match?";
+      }
+      ++fNWeightChecksDone;
+    }
+    if ( !fUseOldWeightFromFile ) old_xsec = calc_old_xsec;
+  }
+
+  assert( old_xsec > 0. );
+
+  double new_xsec = fXSecModelDefCoulomb->XSec( interaction, phase_space );
+
+  LOG("ReW", pDEBUG) << "old_xsec = " << old_xsec << ", tweaked Coulomb"
+    " xsec = " << new_xsec;
+
+  double weight = new_xsec / old_xsec;
+
+  interaction->KinePtr()->ClearRunningValues();
+
+  if ( phase_space == kPSQ2fE ) interaction->ResetBit(kIAssumeFreeNucleon);
+
+  return weight;
+}
