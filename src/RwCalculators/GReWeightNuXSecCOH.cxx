@@ -63,6 +63,8 @@ bool GReWeightNuXSecCOH::IsHandled(GSyst_t syst) const
    switch(syst) {
      case ( kXSecTwkDial_MaCOHpi ) :
      case ( kXSecTwkDial_R0COHpi ) :
+     case ( kXSecTwkDial_NormCCCOHpi ) :
+     case ( kXSecTwkDial_NormNCCOHpi ) :
        handle = true;
        break;
      default:
@@ -89,6 +91,12 @@ void GReWeightNuXSecCOH::SetSystematic(GSyst_t syst, double twk_dial)
      case ( kXSecTwkDial_R0COHpi ) :
        fR0TwkDial = twk_dial;
        break;
+    case ( kXSecTwkDial_NormCCCOHpi ) :
+      fCCCOHNormTwkDial = twk_dial;
+      break;
+    case ( kXSecTwkDial_NormNCCOHpi ) :
+      fNCCOHNormTwkDial = twk_dial;
+      break;
      default:
        break;
    }
@@ -100,6 +108,12 @@ void GReWeightNuXSecCOH::Reset(void)
   fMaCurr      = fMaDef;
   fR0TwkDial   = 0.;
   fR0Curr      = fR0Def;
+
+  fCCCOHNormTwkDial = 0.;
+  fNCCOHNormTwkDial = 0.;
+
+  fCurCOHNormCC = 1.;
+  fCurCOHNormNC = 1.;
 
   this->Reconfigure();
 }
@@ -124,6 +138,15 @@ void GReWeightNuXSecCOH::Reconfigure(void)
 
   fXSecModel->Configure(r);
 
+  // Note: this assumes that the error is symmetric.
+  // TODO: consider changing this to handle asymmetric errors on the
+  // normalization
+  double frac_err_cc_norm = fracerr->OneSigmaErr( kXSecTwkDial_NormCCCOHpi );
+  double frac_err_nc_norm = fracerr->OneSigmaErr( kXSecTwkDial_NormNCCOHpi );
+
+  fCurCOHNormCC = std::max( 0., 1. + fCCCOHNormTwkDial * frac_err_cc_norm );
+  fCurCOHNormNC = std::max( 0., 1. + fNCCOHNormTwkDial * frac_err_nc_norm );
+
 //LOG("ReW", pDEBUG) << *fXSecModel;
 }
 //_______________________________________________________________________________________
@@ -134,9 +157,15 @@ double GReWeightNuXSecCOH::CalcWeight(const genie::EventRecord & event)
   bool is_coh = interaction->ProcInfo().IsCoherentProduction();
   if(!is_coh) return 1.;
 
-  bool tweaked =
+  bool xsec_tweaked =
       (TMath::Abs(fMaTwkDial) > controls::kASmallNum) ||
       (TMath::Abs(fR0TwkDial) > controls::kASmallNum);
+
+  bool norm_tweaked = (TMath::Abs(fCCCOHNormTwkDial) > controls::kASmallNum) ||
+      (TMath::Abs(fNCCOHNormTwkDial) > controls::kASmallNum);
+
+  bool tweaked = xsec_tweaked || norm_tweaked;
+
   if(!tweaked) return 1.0;
 
   bool is_cc  = interaction->ProcInfo().IsWeakCC();
@@ -149,6 +178,15 @@ double GReWeightNuXSecCOH::CalcWeight(const genie::EventRecord & event)
   if(nupdg==kPdgAntiNuMu && !fRewNumubar) return 1.;
   if(nupdg==kPdgNuE      && !fRewNue    ) return 1.;
   if(nupdg==kPdgAntiNuE  && !fRewNuebar ) return 1.;
+
+  double old_weight = event.Weight();
+  double new_weight = old_weight;
+  if ( norm_tweaked ) {
+    if ( is_cc ) new_weight *= fCurCOHNormCC;
+    else if ( is_nc ) new_weight *= fCurCOHNormNC;
+  }
+
+  if ( !xsec_tweaked ) return new_weight;
 
   interaction->KinePtr()->UseSelectedKinematics();
 
@@ -168,9 +206,8 @@ double GReWeightNuXSecCOH::CalcWeight(const genie::EventRecord & event)
     }
   }
 
-  double old_weight = event.Weight();
   double new_xsec   = fXSecModel->XSec(interaction, phase_space);
-  double new_weight = old_weight * (new_xsec/old_xsec);
+  new_weight *= (new_xsec/old_xsec);
 
   interaction->KinePtr()->ClearRunningValues();
 
@@ -220,5 +257,11 @@ void GReWeightNuXSecCOH::Init(void)
   fR0TwkDial   = 0.;
   fR0Def       = fXSecModelConfig->GetDouble(fR0Path);
   fR0Curr      = fR0Def;
+
+  fCCCOHNormTwkDial = 0.;
+  fNCCOHNormTwkDial = 0.;
+
+  fCurCOHNormCC = 1.;
+  fCurCOHNormNC = 1.;
 }
 //_______________________________________________________________________________________

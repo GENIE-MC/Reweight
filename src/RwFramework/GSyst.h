@@ -213,6 +213,12 @@ typedef enum EGSyst {
   // correction factor in the Nieves CCQE model
   kXSecTwkDial_CoulombCCQE,
 
+  // Scale the normalization of CC coherent pion production
+  kXSecTwkDial_NormCCCOHpi,
+
+  // Scale the normalization of NC coherent pion production
+  kXSecTwkDial_NormNCCOHpi,
+
   //
   // Misc
   //

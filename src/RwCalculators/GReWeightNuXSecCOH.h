@@ -81,6 +81,12 @@ namespace rew   {
    double fR0Def;        ///<
    double fR0Curr;       ///<
 
+   double fCCCOHNormTwkDial;
+   double fNCCOHNormTwkDial;
+
+   double fCurCOHNormCC;
+   double fCurCOHNormNC;
+
    std::string fManualModelName; ///< If using a tweaked model that isn't the same as default, name
    std::string fManualModelType; ///< If using a tweaked model that isn't the same as default, type
 
