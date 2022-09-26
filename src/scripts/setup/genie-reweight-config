@@ -7,6 +7,17 @@
 ### GENIE/Reweight libraries path:
 libdir=$GENIE_REWEIGHT/lib
 
+### perhaps "installed" and lib is not at the same level as src
+if test ! -d ${libdir} ; then
+  installpathline=`grep GENIE_INSTALLATION_PATH $GENIE/src/make/Make.config`
+  installpathval=`echo $installpathline | cut -d= -f2`
+  ### extracted string might be an env variable itself
+  installpath=`eval echo $installpathval`
+  if test -d ${installpath}/lib ; then
+    libdir=${installpath}/lib
+  fi
+fi
+
 ### GENIE/Reweight src top level directory:
 srcdir=$GENIE_REWEIGHT/src
 
