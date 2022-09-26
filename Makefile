@@ -93,9 +93,9 @@ general-apps : reweight-framework reweight-io reweight-calculators FORCE
 install-scripts: FORCE
 	@echo " "
 	@echo "** Installing scripts..."
-#	cd ${GENIE_REWEIGHT}/src/scripts && \
-#	make install && \
-#	cd ${GENIE_REWEIGHT}
+	cd ${GENIE_REWEIGHT}/src/scripts && \
+	make install && \
+	cd ${GENIE_REWEIGHT}
 
 print-makeinstall-info: FORCE
 	@echo " "
@@ -151,7 +151,8 @@ clean-files: FORCE
 	cd RwFramework   &&    make clean && cd .. && \
 	cd RwIO          &&    make clean && cd .. && \
 	cd RwCalculators &&    make clean && cd .. && \
-	cd Apps          &&    make clean && \
+	cd Apps          &&    make clean && cd .. && \
+	cd scripts       &&    make clean && \
 	cd $(GENIE_REWEIGHT)
 
 clean-dir: FORCE
@@ -172,6 +173,7 @@ distclean: FORCE
 	cd ${GENIE_REWEIGHT}/src/ && \
 	cd RwFramework   &&    make distclean && cd .. && \
 	cd RwIO          &&    make distclean && cd .. && \
-	cd RwCalculators &&    make distclean
+	cd RwCalculators &&    make distclean && cd .. && \
+	cd scripts       &&    make distclean && \
 	cd ${GENIE_REWEIGHT}
 FORCE:
