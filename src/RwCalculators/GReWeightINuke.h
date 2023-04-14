@@ -48,6 +48,7 @@ class TLorentzVector;
 namespace genie {
 
  class HAIntranuke2018;
+ class GHepParticle;
 
 namespace rew   {
 
