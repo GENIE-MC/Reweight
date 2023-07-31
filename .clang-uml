@@ -1,0 +1,22 @@
+compilation_database_dir: .
+output_directory: puml
+diagrams:
+  ProfSpline_class:
+    type: class
+    generate_packages: true
+    glob:
+      - src/ProfSpline/*.cxx
+      - src/RwCalculators/GReWeightProfessor.cxx
+    using_namespace: genie::rew
+    include:
+      namespaces:
+        - genie::rew
+        - Professor
+    exclude:
+      elements:
+        - genie::rew::GSyst
+        - genie::rew::GSystInfo
+        - genie::rew::GSystSet
+        - genie::rew::EGSyst
+        - genie::rew::GReWeightI
+        - Professor::IpolError
