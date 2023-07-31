@@ -1,20 +1,30 @@
 #include "ProfSpline/ObservableSplines.h"
+#include "ProfSpline/Ipol.h"
 #include <cstddef>
 
 namespace genie {
 namespace rew {
 
-ObservableI *ObservableSplines::get_observable() const {
+ObservableI *ObservableSplines::GetObservable() const {
   return observable.get();
 }
 
-const ExtendedSpline &ObservableSplines::get_bin(size_t bin_id) const {
+const Professor::Ipol &ObservableSplines::GetBin(size_t bin_id) const {
   return bins[bin_id];
 }
 
-double ObservableSplines::get_value(const EventRecord *evt,
+const Professor::Ipol &ObservableSplines::operator[](size_t bin_id) const {
+  return bins[bin_id];
+}
+
+const Professor::Ipol &
+ObservableSplines::operator[](const std::vector<double> &vars) const {
+  return bins[GetObservablesBinID(vars)];
+}
+
+double ObservableSplines::GetDXsec(const EventRecord *evt,
                                     const std::vector<double> &para) const {
-  return bins[GetObservablesBinID(observable->HandleEventRecord(evt))](para);
+  return (*this)[observable->HandleEventRecord(evt)].value(para);
 }
 
 void ObservableSplines::InitializeBins(
@@ -48,6 +58,14 @@ size_t ObservableSplines::GetObservablesBinID(
     }
   }
   return bin_id;
+}
+
+void ObservableSplines::InitialIpols(const std::vector<std::string> &lines) {
+  bins.clear();
+  bins.reserve(lines.size());
+  for (const auto &line : lines) {
+    bins.emplace_back(line);
+  }
 }
 
 } // namespace rew
