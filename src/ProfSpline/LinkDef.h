@@ -8,10 +8,16 @@
 #pragma link C++ namespace genie::utils::rew;
 #pragma link C++ namespace genie::rew;
 
-#pragma link C++ class genie::rew::ExtendedSpline;
+// #pragma link C++ class genie::rew::ExtendedSpline;
 #pragma link C++ class genie::rew::ObservableSplines;
 
 #pragma link C++ class genie::rew::ObservableI;
 #pragma link C++ class genie::rew::ObservableMuonMomentum;
+
+#pragma link C++ namespace Professor;
+#pragma link C++ class Professor::IpolError;
+#pragma link C++ class Professor::Ipol;
+#pragma link C++ class Professor::ParamPoints;
+
 
 #endif

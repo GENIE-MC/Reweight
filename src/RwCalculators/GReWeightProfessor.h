@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef _G_REWEIGHT_PROFESSOR_
 #define _G_REWEIGHT_PROFESSOR_
 

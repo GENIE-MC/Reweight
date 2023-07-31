@@ -27,7 +27,7 @@ void GReWeightProfessor::Reconfigure(void) {}
 //! calculate a weight for the input event using the current nuisance param
 //! values
 double GReWeightProfessor::CalcWeight(const genie::EventRecord &event) {
-  return observable_splines->get_value(&event, systematics_values);
+  return observable_splines->GetDXsec(&event, systematics_values);
 }
 } // namespace rew
 } // namespace genie
