@@ -1,8 +1,12 @@
 #include "ProfSpline/ObservableMuonMomentum.h"
 #include "Framework/GHEP/GHepParticle.h"
+#include "ProfSpline/ObservableF.h"
 
 namespace genie {
 namespace rew {
+
+REGISTER_OBSERVABLE("muon_momentum", ObservableMuonMomentum)
+
 std::vector<double>
 ObservableMuonMomentum::HandleEventRecord(const EventRecord *event) {
   std::vector<double> muon_momentum;

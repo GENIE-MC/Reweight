@@ -27,10 +27,19 @@ public:
   //  - Get Observable information and pass it to ObservableSplines
   //  - Get a list of nuisance parameters and maintain a map and the vector
 
+  void Initialize(std::string);
+
+
 private:
+  void ReadProf2Spline(std::string filepath);
+  void ReadComparionConf(std::string filepath);
+
   // the observable splines
   std::unique_ptr<ObservableSplines> observable_splines;
   std::vector<double> systematics_values;
+  std::vector<std::string> spline_vars;
+  std::vector<double> var_min, var_max;
+  size_t dimension;
 };
 } // namespace rew
 } // namespace genie

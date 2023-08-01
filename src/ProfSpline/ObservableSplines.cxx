@@ -1,30 +1,32 @@
 #include "ProfSpline/ObservableSplines.h"
 #include "ProfSpline/Ipol.h"
+#include "ProfSpline/ObservableF.h"
 #include <cstddef>
 
 namespace genie {
 namespace rew {
 
-ObservableI *ObservableSplines::GetObservable() const {
-  return observable.get();
-}
+// ObservableI *ObservableSplines::GetObservable() const {
+//   return observable.get();
+// }
 
 const Professor::Ipol &ObservableSplines::GetBin(size_t bin_id) const {
   return bins[bin_id];
 }
 
-const Professor::Ipol &ObservableSplines::operator[](size_t bin_id) const {
-  return bins[bin_id];
-}
+// const Professor::Ipol &ObservableSplines::operator[](size_t bin_id) const {
+//   return bins[bin_id];
+// }
 
-const Professor::Ipol &
-ObservableSplines::operator[](const std::vector<double> &vars) const {
-  return bins[GetObservablesBinID(vars)];
-}
+// const Professor::Ipol &
+// ObservableSplines::operator[](const std::vector<double> &vars) const {
+//   return bins[GetObservablesBinID(vars)];
+// }
 
 double ObservableSplines::GetDXsec(const EventRecord *evt,
-                                    const std::vector<double> &para) const {
-  return (*this)[observable->HandleEventRecord(evt)].value(para);
+                                   const std::vector<double> &para) const {
+  auto bin_id = GetObservablesBinID(observable->HandleEventRecord(evt));
+  return bins[bin_id].value(para);
 }
 
 void ObservableSplines::InitializeBins(
@@ -60,12 +62,16 @@ size_t ObservableSplines::GetObservablesBinID(
   return bin_id;
 }
 
-void ObservableSplines::InitialIpols(const std::vector<std::string> &lines) {
+void ObservableSplines::InitializeIpols(const std::vector<std::string> &lines) {
   bins.clear();
   bins.reserve(lines.size());
   for (const auto &line : lines) {
     bins.emplace_back(line);
   }
+}
+
+void ObservableSplines::InitializeObservable(const std::string &name) {
+  observable.reset(ObservableF::Instance().create(name));
 }
 
 } // namespace rew
