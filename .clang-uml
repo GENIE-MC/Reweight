@@ -20,3 +20,27 @@ diagrams:
         - genie::rew::EGSyst
         - genie::rew::GReWeightI
         - Professor::IpolError
+        - Professor::ParamPointsError
+  ProfSpline_sequence:
+    type: sequence
+    generate_packages: true
+    glob:
+      - src/ProfSpline/*.cxx
+      - src/RwCalculators/GReWeightProfessor.cxx
+    using_namespace: genie::rew
+    include:
+      namespaces:
+        - genie::rew
+        - Professor
+    exclude:
+      elements:
+        - genie::rew::GSyst
+        - genie::rew::GSystInfo
+        - genie::rew::GSystSet
+        - genie::rew::EGSyst
+        - genie::rew::GReWeightI
+        - Professor::IpolError
+        - Professor::ParamPointsError
+    start_from:
+      - function: genie::rew::GReWeightProfessor::Initialize(std::string)
+      - function: genie::rew::GReWeightProfessor::CalcWeight(const genie::EventRecord &)
