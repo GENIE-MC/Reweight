@@ -30,7 +30,7 @@ void GReWeightProfessor::Reconfigure(void) {}
 //! calculate a weight for the input event using the current nuisance param
 //! values
 double GReWeightProfessor::CalcWeight(const genie::EventRecord &event) {
-  return observable_splines->GetDXsec(&event, systematics_values);
+  return observable_splines->GetRatio(event, systematics_values, orig_value);
 }
 
 void GReWeightProfessor::Initialize(std::string spline_filepath) {
@@ -79,9 +79,7 @@ void GReWeightProfessor::ReadProf2Spline(std::string filepath) {
   observable_splines->InitializeIpols(var_lines);
 }
 
-void GReWeightProfessor::ReadComparionConf(std::string filepath){
-  
-}
+void GReWeightProfessor::ReadComparionConf(std::string filepath) {}
 
 } // namespace rew
 } // namespace genie

@@ -24,6 +24,7 @@ diagrams:
   ProfSpline_sequence:
     type: sequence
     generate_packages: true
+    generate_return_types: true
     glob:
       - src/ProfSpline/*.cxx
       - src/RwCalculators/GReWeightProfessor.cxx
@@ -44,3 +45,17 @@ diagrams:
     start_from:
       - function: genie::rew::GReWeightProfessor::Initialize(std::string)
       - function: genie::rew::GReWeightProfessor::CalcWeight(const genie::EventRecord &)
+  # ALL:
+  #   type: class
+  #   generate_packages: true
+  #   glob:
+  #     - src/ProfSpline/*.cxx
+  #     - src/Apps/*.cxx
+  #     - src/RwCalculators/*.cxx
+  #     - src/RwFramework/*.cxx
+  #     - src/RwIO/*.cxx
+  #   using_namespace: genie::rew
+  #   include:
+  #     namespaces:
+  #       - genie::rew
+  #       - Professor
