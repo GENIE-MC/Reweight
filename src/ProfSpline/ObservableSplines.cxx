@@ -23,10 +23,17 @@ const Professor::Ipol &ObservableSplines::GetBin(size_t bin_id) const {
 //   return bins[GetObservablesBinID(vars)];
 // }
 
-double ObservableSplines::GetDXsec(const EventRecord *evt,
+double ObservableSplines::GetDXsec(const EventRecord &evt,
                                    const std::vector<double> &para) const {
-  auto bin_id = GetObservablesBinID(observable->HandleEventRecord(evt));
+  auto bin_id = GetObservablesBinID(observable->GetKinematicVariables(evt));
   return bins[bin_id].value(para);
+}
+
+double ObservableSplines::GetRatio(const EventRecord &evt,
+                                   const std::vector<double> &para,
+                                   const std::vector<double> &para_orig) const {
+  auto bin_id = GetObservablesBinID(observable->GetKinematicVariables(evt));
+  return bins[bin_id].value(para)/bins[bin_id].value(para_orig);
 }
 
 void ObservableSplines::InitializeBins(
@@ -72,6 +79,9 @@ void ObservableSplines::InitializeIpols(const std::vector<std::string> &lines) {
 
 void ObservableSplines::InitializeObservable(const std::string &name) {
   observable.reset(ObservableF::Instance().create(name));
+  if (!observable) {
+    // error here
+  }
 }
 
 } // namespace rew

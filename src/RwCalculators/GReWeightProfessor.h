@@ -36,7 +36,7 @@ private:
 
   // the observable splines
   std::unique_ptr<ObservableSplines> observable_splines;
-  std::vector<double> systematics_values;
+  std::vector<double> systematics_values, orig_value;
   std::vector<std::string> spline_vars;
   std::vector<double> var_min, var_max;
   size_t dimension;
