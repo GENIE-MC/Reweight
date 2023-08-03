@@ -10,7 +10,7 @@
 #ifndef _OBSERVABLE_SPLINES_
 #define _OBSERVABLE_SPLINES_
 #include "Framework/EventGen/EventRecord.h"
-#include "ProfSpline/Ipol.h"
+#include "Professor/Ipol.h"
 #include "ProfSpline/ObservableI.h"
 #include <memory>
 
