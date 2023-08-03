@@ -36,7 +36,7 @@ double GReWeightProfessor::CalcWeight(const genie::EventRecord &event) {
 void GReWeightProfessor::Initialize(std::string spline_filepath) {
   observable_splines = std::make_unique<ObservableSplines>();
   ReadProf2Spline(spline_filepath);
-  std::string observable_name = "muon_momentum";
+  std::string observable_name = "genie::rew::ObservableMuonMomentum";
   observable_splines->InitializeObservable(observable_name);
   std::vector<std::vector<double>> binning{};
   observable_splines->InitializeBins(binning);

@@ -47,13 +47,13 @@ public:
   // figure out how to initialize bins
   void InitializeIpols(const std::vector<std::string> &lines);
 
-  void InitializeObservable(const std::string &name);
+  void InitializeObservable(const std::string name, const std::string config = "NoConfig");
 
   // TODO: figure out if we want to initialize Observable here
 
 private:
   /// \uml{note[right] Actual class to calculate observable}
-  std::unique_ptr<ObservableI> observable;
+  const ObservableI* observable;
 
   std::vector<Professor::Ipol> bins;
 

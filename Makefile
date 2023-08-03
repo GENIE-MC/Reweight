@@ -174,7 +174,8 @@ clean-files: FORCE
 	cd RwCalculators &&    make clean && cd .. && \
 	cd ProfSpline    &&    make clean && cd .. && \
 	cd Apps          &&    make clean && cd .. && \
-	cd scripts       &&    make clean && \
+	cd scripts       &&    make clean && cd .. && \
+	cd ${GENIE_REWEIGHT}/src/ExternalLibs/professor  &&    make clean && \
 	cd $(GENIE_REWEIGHT)
 
 clean-dir: FORCE

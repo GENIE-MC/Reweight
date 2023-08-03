@@ -9,9 +9,10 @@ diagrams:
       - src/RwCalculators/GReWeightProfessor.cxx
     using_namespace: genie::rew
     include:
-      namespaces:
-        - genie::rew
-        - Professor
+      context:
+        - r: 'genie::rew::.*'
+        - r: 'Professor::.*'
+        - r: 'genie::Algorithm'
     exclude:
       elements:
         - genie::rew::GSyst
@@ -21,6 +22,10 @@ diagrams:
         - genie::rew::GReWeightI
         - Professor::IpolError
         - Professor::ParamPointsError
+      namespaces:
+        - std
+      element_types:
+        - enum
   ProfSpline_sequence:
     type: sequence
     generate_packages: true
@@ -33,6 +38,7 @@ diagrams:
       namespaces:
         - genie::rew
         - Professor
+        - genie
     exclude:
       elements:
         - genie::rew::GSyst

@@ -10,7 +10,7 @@ namespace rew {
 class ObservableMuonMomentum : public ObservableI {
 public:
   virtual std::vector<double>
-  GetKinematicVariables(const EventRecord &event) override;
+  GetKinematicVariables(const EventRecord &event) const override;
 
   virtual ~ObservableMuonMomentum() = default;
 };
