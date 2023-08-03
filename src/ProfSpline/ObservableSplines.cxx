@@ -1,6 +1,7 @@
 #include "ProfSpline/ObservableSplines.h"
+#include "Framework/Algorithm/AlgFactory.h"
+#include "Framework/Algorithm/Algorithm.h"
 #include "Professor/Ipol.h"
-#include "ProfSpline/ObservableF.h"
 #include <cstddef>
 
 namespace genie {
@@ -33,7 +34,7 @@ double ObservableSplines::GetRatio(const EventRecord &evt,
                                    const std::vector<double> &para,
                                    const std::vector<double> &para_orig) const {
   auto bin_id = GetObservablesBinID(observable->GetKinematicVariables(evt));
-  return bins[bin_id].value(para)/bins[bin_id].value(para_orig);
+  return bins[bin_id].value(para) / bins[bin_id].value(para_orig);
 }
 
 void ObservableSplines::InitializeBins(
@@ -77,10 +78,14 @@ void ObservableSplines::InitializeIpols(const std::vector<std::string> &lines) {
   }
 }
 
-void ObservableSplines::InitializeObservable(const std::string &name) {
-  observable.reset(ObservableF::Instance().create(name));
+void ObservableSplines::InitializeObservable(const std::string name,
+                                             const std::string config) {
+  observable = dynamic_cast<const genie::rew::ObservableI *>(
+      AlgFactory::Instance()->GetAlgorithm(name, config));
   if (!observable) {
-    // error here
+    LOG("ObservableSplines", pFATAL)
+        << "Cannot find observable " << name << " in rew algorithm list";
+    exit(1);
   }
 }
 
