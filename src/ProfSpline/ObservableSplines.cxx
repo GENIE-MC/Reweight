@@ -1,5 +1,5 @@
 #include "ProfSpline/ObservableSplines.h"
-#include "ProfSpline/Ipol.h"
+#include "Professor/Ipol.h"
 #include "ProfSpline/ObservableF.h"
 #include <cstddef>
 

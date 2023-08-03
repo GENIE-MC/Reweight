@@ -22,7 +22,7 @@ fi
 srcdir=$GENIE_REWEIGHT/src
 
 ### GENIE/Reweight libraries:
-libs="-L$libdir -lGRwFwk -lGRwIO -lGRwClc -lGPrSp"
+libs="-L$libdir -lGRwFwk -lGRwIO -lGRwClc -lGPrSp -lProfessor2"
 
 ### Usage
 usage="\
