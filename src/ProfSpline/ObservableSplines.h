@@ -10,8 +10,9 @@
 #ifndef _OBSERVABLE_SPLINES_
 #define _OBSERVABLE_SPLINES_
 #include "Framework/EventGen/EventRecord.h"
-#include "Professor/Ipol.h"
+#include "ProfSpline/ObservableBins.h"
 #include "ProfSpline/ObservableI.h"
+#include "Professor/Ipol.h"
 #include <memory>
 
 namespace genie {
@@ -24,10 +25,7 @@ namespace rew {
 /// cross section}
 class ObservableSplines {
 public:
-  // ObservableI *GetObservable() const;
   const Professor::Ipol &GetBin(size_t bin_id) const;
-  // const Professor::Ipol &operator[](size_t bin_id) const;
-  // const Professor::Ipol &operator[](const std::vector<double> &vars) const;
   // the interpolation function
   /// \uml{note takes eventrecord and nuisance parameters as input
   /// and return the differential cross section}
@@ -47,17 +45,18 @@ public:
   // figure out how to initialize bins
   void InitializeIpols(const std::vector<std::string> &lines);
 
-  void InitializeObservable(const std::string name, const std::string config = "NoConfig");
+  void InitializeObservable(const std::string name,
+                            const std::string config = "NoConfig");
 
   // TODO: figure out if we want to initialize Observable here
 
 private:
   /// \uml{note[right] Actual class to calculate observable}
-  const ObservableI* observable;
+  const ObservableI *observable;
 
   std::vector<Professor::Ipol> bins;
 
-  std::vector<std::vector<double>> bin_edges;
+  ObservableBins binning;
 };
 } // namespace rew
 } // namespace genie
