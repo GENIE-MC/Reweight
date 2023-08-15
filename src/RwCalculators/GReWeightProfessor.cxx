@@ -1,4 +1,5 @@
 #include "RwCalculators/GReWeightProfessor.h"
+#include "Framework/Messenger/Messenger.h"
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -74,12 +75,18 @@ void GReWeightProfessor::ReadProf2Spline(std::string filepath) {
       auto &varline = var_lines.emplace_back();
       std::getline(spline_file, varline);
       std::getline(spline_file, errline);
+    } else {
+      LOG("GReWeightProfessor::ReadProf2Spline", pINFO)
+          << "Unknown line: " << line;
     }
   }
   observable_splines->InitializeIpols(var_lines);
 }
 
 void GReWeightProfessor::ReadComparionConf(std::string filepath) {}
+
+GReWeightProfessor::GReWeightProfessor(std::string name)
+    : GReWeightModel(name) {}
 
 } // namespace rew
 } // namespace genie
