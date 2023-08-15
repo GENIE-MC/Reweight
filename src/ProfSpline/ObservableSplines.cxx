@@ -4,6 +4,7 @@
 #include "Framework/Messenger/Messenger.h"
 #include "Professor/Ipol.h"
 #include <cstddef>
+#include <cstdlib>
 
 namespace genie {
 namespace rew {
@@ -21,8 +22,28 @@ double ObservableSplines::GetDXsec(const EventRecord &evt,
 double ObservableSplines::GetRatio(const EventRecord &evt,
                                    const std::vector<double> &para,
                                    const std::vector<double> &para_orig) const {
-  auto bin_id = GetObservablesBinID(observable->GetKinematicVariables(evt));
-  return bins[bin_id].value(para) / bins[bin_id].value(para_orig);
+  auto &&kin_vars = observable->GetKinematicVariables(evt);
+  auto bin_id = GetObservablesBinID(kin_vars);
+  // LOG("ObservableSplines", pINFO) << "Bin ID: " << bin_id;
+  if (bin_id >= bins.size()) {
+    LOG("ObservableSplines", pERROR) << "Bin ID out of range: " << bin_id;
+    return 1;
+  }
+  auto &&bin = GetBin(bin_id);
+  auto new_weight = bin.value(para);
+  auto old_weight = bin.value(para_orig);
+  if (new_weight / old_weight < 0) {
+    LOG("ObservableSplines", pERROR)
+        << "Negative ratio: " << new_weight << " \
+    / " << old_weight
+        << " for bin " << bin_id << " with kinematic variables: " << kin_vars[0]
+        << "new weight: " << new_weight << " old weight: " << old_weight << " \
+    ratio: "
+        << new_weight / old_weight;
+    // exit(1);
+    return 1;
+  }
+  return new_weight / old_weight;
 }
 
 void ObservableSplines::InitializeBins(

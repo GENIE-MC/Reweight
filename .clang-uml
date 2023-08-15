@@ -20,6 +20,9 @@ diagrams:
         - genie::rew::GSystSet
         - genie::rew::EGSyst
         - genie::rew::GReWeightI
+        - genie::EventRecord
+        - genie::Registry
+        - genie::AlgId
         - Professor::IpolError
         - Professor::ParamPointsError
       namespaces:
@@ -46,8 +49,11 @@ diagrams:
         - genie::rew::GSystSet
         - genie::rew::EGSyst
         - genie::rew::GReWeightI
+        - genie::Messenger
         - Professor::IpolError
         - Professor::ParamPointsError
+      context:
+        - genie::Messenger
     start_from:
       - function: genie::rew::GReWeightProfessor::Initialize(std::string)
       - function: genie::rew::GReWeightProfessor::CalcWeight(const genie::EventRecord &)
