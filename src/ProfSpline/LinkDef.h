@@ -13,6 +13,7 @@
 
 #pragma link C++ class genie::rew::ObservableI;
 #pragma link C++ class genie::rew::ObservableMuonMomentum;
+#pragma link C++ class genie::rew::ObservablePMuEnu;
 
 #pragma link C++ namespace Professor;
 #pragma link C++ class Professor::IpolError;
