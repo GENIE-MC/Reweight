@@ -56,6 +56,11 @@ size_t ObservableSplines::GetObservablesBinID(
   return binning.GetObservablesBinIDLinearized(values);
 }
 
+size_t ObservableSplines::GetObservablesBinID(const EventRecord &event) const {
+  return binning.GetObservablesBinIDLinearized(
+      observable->GetKinematicVariables(event));
+}
+
 void ObservableSplines::InitializeIpols(const std::vector<std::string> &lines) {
   bins.clear();
   bins.reserve(lines.size());

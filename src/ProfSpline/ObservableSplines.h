@@ -36,6 +36,7 @@ public:
   // This function is to restore binning information
   /// \uml{note Calculate the bin id for a given set of observables}
   size_t GetObservablesBinID(const std::vector<double> &) const;
+  size_t GetObservablesBinID(const EventRecord &) const;
 
   /// \uml{note[right] Bin edges for each dimension
   /// Bin edges should be read from configuration file
