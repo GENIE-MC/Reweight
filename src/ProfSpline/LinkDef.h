@@ -15,6 +15,11 @@
 #pragma link C++ class genie::rew::ObservableMuonMomentum;
 #pragma link C++ class genie::rew::ObservablePMuEnu;
 
+#pragma link C++ class genie::rew::ObservableDiscreteBinI;
+#pragma link C++ class genie::rew::ObservableDiscreteBinCCNC;
+#pragma link C++ class genie::rew::ObservableDiscreteBinInteraction;
+#pragma link C++ class genie::rew::ObservableDiscreteBins;
+
 #pragma link C++ namespace Professor;
 #pragma link C++ class Professor::IpolError;
 #pragma link C++ class Professor::Ipol;

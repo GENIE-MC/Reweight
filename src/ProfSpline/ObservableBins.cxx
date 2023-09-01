@@ -28,8 +28,14 @@ int ObservableBins::LinearizeBinID(const std::vector<int> &bin_ids) const {
   for (size_t i = 0; i < bin_ids.size(); ++i) {
     bin_id *= bin_edges[i].GetNbins();
     if (bin_ids[i] == 0) {
+      LOG("ObservableBins", pWARN)
+          << "We are in the underflow bin on axis: " << i
+          << " Treating as the first bin";
       bin_id += 0;
     } else if (bin_ids[i] == bin_edges[i].GetNbins() + 1) {
+      LOG("ObservableBins", pWARN)
+          << "We are in the overflow bin on axis: " << i
+          << " Treating as the last bin";
       bin_id += bin_edges[i].GetNbins();
     } else {
       bin_id += bin_ids[i] - 1;

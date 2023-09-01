@@ -61,6 +61,7 @@
 #include "RwCalculators/GReWeightProfessor.h"
 #include "TAttLine.h"
 #include "TF1.h"
+#include "TLorentzVector.h"
 #include "TROOT.h"
 #include "TSpline.h"
 
@@ -119,22 +120,20 @@ std::pair<double, double> get_xsec(TH1 *h_rate, TGraph *spline) {
 }
 
 double get_genie_normalize(ROOT::RDF::RNode df, std::string filename, int Z) {
-  auto h = df.Filter(
-                 [](const NtpMCEventRecord &event) {
-                   auto nucl = event.event->TargetNucleus();
-                   if (!nucl)
-                     return false;
-                   return event.event->Summary()->ProcInfo().IsWeakCC() &&
-                          nucl->Pdg() == 1000060120;
-                 },
-                 {"gmcrec"})
-               .Define("neutrinoE",
-                       [](const NtpMCEventRecord &event) {
-                         return event.event->Probe()->E();
-                       },
-                       {"gmcrec"})
-               .Histo1D({"", "", 256, 0, 0}, "neutrinoE");
-  auto spline_obj = get_object<TGraph>(filename, "nu_mu_bar_C12/tot_cc");
+  auto h =
+      df.Filter(
+            [](const NtpMCEventRecord &event) {
+              return event.event->Summary()->ProcInfo().IsWeakCC() &&
+                     event.event->Summary()->InitState().TgtPdg() == 1000010010;
+            },
+            {"gmcrec"})
+          .Define("neutrinoE",
+                  [](const NtpMCEventRecord &event) {
+                    return event.event->Probe()->E();
+                  },
+                  {"gmcrec"})
+          .Histo1D({"", "", 256, 0, 0}, "neutrinoE");
+  auto spline_obj = get_object<TGraph>(filename, "nu_mu_bar_H1/tot_cc");
   auto [tot, xsec] = get_xsec(h.GetPtr(), spline_obj.get());
   std::cerr << "tot: " << tot << " xsec: " << xsec << std::endl;
   xsec *= 1. / ((double)Z) * 1e-38;
@@ -145,11 +144,11 @@ template <typename T> auto common_def(T &&df) {
   return df
       .Filter(
           [](const NtpMCEventRecord &event) {
-            auto nucl = event.event->TargetNucleus();
-            if (!nucl)
-              return false;
+            // auto nucl = event.event->TargetNucleus();
+            // if (!nucl)
+            //   return false;
             return event.event->Summary()->ProcInfo().IsWeakCC() &&
-                   nucl->Pdg() == 1000060120;
+                   event.event->Summary()->InitState().TgtPdg() == 1000010010;
           },
           {"gmcrec"})
       .Define("muonp",
@@ -163,26 +162,47 @@ template <typename T> auto common_def(T &&df) {
                 return event.event->FinalStatePrimaryLepton()->P4()->Theta();
               },
               {"gmcrec"})
-      .Define("Q2",
+      .Define("q",
               [](const NtpMCEventRecord &event) {
                 // return event.event->Summary()->KinePtr()->Q2();
                 auto &p4_lep = *(event.event->FinalStatePrimaryLepton()->P4());
                 auto &nu_lep = *(event.event->Probe()->P4());
-                return -(p4_lep - nu_lep).M2();
+                return nu_lep - p4_lep;
               },
-              {"gmcrec"});
+              {"gmcrec"})
+      .Define("q0",
+              [](const TLorentzVector &q) {
+                // return event.event->Summary()->KinePtr()->Q2();
+                return q.T();
+              },
+              {"q"})
+      .Define("Q2",
+              [](const TLorentzVector &q) {
+                // return event.event->Summary()->KinePtr()->Q2();
+                return -q.M2();
+              },
+              {"q"});
   // for now we filter out event outside of the binning range
 }
 
 // we don't have a proper configuration mechanism yet, so we need to
 // hardcode sth.
 int main(int argc, char **argv) {
-  std::vector<double> bin_edges{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  std::vector<double> bin_edges_pmu{
+      0,    0.5,  1,    1.5,  2,    2.5,  3,    3.5,  4,    4.5,  5,
+      5.5,  6,    6.5,  7,    7.5,  8,    8.5,  9,    9.5,  10,   10.5,
+      11,   11.5, 12,   12.5, 13,   13.5, 14,   14.5, 15,   15.5, 16,
+      16.5, 17,   17.5, 18,   18.5, 19,   19.5, 20,   20.5, 100};
+  std::vector<double> bin_edges_enu{
+      0,    0.5,  1,    1.5,  2,    2.5,  3,    3.5,  4,    4.5,  5,
+      5.5,  6,    6.5,  7,    7.5,  8,    8.5,  9,    9.5,  10,   10.5,
+      11,   11.5, 12,   12.5, 13,   13.5, 14,   14.5, 15,   15.5, 16,
+      16.5, 17,   17.5, 18,   18.5, 19,   19.5, 20,   20.5, 100};
   ObservableBins bins;
-  bins.InitializeBins({bin_edges});
-  LOG("Test", pNOTICE) << bins.GetObservablesBinIDLinearized({0.2});
+  bins.InitializeBins({bin_edges_pmu, bin_edges_enu});
+  LOG("Test", pNOTICE) << bins.GetObservablesBinIDLinearized({2.1, 1.1});
 
-  // ROOT::EnableImplicitMT();
+  ROOT::EnableImplicitMT();
   TH1::AddDirectory(false);
   std::string from_id = argc > 1 ? argv[1] : "0000";
   std::string to_id = argc > 2 ? argv[2] : "0002";
@@ -190,8 +210,8 @@ int main(int argc, char **argv) {
   if (basedir.back() != '/')
     basedir += "/";
 
-  // auto gevgen_filename="minerva_antinumu_ccqe_NuMi.ghep.root";
-  auto gevgen_filename = "gntp.70000.ghep.root";
+  auto gevgen_filename = "minerva_antinumu_ccqe_NuMi.ghep.root";
+  // auto gevgen_filename = "gntp.70000.ghep.root";
 
   std::string input_from_file = basedir + "scan/" + from_id +
                                 "/master-professor_tune_01-minerva/" +
@@ -209,14 +229,14 @@ int main(int argc, char **argv) {
       "gtree",
       input_from_file); // read the tree from the file
   auto observable_splines = std::make_unique<GReWeightProfessor>("");
-  std::string observable_name = "genie::rew::ObservableMuonMomentum";
+  std::string observable_name = "genie::rew::ObservablePMuEnu";
   observable_splines->InitializeObservable(observable_name);
   LOG("Test", pNOTICE) << "Initialize Professor Reweight success";
 
   observable_splines->ReadProf2Spline(ipol_path);
   LOG("Test", pNOTICE) << "Read Professor Reweight success";
 
-  observable_splines->InitializeBins({bin_edges});
+  observable_splines->InitializeBins({bin_edges_pmu, bin_edges_enu});
   LOG("Test", pNOTICE) << "Initialize Professor Reweight success";
   // now observable_splines should just work
 
@@ -231,22 +251,24 @@ int main(int argc, char **argv) {
 
   auto ds_ref = common_def(tree_to);
 
-  auto tree_rew =
-      common_def(input_from_tree)
-          .Define("weight",
-                  [&](const NtpMCEventRecord &event) {
-                    return observable_splines->CalcWeight(*(event.event));
-                  },
-                  {"gmcrec"});
+  auto tree_rew = common_def(input_from_tree)
+                      .Define("weight",
+                              [&](const NtpMCEventRecord &event) {
+                                auto weight = observable_splines->CalcWeight(
+                                    *(event.event));
+                                return weight < 0 ? 0 : weight;
+                              },
+                              {"gmcrec"});
 
   // auto hist_rew_alt = tree_rew.Histo1D(model, "muonp", "weight_alt");
 
-  std::array<std::string, 3> varnames{"muonp", "muon_theta", "Q2"};
+  std::array<std::string, 4> varnames{"muonp", "muon_theta", "Q2", "q0"};
 
   std::unordered_map<std::string, ROOT::RDF::TH1DModel> modelmap{
       {"muonp", {"", ";p_{#mu};", 10, 0, 10.}},
-      {"muon_theta", {"", ";#theta_{#mu};", 20, 0., 4.}},
-      {"Q2", {"", ";Q^{2};", 30, 0., 6.}}};
+      {"muon_theta", {"", ";#theta_{#mu};", 20, 0., 2.}},
+      {"Q2", {"", ";Q^{2};", 30, 0., 6.}},
+      {"q0", {"", ";q^{0};", 30, 0., 6.}}};
 
   // ROOT::RDF::TH1DModel model{"", "", 10, 0, 10.};
 
@@ -260,9 +282,9 @@ int main(int argc, char **argv) {
     hist_unrew_m[var] = tree_rew.Histo1D<double>(model, var);
   }
 
-  auto normalize_to = get_genie_normalize(tree_to, spline_path_to, 12);
+  auto normalize_to = get_genie_normalize(tree_to, spline_path_to, 1);
   auto normalize_from =
-      get_genie_normalize(input_from_tree, spline_path_from, 12);
+      get_genie_normalize(input_from_tree, spline_path_from, 1);
 
   auto do_plot = [&](std::string varname, bool do_normalize) {
     auto hist_rew = hist_rew_m[varname].GetPtr();
@@ -307,6 +329,7 @@ int main(int argc, char **argv) {
         varname + "_" + (do_normalize ? "normalized" : "unnormalized") + ".pdf";
     c1->SaveAs(filename.c_str());
   };
+  tree_rew.Snapshot("out", "out.root", {"weight", "Q2"});
 
   // do_plot("muonp", true);
   // do_plot("muonp", false);
@@ -315,8 +338,8 @@ int main(int argc, char **argv) {
   // do_plot("Q2", true);
   // do_plot("Q2", false);
   for (auto &&var : varnames) {
-    do_plot(var, true);
     do_plot(var, false);
+    do_plot(var, true);
   }
 
   return 0;
