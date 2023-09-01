@@ -11,6 +11,7 @@
 #define _OBSERVABLE_SPLINES_
 #include "Framework/EventGen/EventRecord.h"
 #include "ProfSpline/ObservableBins.h"
+#include "ProfSpline/ObservableDiscreteBins.h"
 #include "ProfSpline/ObservableI.h"
 #include "Professor/Ipol.h"
 #include <memory>
@@ -35,7 +36,6 @@ public:
 
   // This function is to restore binning information
   /// \uml{note Calculate the bin id for a given set of observables}
-  size_t GetObservablesBinID(const std::vector<double> &) const;
   size_t GetObservablesBinID(const EventRecord &) const;
 
   /// \uml{note[right] Bin edges for each dimension
@@ -49,15 +49,24 @@ public:
   void InitializeObservable(const std::string name,
                             const std::string config = "NoConfig");
 
+  void
+  InitializeDiscreteBins(const std::vector<std::string> &enabled_bin_names);
+
   // TODO: figure out if we want to initialize Observable here
+  size_t GetNChannel() const;
 
 private:
+  size_t GetChannelID(const EventRecord &) const;
+  // size_t GetObservablesBinID(const std::vector<double> &) const;
+
   /// \uml{note[right] Actual class to calculate observable}
   const ObservableI *observable;
 
   std::vector<Professor::Ipol> bins;
 
   ObservableBins binning;
+
+  std::unique_ptr<ObservableDiscreteBins> discrete_bins{};
 };
 } // namespace rew
 } // namespace genie
