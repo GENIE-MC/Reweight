@@ -36,19 +36,27 @@ double ObservableSplines::GetRatio(const EventRecord &evt,
   auto new_weight = bin.value(para);
   auto old_weight = bin.value(para_orig);
   const auto product = new_weight / old_weight;
-  auto vec2str = [](std::vector<double> &vec) {
-    std::stringstream ss;
-    for (auto i : vec) {
-      ss << i << "\t";
-    }
-    return ss.str();
-  };
   if (product < 0 || isnan(product)) {
+    // Sometimes we can reach here, this can be due to rare
+    // events that not being recorded during generation of
+    // splines
+    // OR
+    // Something went wrong during generation of spline or doing
+    // intepolation
+    // .. For now we just "passthough" the events
+    // .. But warn here since too much of such events 
+    // .. is definitely a problem
     auto &&kin_vars = observable->GetKinematicVariables(evt);
     LOG("ObservableSplines", pERROR) << "Negative ratio: " << new_weight << " \
     / " << old_weight << " for bin " << bin_id
-                                     << " with kinematic variables: "
-                                     << vec2str(kin_vars)
+                                     << " with kinematic variables: " <<
+        [](std::vector<double> &vec) {
+          std::stringstream ss;
+          for (auto i : vec) {
+            ss << i << "\t";
+          }
+          return ss.str();
+        }(kin_vars)
                                      << " new weight: " << new_weight
                                      << " old weight: " << old_weight << " \
     ratio: " << new_weight / old_weight;

@@ -4,10 +4,19 @@
 
 namespace genie {
 namespace rew {
-std::vector<double> ObservablePMuEnu::GetKinematicVariables(const EventRecord &event) const {
+std::vector<double>
+ObservablePMuEnu::GetKinematicVariables(const EventRecord &event) const {
   // std::vector<double> ret;
-  double pmu = event.FinalStatePrimaryLepton()->P4()->P();
-  double enu = event.Probe()->E();
+  GHepParticle * target_nucleus_p = event.HitNucleon();
+
+  auto target_nucleus = target_nucleus_p? *target_nucleus_p : *(event.TargetNucleus());
+  auto boost_vec = -target_nucleus.P4()->BoostVector();
+  auto final_state_lepton = *(event.FinalStatePrimaryLepton()->P4());
+  final_state_lepton.Boost(boost_vec);
+  double pmu = final_state_lepton.P();
+  auto probe = *(event.Probe()->P4());
+  probe.Boost(boost_vec);
+  double enu = probe.E();
   return {pmu, enu};
 }
 
