@@ -1,11 +1,11 @@
-#include "ProfSpline/ObservablePMuEnu.h"
+#include "ProfSpline/ObservablePMuEnuW.h"
 #include "Framework/GHEP/GHepParticle.h"
 #include "Framework/Messenger/Messenger.h"
 
 namespace genie {
 namespace rew {
 std::vector<double>
-ObservablePMuEnu::GetKinematicVariables(const EventRecord &event) const {
+ObservablePMuEnuW::GetKinematicVariables(const EventRecord &event) const {
   // std::vector<double> ret;
   GHepParticle *target_nucleus_p = event.HitNucleon();
   // in case we are dealing with COH, which comes with no hit nucleon
@@ -20,7 +20,12 @@ ObservablePMuEnu::GetKinematicVariables(const EventRecord &event) const {
   auto probe = *(event.Probe()->P4());
   probe.Boost(boost_vec);
   double enu = probe.E();
-  return {pmu, enu};
+  double W = event.Summary()->Kine().W(true);
+  if (W == -99999) {
+    W = event.Summary()->Kine().W(false);
+  }
+  W = W == -99999 ? 0 : W;
+  return {pmu, enu, W};
 }
 
 } // namespace rew
