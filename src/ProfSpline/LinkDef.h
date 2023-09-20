@@ -14,6 +14,7 @@
 #pragma link C++ class genie::rew::ObservableI;
 #pragma link C++ class genie::rew::ObservableMuonMomentum;
 #pragma link C++ class genie::rew::ObservablePMuEnu;
+#pragma link C++ class genie::rew::ObservablePMuEnuW;
 
 #pragma link C++ class genie::rew::ObservableDiscreteBinI;
 #pragma link C++ class genie::rew::ObservableDiscreteBinCCNC;
