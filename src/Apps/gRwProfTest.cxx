@@ -64,6 +64,7 @@
 #include "TAttLine.h"
 #include "TF1.h"
 #include "TLorentzVector.h"
+#include "TPad.h"
 #include "TROOT.h"
 #include "TSpline.h"
 
@@ -169,6 +170,16 @@ template <typename T> auto common_def(T &&df) {
                    event.event->Summary()->InitState().TgtPdg() == 1000060120;
           },
           {"gmcrec"})
+      .Define("boost",
+              [](const NtpMCEventRecord &event) {
+                GHepParticle *target_nucleus_p = event.event->HitNucleon();
+
+                auto target_nucleus = target_nucleus_p
+                                          ? *target_nucleus_p
+                                          : *(event.event->TargetNucleus());
+                return -target_nucleus.P4()->BoostVector();
+              },
+              {"gmcrec"})
       .Define("muonp",
               [](const NtpMCEventRecord &event) {
                 return event.event->FinalStatePrimaryLepton()->P4()->P();
@@ -181,21 +192,21 @@ template <typename T> auto common_def(T &&df) {
               },
               {"gmcrec"})
       .Define("q",
-              [](const NtpMCEventRecord &event) {
+              [](const NtpMCEventRecord &event, const TVector3 &boost) {
                 // return event.event->Summary()->KinePtr()->Q2();
                 auto &p4_lep = *(event.event->FinalStatePrimaryLepton()->P4());
                 auto &nu_lep = *(event.event->Probe()->P4());
-                GHepParticle *target_nucleus_p = event.event->HitNucleon();
+                // GHepParticle *target_nucleus_p = event.event->HitNucleon();
 
-                auto target_nucleus = target_nucleus_p
-                                          ? *target_nucleus_p
-                                          : *(event.event->TargetNucleus());
-                auto boost_vec = -target_nucleus.P4()->BoostVector();
+                // auto target_nucleus = target_nucleus_p
+                //                           ? *target_nucleus_p
+                //                           : *(event.event->TargetNucleus());
+                // auto boost_vec = -target_nucleus.P4()->BoostVector();
                 auto vec = nu_lep - p4_lep;
-                vec.Boost(boost_vec);
+                vec.Boost(boost);
                 return vec;
               },
-              {"gmcrec"})
+              {"gmcrec", "boost"})
       .Define("q0",
               [](const TLorentzVector &q) {
                 // return event.event->Summary()->KinePtr()->Q2();
@@ -255,8 +266,8 @@ int main(int argc, char **argv) {
       "gtree",
       input_from_file); // read the tree from the file
   auto observable_splines = std::make_unique<GReWeightProfessor>("");
-  observable_splines->Initialize(
-      "/var/home/yan/code/Comparisons/data/observables/pmu_enu/configure.xml");
+  observable_splines->Initialize("/var/home/yan/code/Comparisons/data/"
+                                 "observables/pmu_enu_W/configure.xml");
   // std::string observable_name = "genie::rew::ObservablePMuEnu";
   // observable_splines->InitializeObservable(observable_name);
   // LOG("Test", pNOTICE) << "Initialize Professor Reweight success";
@@ -421,8 +432,18 @@ int main(int argc, char **argv) {
       ytitle += "(cm^{2}/MeV/nucleon)";
     }
 
+    auto chi2 = hist_reference->Chi2Test(hist_rew, "CHI2/NDF");
+
     auto c1 = std::make_unique<TCanvas>();
     c1->SetLeftMargin(0.15);
+    c1->Draw();
+    // c1->Divide(1, 2);
+    // auto pad1 = new TPad("pad1", "", 0, 0.3, 1, 1);
+    // auto pad2 = new TPad("pad2", "", 0, 0, 1, 0.3);
+    auto pad1 = std::make_unique<TPad>("pad1", "", 0, 0.3, 1, 1);
+    auto pad2 = std::make_unique<TPad>("pad2", "", 0, 0, 1, 0.3);
+    // c1->cd(1);
+    pad1->cd();
     auto max = std::max({hist_reference->GetMaximum(), hist_rew->GetMaximum(),
                          hist_unrew->GetMaximum()});
     gStyle->SetOptStat(0);
@@ -435,17 +456,35 @@ int main(int argc, char **argv) {
     legend->AddEntry(hist_rew, "reweighted", "l");
     hist_unrew->SetLineColor(kGreen);
     hist_unrew->SetMaximum(max * 1.1);
-    hist_unrew->SetLineStyle(kDotted);
+    // hist_unrew->SetLineStyle(kDotted);
     hist_unrew->GetYaxis()->SetTitle(ytitle.c_str());
     hist_unrew->Draw("hist E same");
     legend->AddEntry(hist_unrew, "unreweighted", "l");
     hist_reference->SetMaximum(max * 1.1);
     hist_reference->SetLineColor(kRed);
-    hist_reference->SetLineStyle(kDotted);
+    // hist_reference->SetLineStyle(kDotted);
     hist_reference->GetYaxis()->SetTitle(ytitle.c_str());
     hist_reference->Draw("hist E SAME");
     legend->AddEntry(hist_reference, "reference", "l");
+    legend->SetHeader(("chi2/ndf: " + std::to_string(chi2)).c_str());
     legend->Draw("SAME");
+    // c1->cd(2);
+    pad2->cd();
+    auto hist_diff_rew_ref =
+        std::unique_ptr<TH1D>{static_cast<TH1D *>(hist_rew->Clone())};
+    hist_diff_rew_ref->Add(hist_reference, -1);
+    auto hist_diff_unrew_ref =
+        std::unique_ptr<TH1D>{static_cast<TH1D *>(hist_unrew->Clone())};
+    hist_diff_unrew_ref->Add(hist_reference, -1);
+    // (hist_rew - hist_reference) / (hist_unrew - hist_reference);
+    hist_diff_rew_ref->Divide(hist_diff_unrew_ref.get());
+    // hist_diff_rew_ref->SetMaximum();
+    hist_diff_rew_ref->GetYaxis()->SetTitle("rew - ref / unrew - ref");
+    hist_diff_rew_ref->Draw("hist");
+    c1->cd();
+    pad1->Draw();
+    pad2->Draw();
+    c1->Draw();
     std::string filename = varname + "_" +
                            (do_normalize ? "normalized" : "unnormalized") +
                            cut + ".pdf";
