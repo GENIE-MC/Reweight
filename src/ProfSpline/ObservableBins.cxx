@@ -17,6 +17,22 @@ ObservableBins::GetObservablesBinID(const std::vector<double> &vars) const {
   return bin_ids;
 }
 
+std::vector<double>
+ObservableBins::GetObservablesBinLoc(const std::vector<double> &vars) const {
+  if (bin_edges.size() != vars.size()) {
+    LOG("ObservableBins", pERROR) << "Number of dimensions in bin edges and "
+                                     "number of dimensions in vars do not "
+                                     "match";
+    exit(1);
+  }
+  std::vector<double> bin_ids(vars.size());
+  for (size_t i = 0; i < vars.size(); ++i) {
+    bin_ids[i] = bin_edges[i].FindBin(vars[i]);
+    bin_ids[i] += vars[i] / bin_edges[i].GetBinWidth(bin_ids[i]);
+  }
+  return bin_ids;
+}
+
 int ObservableBins::LinearizeBinID(const std::vector<int> &bin_ids) const {
   if (bin_ids.size() != bin_edges.size()) {
     LOG("ObservableBins", pERROR) << "Number of dimensions in bin edges and "
@@ -47,6 +63,11 @@ int ObservableBins::LinearizeBinID(const std::vector<int> &bin_ids) const {
 int ObservableBins::GetObservablesBinIDLinearized(
     const std::vector<double> &vars) const {
   return LinearizeBinID(GetObservablesBinID(vars));
+}
+
+int ObservableBins::GetObservablesBinIDLinearized(
+    const std::vector<int> &vars) const {
+  return LinearizeBinID(vars);
 }
 
 void ObservableBins::InitializeBins(

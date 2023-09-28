@@ -15,6 +15,7 @@
 #include "ProfSpline/ObservableI.h"
 #include "Professor/Ipol.h"
 #include <memory>
+#include <vector>
 
 namespace genie {
 namespace rew {
@@ -54,6 +55,11 @@ public:
 
   // TODO: figure out if we want to initialize Observable here
   size_t GetNChannel() const;
+
+  double GetValueInterpolated(size_t channel_id,
+                              const std::vector<double> &obvs,
+                              const std::vector<double> &paras) const;
+  size_t toBinID(size_t channel_id,std::vector<int> bin_ids) const;
 
 private:
   size_t GetChannelID(const EventRecord &) const;
