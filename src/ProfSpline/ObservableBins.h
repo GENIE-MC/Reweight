@@ -7,6 +7,9 @@
 #include <vector>
 namespace genie {
 namespace rew {
+/// \uml{note conventional binning for ordinary observables
+/// Actually hold a set of TAxis in multiple dimensions
+/// And provide interface to act like a single dimension binning.}
 class ObservableBins {
 public:
   ObservableBins() = default;
