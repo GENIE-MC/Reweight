@@ -4,6 +4,8 @@
 #include "Framework/EventGen/EventRecord.h"
 namespace genie {
 namespace rew {
+/// \uml{note Made this an interface to handle the possibliy of
+/// different coice of different channel division. }
 class ObservableDiscreteBinI : public Algorithm {
 public:
   virtual ~ObservableDiscreteBinI() = default;
@@ -25,6 +27,9 @@ public:
   virtual size_t GetNBinMax() const;
 };
 
+/// \uml{note Hold a set of ObservableDiscreteBinI pointers 
+/// to handld multiple dimensions of discrete bins
+/// And act like a single dimension binning.}
 class ObservableDiscreteBins {
 public:
   ObservableDiscreteBins(std::vector<std::string> enabled_bin_names);
@@ -32,6 +37,7 @@ public:
   size_t GetNBinMax() const;
 
 private:
+  // genie::AlgFactory will take care of deleting these pointers
   std::vector<const ObservableDiscreteBinI *> bins;
   size_t nbin_max{1};
 };

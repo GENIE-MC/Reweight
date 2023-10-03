@@ -11,14 +11,6 @@ namespace genie {
 namespace rew {
 /// \uml{note Made this an interface to handle the possibliy of
 /// different choice of different observables.
-///
-/// TODO: consider how to initialize the Observable class
-/// TODO: how to handle different set of observables in different
-/// channels
-/// IDEA: Let GReWeightProfessor hold multiple ObservableSplines?
-/// TODO: Any implementation of ObservableI would do have corresponding
-/// ObservablePrediction in comparison package, doing the same thing
-/// Should we consider merging them together?
 /// }
 class ObservableI : public Algorithm {
 public:
