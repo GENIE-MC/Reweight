@@ -30,8 +30,10 @@ public:
   double GetRatio(const EventRecord &, const std::vector<double> &,
                   const std::vector<double> &) const;
 
-  size_t GetObservablesBinID(const EventRecord &) const;
-  size_t GetObservablesBinID(const std::vector<double> &) const;
+  std::vector<int> GetObservablesBinID(const EventRecord &) const;
+
+  size_t GetObservablesBinIDLinearized(const EventRecord &) const;
+  // size_t GetObservablesBinIDLinearized(const std::vector<double> &) const;
 
   void InitializeBins(const std::vector<std::vector<double>> &bin_edges);
 
@@ -50,10 +52,12 @@ public:
   double GetValueInterpolated(size_t channel_id,
                               const std::vector<double> &obvs,
                               const std::vector<double> &paras) const;
-  size_t toBinID(size_t channel_id,std::vector<int> bin_ids) const;
+  size_t toBinID(size_t channel_id, std::vector<int> bin_ids) const;
+
+  size_t GetChannelID(const EventRecord &) const;
+  double GetCellSize(std::vector<int> bin_ids) const;
 
 private:
-  size_t GetChannelID(const EventRecord &) const;
   // size_t GetObservablesBinID(const std::vector<double> &) const;
 
   const ObservableI *observable;
