@@ -77,5 +77,13 @@ void ObservableBins::InitializeBins(
   }
 }
 
+double ObservableBins::GetCellSize(const std::vector<int> &bin_id) const {
+  double cell_size = 1;
+  for (size_t i = 0; i < bin_edges.size(); ++i) {
+    cell_size *= bin_edges[i].GetBinWidth(bin_id[i]);
+  }
+  return cell_size;
+}
+
 } // namespace rew
 } // namespace genie

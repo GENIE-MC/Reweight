@@ -18,7 +18,7 @@ const Professor::Ipol &ObservableSplines::GetBin(size_t bin_id) const {
 
 double ObservableSplines::GetDXsec(const EventRecord &evt,
                                    const std::vector<double> &para) const {
-  auto bin_id = GetObservablesBinID(evt);
+  auto bin_id = GetObservablesBinIDLinearized(evt);
   return bins[bin_id].value(para);
 }
 
@@ -33,7 +33,7 @@ double ObservableSplines::GetRatio(const EventRecord &evt,
   const auto product = new_weight / old_weight;
   /// \uml{skip}
   if (product < 0 || isnan(product)) {
-    auto bin_id = GetObservablesBinID(evt);
+    auto bin_id = GetObservablesBinIDLinearized(evt);
     // Sometimes we can reach here, this can be due to rare
     // events that not being recorded during generation of
     // splines
@@ -68,11 +68,14 @@ void ObservableSplines::InitializeBins(
   binning.InitializeBins(m_bin_edges);
 }
 
-size_t ObservableSplines::GetObservablesBinID(const EventRecord &event) const {
-  return binning.GetObservablesBinIDLinearized(
-             observable->GetKinematicVariables(event)) *
-             GetNChannel() +
-         GetChannelID(event);
+size_t ObservableSplines::GetObservablesBinIDLinearized(
+    const EventRecord &event) const {
+  return toBinID(GetChannelID(event), GetObservablesBinID(event));
+}
+
+std::vector<int>
+ObservableSplines::GetObservablesBinID(const EventRecord &event) const {
+  return binning.GetObservablesBinID(observable->GetKinematicVariables(event));
 }
 
 void ObservableSplines::InitializeIpols(const std::vector<std::string> &lines) {
@@ -122,7 +125,8 @@ double ObservableSplines::GetValueInterpolated(
   auto var_loc = binning.GetObservablesBinLoc(obvs);
   auto center_bin_id = binning.GetObservablesBinID(obvs);
   const auto center_value =
-      bins[toBinID(channel_id, center_bin_id)].value(paras);
+      bins[toBinID(channel_id, center_bin_id)].value(paras) /
+      binning.GetCellSize(center_bin_id);
   double diffsum{};
   // for (size_t i = 0; i < var_loc.size(); ++i) {
   //   auto near_bin_array = center_bin_id;
@@ -145,7 +149,8 @@ double ObservableSplines::GetValueInterpolated(
   //   auto near_bin_center = binning.GetAxis(i).GetBinCenter(near_bin_id);
   //   near_bin_array[i] = near_bin_id;
   //   auto near_bin_value =
-  //       bins[toBinID(channel_id, near_bin_array)].value(paras);
+  //       bins[toBinID(channel_id, near_bin_array)].value(paras) /
+  //       binning.GetCellSize(near_bin_array);
   //   auto diff = (near_bin_value - center_value) /
   //               (near_bin_center - bin_center) * (obvs[i] - bin_center);
   //   diffsum += diff;
@@ -153,10 +158,26 @@ double ObservableSplines::GetValueInterpolated(
   return center_value + diffsum;
 }
 
+// std::vector<double>
+// ObservableSplines::GetObservablesBinLoc(const std::vector<double> &vars)
+// const {
+//   return binning.GetObservablesBinLoc(vars);
+// }
+
+// std::vector<double>
+// ObservableSplines::GetObservablesBinLoc(const EventRecord &evt) const {
+//   return
+//   binning.GetObservablesBinLoc(observable->GetKinematicVariables(evt));
+// }
+
 size_t ObservableSplines::toBinID(size_t channel_id,
                                   std::vector<int> bin_ids) const {
   return binning.GetObservablesBinIDLinearized(bin_ids) * GetNChannel() +
          channel_id;
+}
+
+double ObservableSplines::GetCellSize(std::vector<int> bin_ids) const {
+  return binning.GetCellSize(bin_ids);
 }
 
 } // namespace rew

@@ -28,6 +28,8 @@ public:
   int LinearizeBinID(const std::vector<int> &) const;
   const TAxis & GetAxis(size_t i) const { return bin_edges[i]; }
 
+  double GetCellSize(const std::vector<int> &) const;
+
 private:
   std::vector<TAxis> bin_edges;
 };
