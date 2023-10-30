@@ -23,7 +23,6 @@ BUILD_TARGETS =    print-make-info \
 		   reweight-framework \
 		   reweight-io \
 		   reweight-calculators \
-			 external-professor \
 			 prof-spline \
 		   general-apps \
 		   install-scripts
@@ -99,14 +98,6 @@ general-apps : reweight-framework reweight-io reweight-calculators prof-spline F
 	make && \
 	cd ${GENIE_REWEIGHT}
 
-external-professor: 
-	@echo " "
-	@echo "** professor2..."
-	cd ${GENIE_REWEIGHT}/src/ExternalLibs/professor && \
-	make lib/libProfessor2.so && \
-	cp lib/libProfessor2.so ${GENIE_REWEIGHT}/lib && \
-	cd ${GENIE_REWEIGHT}
-
 install-scripts: FORCE
 	@echo " "
 	@echo "** Installing scripts..."
@@ -149,7 +140,6 @@ copy-install-files: FORCE
 	cd RwIO          &&    make install && cd .. && \
 	cd RwCalculators &&    make install && cd .. && \
 	cd ProfSpline    &&    make install && cd .. && \
-	cd ExternalLibs/professor    && cp lib/libProfessor2.so ${GENIE_REWEIGHT_LIB_INSTALLATION_PATH} && \
 	cd ${GENIE_REWEIGHT}
 
 purge: FORCE
@@ -175,7 +165,6 @@ clean-files: FORCE
 	cd ProfSpline    &&    make clean && cd .. && \
 	cd Apps          &&    make clean && cd .. && \
 	cd scripts       &&    make clean && cd .. && \
-	cd ${GENIE_REWEIGHT}/src/ExternalLibs/professor  &&    make clean && \
 	cd $(GENIE_REWEIGHT)
 
 clean-dir: FORCE
