@@ -14,6 +14,7 @@
 #include "ProfSpline/ObservableDiscreteBins.h"
 #include "ProfSpline/ObservableI.h"
 #include "Professor/Ipol.h"
+#include "libxml/tree.h"
 #include <memory>
 #include <vector>
 
@@ -57,6 +58,10 @@ public:
   size_t GetChannelID(const EventRecord &) const;
   double GetCellSize(std::vector<int> bin_ids) const;
 
+  void ReadXMLNodeBinning(const xmlDocPtr doc, const xmlNodePtr node);
+
+  size_t lookupBinID(const std::vector<double> &obvs) const;
+
 private:
   // size_t GetObservablesBinID(const std::vector<double> &) const;
 
@@ -67,6 +72,14 @@ private:
   ObservableBins binning;
 
   std::unique_ptr<ObservableDiscreteBins> discrete_bins{};
+
+  std::vector</*different bins*/ std::vector<
+      /*dimensions*/ std::pair</*xmin*/ double, /*xmax*/ double>>>
+      bin_edges{};
+  std::vector<std::set<double>> first_neighbour{};
+
+  int nuclid{}, probid{};
+  size_t dimension{};
 };
 } // namespace rew
 } // namespace genie
