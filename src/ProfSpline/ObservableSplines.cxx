@@ -2,12 +2,15 @@
 #include "Framework/Algorithm/AlgFactory.h"
 #include "Framework/Algorithm/Algorithm.h"
 #include "Framework/Messenger/Messenger.h"
+#include "Framework/Utils/XmlParserUtils.h"
 #include "Professor/Ipol.h"
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
 #include <functional>
+#include <iterator>
 #include <sstream>
+#include <string>
 
 namespace genie {
 namespace rew {
@@ -158,18 +161,6 @@ double ObservableSplines::GetValueInterpolated(
   return center_value + diffsum;
 }
 
-// std::vector<double>
-// ObservableSplines::GetObservablesBinLoc(const std::vector<double> &vars)
-// const {
-//   return binning.GetObservablesBinLoc(vars);
-// }
-
-// std::vector<double>
-// ObservableSplines::GetObservablesBinLoc(const EventRecord &evt) const {
-//   return
-//   binning.GetObservablesBinLoc(observable->GetKinematicVariables(evt));
-// }
-
 size_t ObservableSplines::toBinID(size_t channel_id,
                                   std::vector<int> bin_ids) const {
   return binning.GetObservablesBinIDLinearized(bin_ids) * GetNChannel() +
@@ -178,6 +169,67 @@ size_t ObservableSplines::toBinID(size_t channel_id,
 
 double ObservableSplines::GetCellSize(std::vector<int> bin_ids) const {
   return binning.GetCellSize(bin_ids);
+}
+
+void ObservableSplines::ReadXMLNodeBinning(const xmlDocPtr doc,
+                                           const xmlNodePtr node) {
+  auto bin_count = std::stoul((utils::xml::GetAttribute(node, "size")));
+  auto hist_dimension = std::stoul(utils::xml::GetAttribute(node, "dimension"));
+  dimension = hist_dimension;
+  bin_edges.resize(bin_count);
+  first_neighbour.resize(bin_count);
+
+  // iterate over all the bins
+  for (auto cur = node->children; cur; cur = cur->next) {
+    if (xmlStrcmp(cur->name, (const xmlChar *)"bin")) {
+      auto bin_id = std::stoul(utils::xml::GetAttribute(cur, "binid"));
+
+      // for each bin iteriate over all the attributes
+      // and get the bin edges and first neighbours
+      for (auto element = cur->children; element; element = element->next) {
+        if (xmlStrcmp(element->name, (const xmlChar *)"axis")) {
+          bin_edges[bin_id].resize(hist_dimension);
+
+          auto axis_id =
+              std::stoul(utils::xml::GetAttribute(element, "axisid"));
+          for (auto axis = element->children; axis; axis = axis->next) {
+            std::pair<double, double> axis_range;
+            if (xmlStrcmp(axis->name, (const xmlChar *)"min")) {
+              auto str = xmlNodeListGetString(doc, axis->xmlChildrenNode, 1);
+              axis_range.first = std::stod((const char *)str);
+            } else if (xmlStrcmp(axis->name, (const xmlChar *)"max")) {
+              auto str = xmlNodeListGetString(doc, axis->xmlChildrenNode, 1);
+              axis_range.second = std::stod((const char *)str);
+            }
+            bin_edges[bin_id][axis_id] = axis_range;
+          }
+        } else if (xmlStrcmp(element->name, (const xmlChar *)"neighbor")) {
+          auto str = xmlNodeListGetString(doc, element->xmlChildrenNode, 1);
+          std::stringstream str_view((const char *)str);
+          std::string item;
+          while (std::getline(str_view, item, ',')) {
+            first_neighbour[bin_id].insert(std::stoul(item));
+          }
+        }
+      }
+    }
+  }
+}
+
+size_t ObservableSplines::lookupBinID(const std::vector<double> &obvs) const {
+  assert(obvs.size() == dimension);
+  for (size_t binid{}; binid < bin_edges.size(); ++binid) {
+    const auto bin = bin_edges[binid];
+    bool match{true};
+    for (size_t i = 0; i < dimension; ++i) {
+      if (obvs[i] < bin[i].first || obvs[i] > bin[i].second) {
+        match = false;
+      }
+    }
+    if (match)
+      return binid;
+  }
+  throw std::runtime_error("Cannot find bin for observable");
 }
 
 } // namespace rew
