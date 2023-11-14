@@ -102,6 +102,22 @@ void ObservableSplines::InitializeObservable(const std::string name,
   }
 }
 
+void ObservableSplines::InitializeObservable(const std::string AlgID) {
+  auto div = AlgID.find_first_of("/");
+  if (div == std::string::npos) {
+    LOG("ObservableSplines", pINFO)
+        << "Cannot find config for observable " << AlgID << ", using NoConfig";
+    InitializeObservable(AlgID, "NoConfig");
+    return;
+  }
+
+  auto name = AlgID.substr(0, div);
+  auto config = AlgID.substr(div + 1);
+  LOG("ObservableSplines", pINFO) << "Initializing observable " << name
+                                  << " with config " << config;
+  InitializeObservable(name, config);
+}
+
 void ObservableSplines::InitializeDiscreteBins(
     const std::vector<std::string> &enabled_bin_names) {
   if (!enabled_bin_names.empty())
