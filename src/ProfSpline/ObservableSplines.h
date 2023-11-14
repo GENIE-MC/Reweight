@@ -41,8 +41,8 @@ public:
   // figure out how to initialize bins
   void InitializeIpols(const std::vector<std::string> &lines);
 
-  void InitializeObservable(const std::string name,
-                            const std::string config = "NoConfig");
+  void InitializeObservable(const std::string name, const std::string config);
+  void InitializeObservable(const std::string AlgID);
 
   void
   InitializeDiscreteBins(const std::vector<std::string> &enabled_bin_names);
@@ -61,6 +61,12 @@ public:
   void ReadXMLNodeBinning(const xmlDocPtr doc, const xmlNodePtr node);
 
   size_t lookupBinID(const std::vector<double> &obvs) const;
+
+  bool isCC() const { return observable->IsCC(); }
+
+  bool IsHandled(const EventRecord &event) const {
+    return observable->IsHandled(event);
+  }
 
 private:
   // size_t GetObservablesBinID(const std::vector<double> &) const;
