@@ -4,10 +4,10 @@
 
 namespace genie {
 namespace rew {
-class ObservablePMuEnuW : public ObservableI {
+class ObservablePMuEnuW : public RwgKineSpace {
 public:
   virtual std::vector<double>
-  GetKinematicVariables(const EventRecord &event) const override;
+  KinematicVariables(const EventRecord &event) const override;
 
   virtual ~ObservablePMuEnuW() = default;
 };

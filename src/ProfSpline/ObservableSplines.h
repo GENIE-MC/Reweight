@@ -62,16 +62,19 @@ public:
 
   size_t lookupBinID(const std::vector<double> &obvs) const;
 
-  bool isCC() const { return observable->IsCC(); }
 
   bool IsHandled(const EventRecord &event) const {
     return observable->IsHandled(event);
   }
 
+  std::vector<double> KinematicVariables(const EventRecord &event) const {
+    return observable->KinematicVariables(event);
+  }
+
 private:
   // size_t GetObservablesBinID(const std::vector<double> &) const;
 
-  const ObservableI *observable;
+  const RwgKineSpace *observable;
 
   std::vector<Professor::Ipol> bins;
 

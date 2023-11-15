@@ -11,7 +11,7 @@
 #pragma link C++ class genie::rew::ObservableSplines;
 #pragma link C++ class genie::rew::ObservableBins;
 
-#pragma link C++ class genie::rew::ObservableI;
+#pragma link C++ class genie::rew::RwgKineSpace;
 #pragma link C++ class genie::rew::ObservableMuonMomentum;
 #pragma link C++ class genie::rew::ObservablePMuEnu;
 #pragma link C++ class genie::rew::ObservablePMuEnuW;

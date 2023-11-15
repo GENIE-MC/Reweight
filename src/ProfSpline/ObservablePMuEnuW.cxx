@@ -5,7 +5,7 @@
 namespace genie {
 namespace rew {
 std::vector<double>
-ObservablePMuEnuW::GetKinematicVariables(const EventRecord &event) const {
+ObservablePMuEnuW::KinematicVariables(const EventRecord &event) const {
   // std::vector<double> ret;
   // GHepParticle *target_nucleus_p = event.HitNucleon();
   // in case we are dealing with COH, which comes with no hit nucleon
