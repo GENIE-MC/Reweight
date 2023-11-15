@@ -3,6 +3,7 @@
 
 #include "ProfSpline/ObservableSplines.h"
 #include "RwCalculators/GReWeightModel.h"
+#include <cstddef>
 #include <memory>
 #include <string>
 
@@ -30,17 +31,17 @@ public:
   void Initialize(std::string);
 
   void ReadProf2Spline(std::string filepath);
-  void ReadComparionConf(std::string filepath);
-  void InitializeObservable(std::string name) {
-    if (!observable_splines)
-      observable_splines = std::make_unique<ObservableSplines>();
-    observable_splines->InitializeObservable(name);
-  }
-  void InitializeBins(std::vector<std::vector<double>> binning) {
-    if (!observable_splines)
-      observable_splines = std::make_unique<ObservableSplines>();
-    observable_splines->InitializeBins(binning);
-  }
+
+  // void InitializeObservable(std::string name) {
+  //   if (!observable_splines)
+  //     observable_splines = std::make_unique<ObservableSplines>();
+  //   observable_splines->InitializeObservable(name);
+  // }
+  // void InitializeBins(std::vector<std::vector<double>> binning) {
+  //   if (!observable_splines)
+  //     observable_splines = std::make_unique<ObservableSplines>();
+  //   observable_splines->InitializeBins(binning);
+  // }
 
   void SetSystematic(const std::vector<double> &m_systematics_values,
                      const std::vector<double> &m_orig_value) {
@@ -48,13 +49,17 @@ public:
     orig_value = m_orig_value;
   }
 
+  void ReadComparionXML(std::string filepath);
+
 private:
   // the observable splines
-  std::unique_ptr<ObservableSplines> observable_splines;
+  // std::unique_ptr<ObservableSplines> observable_splines;
+  // std::vector<std::shared_ptr<ObservableSplines>> observable_splines;
+  // std::map<std::string, std::shared_ptr<ObservableSplines>> observable_map_from_name;
+  std::map<std::tuple<std::string, int, int>, std::shared_ptr<ObservableSplines>> observable_map_from_id;
   std::vector<double> systematics_values, orig_value;
   std::vector<std::string> spline_vars;
   std::vector<double> var_min, var_max;
-  size_t dimension;
 };
 } // namespace rew
 } // namespace genie

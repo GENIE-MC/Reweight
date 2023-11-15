@@ -58,10 +58,7 @@ public:
   size_t GetChannelID(const EventRecord &) const;
   double GetCellSize(std::vector<int> bin_ids) const;
 
-  void ReadXMLNodeBinning(const xmlDocPtr doc, const xmlNodePtr node);
-
   size_t lookupBinID(const std::vector<double> &obvs) const;
-
 
   bool IsHandled(const EventRecord &event) const {
     return observable->IsHandled(event);
@@ -70,6 +67,11 @@ public:
   std::vector<double> KinematicVariables(const EventRecord &event) const {
     return observable->KinematicVariables(event);
   }
+
+  template <class BinningT, class FirstNeighbors>
+  ObservableSplines(BinningT &&bin_in, FirstNeighbors &&first_neighbour_in)
+      : binning(std::forward<BinningT>(bin_in)),
+        first_neighbour(std::forward<FirstNeighbors>(first_neighbour_in)) {}
 
 private:
   // size_t GetObservablesBinID(const std::vector<double> &) const;
