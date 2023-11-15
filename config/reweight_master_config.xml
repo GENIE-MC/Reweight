@@ -2,6 +2,6 @@
 
 <genie_config>
 
-<!-- ReWeight specific configuration options will go here -->
+   <config alg="genie::rew::ObservableMuonMomentum"> ObservableMuonMomentum.xml </config>
 
 </genie_config>

@@ -30,7 +30,7 @@ double ObservableSplines::GetRatio(const EventRecord &evt,
                                    const std::vector<double> &para_orig) const {
   auto channelid = GetChannelID(evt);
   // auto bin_id = GetObservablesBinID(evt);
-  auto obvs = observable->GetKinematicVariables(evt);
+  auto obvs = observable->KinematicVariables(evt);
   auto new_weight = GetValueInterpolated(channelid, obvs, para);
   auto old_weight = GetValueInterpolated(channelid, obvs, para_orig);
   const auto product = new_weight / old_weight;
@@ -78,7 +78,7 @@ size_t ObservableSplines::GetObservablesBinIDLinearized(
 
 std::vector<int>
 ObservableSplines::GetObservablesBinID(const EventRecord &event) const {
-  return binning.GetObservablesBinID(observable->GetKinematicVariables(event));
+  return binning.GetObservablesBinID(observable->KinematicVariables(event));
 }
 
 void ObservableSplines::InitializeIpols(const std::vector<std::string> &lines) {
@@ -93,7 +93,7 @@ void ObservableSplines::InitializeIpols(const std::vector<std::string> &lines) {
 
 void ObservableSplines::InitializeObservable(const std::string name,
                                              const std::string config) {
-  observable = dynamic_cast<const genie::rew::ObservableI *>(
+  observable = dynamic_cast<const genie::rew::RwgKineSpace *>(
       AlgFactory::Instance()->GetAlgorithm(name, config));
   if (!observable) {
     LOG("ObservableSplines", pFATAL)

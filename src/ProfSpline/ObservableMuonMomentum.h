@@ -6,24 +6,20 @@
 
 namespace genie {
 namespace rew {
-class ObservableMuonMomentum : public ObservableI {
+class ObservableMuonMomentum : public RwgKineSpace {
 public:
   ObservableMuonMomentum();
+  ObservableMuonMomentum(std::string config);
   virtual ~ObservableMuonMomentum() = default;
 
   virtual std::vector<double>
-  GetKinematicVariables(const EventRecord &event) const override;
+  KinematicVariables(const EventRecord &event) const override;
 
   virtual bool IsHandled(const EventRecord &event) const override;
-  virtual bool IsCC() const override;
-
-  virtual void Configure(const Registry &config) override;
-  virtual void Configure(string param_set) override;
 
 private:
-  void LoadConfig(void);
+  virtual void LoadConfig(void) override;
   std::string channelid{};
-  bool isCC{true};
 };
 
 } // namespace rew
