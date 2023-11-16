@@ -1,5 +1,4 @@
 #include <cassert>
-#include <cmath>
 #include <fstream>
 #include <functional>
 #include <memory>
@@ -21,37 +20,10 @@
 #include "Framework/GHEP/GHepStatus.h"
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/Ntuple/NtpMCEventRecord.h"
-#include "Framework/Ntuple/NtpMCFormat.h"
-#include "Framework/Ntuple/NtpMCTreeHeader.h"
-#include "Framework/Numerical/RandomGen.h"
-#include "Framework/ParticleData/PDGCodeList.h"
-#include "Framework/ParticleData/PDGCodes.h"
-#include "Framework/Utils/AppInit.h"
-#include "Framework/Utils/CmdLnArgParser.h"
-#include "Framework/Utils/RunOpt.h"
 #include "Framework/Utils/XSecSplineList.h"
 
 // GENIE/Reweight includes
-#include "ROOT/RResultPtr.hxx"
-#include "RwCalculators/GReWeightAGKY.h"
-#include "RwCalculators/GReWeightDISNuclMod.h"
-#include "RwCalculators/GReWeightFGM.h"
-#include "RwCalculators/GReWeightFZone.h"
-#include "RwCalculators/GReWeightINuke.h"
-#include "RwCalculators/GReWeightNonResonanceBkg.h"
-#include "RwCalculators/GReWeightNuXSecCCQE.h"
-#include "RwCalculators/GReWeightNuXSecCCQEaxial.h"
-#include "RwCalculators/GReWeightNuXSecCCQEvec.h"
-#include "RwCalculators/GReWeightNuXSecCCRES.h"
-#include "RwCalculators/GReWeightNuXSecCOH.h"
-#include "RwCalculators/GReWeightNuXSecDIS.h"
-#include "RwCalculators/GReWeightNuXSecNCEL.h"
-#include "RwCalculators/GReWeightNuXSecNCRES.h"
-#include "RwCalculators/GReWeightResonanceDecay.h"
-#include "RwFramework/GReWeight.h"
-#include "RwFramework/GReWeightI.h"
-#include "RwFramework/GSyst.h"
-#include "RwFramework/GSystSet.h"
+
 
 #include "RwCalculators/GReWeightDeltaradAngle.h"
 #include "RwCalculators/GReWeightINukeParams.h"
@@ -59,7 +31,6 @@
 #include "RwCalculators/GReWeightXSecEmpiricalMEC.h"
 #include "RwCalculators/GReWeightXSecMEC.h"
 
-#include "ProfSpline/ObservableBins.h"
 #include "RwCalculators/GReWeightProfessor.h"
 #include "TAttLine.h"
 #include "TF1.h"

@@ -10,8 +10,6 @@
 #ifndef _OBSERVABLE_SPLINES_
 #define _OBSERVABLE_SPLINES_
 #include "Framework/EventGen/EventRecord.h"
-#include "ProfSpline/ObservableBins.h"
-#include "ProfSpline/ObservableDiscreteBins.h"
 #include "ProfSpline/ObservableI.h"
 #include "Professor/Ipol.h"
 #include "libxml/tree.h"
@@ -33,9 +31,6 @@ public:
 
   std::vector<int> GetObservablesBinID(const EventRecord &) const;
 
-  size_t GetObservablesBinIDLinearized(const EventRecord &) const;
-  // size_t GetObservablesBinIDLinearized(const std::vector<double> &) const;
-
   void InitializeBins(const std::vector<std::vector<double>> &bin_edges);
 
   // figure out how to initialize bins
@@ -44,20 +39,8 @@ public:
   void InitializeObservable(const std::string name, const std::string config);
   void InitializeObservable(const std::string AlgID);
 
-  void
-  InitializeDiscreteBins(const std::vector<std::string> &enabled_bin_names);
-
-  // TODO: figure out if we want to initialize Observable here
-  size_t GetNChannel() const;
-
-  double GetValueInterpolated(size_t channel_id,
-                              const std::vector<double> &obvs,
+  double GetValueInterpolated(const std::vector<double> &obvs,
                               const std::vector<double> &paras) const;
-  size_t toBinID(size_t channel_id, std::vector<int> bin_ids) const;
-
-  size_t GetChannelID(const EventRecord &) const;
-  double GetCellSize(std::vector<int> bin_ids) const;
-
   size_t lookupBinID(const std::vector<double> &obvs) const;
 
   bool IsHandled(const EventRecord &event) const {
@@ -70,8 +53,10 @@ public:
 
   template <class BinningT, class FirstNeighbors>
   ObservableSplines(BinningT &&bin_in, FirstNeighbors &&first_neighbour_in)
-      : binning(std::forward<BinningT>(bin_in)),
+      : bin_edges(std::forward<BinningT>(bin_in)),
         first_neighbour(std::forward<FirstNeighbors>(first_neighbour_in)) {}
+
+  ObservableSplines() = default;
 
 private:
   // size_t GetObservablesBinID(const std::vector<double> &) const;
@@ -80,14 +65,10 @@ private:
 
   std::vector<Professor::Ipol> bins;
 
-  ObservableBins binning;
-
-  std::unique_ptr<ObservableDiscreteBins> discrete_bins{};
-
   std::vector</*different bins*/ std::vector<
       /*dimensions*/ std::pair</*xmin*/ double, /*xmax*/ double>>>
       bin_edges{};
-  std::vector<std::set<double>> first_neighbour{};
+  std::vector<std::set<size_t>> first_neighbour{};
 
   int nuclid{}, probid{};
   size_t dimension{};
