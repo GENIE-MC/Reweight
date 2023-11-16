@@ -79,12 +79,12 @@ void GReWeightProfessor::ReadProf2Spline(std::string filepath) {
       auto orbname = path.substr(1, path.find_last_of("/"));
       auto seperator_loc = name.find_last_of("_");
       auto nuclid = std::stoi(name.substr(seperator_loc + 1));
-      auto flavor = name.substr(0, seperator_loc);
+      auto flavor = std::stoi((name.substr(0, seperator_loc)));
 
       std::string errline{}; // not used now
       // auto &varline = var_lines.emplace_back();
       auto &varline =
-          var_lines[std::make_tuple(orbname, std::stoi(flavor), nuclid)]
+          var_lines[std::make_tuple(orbname, flavor, nuclid)]
               .emplace_back();
       std::getline(spline_file, varline);
       std::getline(spline_file, errline);
@@ -138,7 +138,7 @@ void GReWeightProfessor::ReadComparionXML(std::string filepath) {
         auto dimension =
             std::stoul(utils::xml::GetAttribute(blocknode, "dimension"));
         std::vector<std::vector<std::pair<double, double>>> bin_edges{};
-        std::vector<std::set<int>> first_neighbour{};
+        std::vector<std::set<size_t>> first_neighbour{};
         for (auto cur = blocknode->children; cur; cur = cur->next) {
           if (xmlStrcmp(cur->name, (const xmlChar *)"bin")) {
             auto bin_id = std::stoul(utils::xml::GetAttribute(cur, "binid"));
