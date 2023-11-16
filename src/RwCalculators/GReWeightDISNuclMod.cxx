@@ -45,8 +45,9 @@ bool GReWeightDISNuclMod::IsHandled (GSyst_t syst) const
   return false;
 }
 //_______________________________________________________________________________________
-bool GReWeightDISNuclMod::AppliesTo (ScatteringType_t type, bool /*is_cc*/) const
+bool GReWeightDISNuclMod::AppliesTo (const EventRecord &event) const
 {
+  auto type = event.Summary()->ProcInfo().ScatteringTypeId();
   if (type==kScDeepInelastic) {
     return true;
   }

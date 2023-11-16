@@ -123,8 +123,9 @@ bool GReWeightINuke::IsHandled(GSyst_t syst) const
    return handle;
 }
 //_______________________________________________________________________________________
-bool GReWeightINuke::AppliesTo(ScatteringType_t type, bool /*is_cc*/) const
+bool GReWeightINuke::AppliesTo(const EventRecord & event) const
 {
+  auto type = event.Summary()->ProcInfo().ScatteringTypeId();
   switch (type) {
     case kScCoherentProduction:
     case kScDiffractive:

@@ -56,8 +56,9 @@ bool GReWeightDeltaradAngle::IsHandled(GSyst_t syst) const
   return false;
 }
 //_______________________________________________________________________________________
-bool GReWeightDeltaradAngle::AppliesTo(ScatteringType_t type, bool /*is_cc*/) const
+bool GReWeightDeltaradAngle::AppliesTo(const EventRecord & event) const
 {
+  auto type = event.Summary()->ProcInfo().ScatteringTypeId();
   if ( type == kScResonant) return true;
   return false;
 }

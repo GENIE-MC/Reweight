@@ -77,8 +77,9 @@ bool GReWeightNonResonanceBkg::IsHandled(GSyst_t syst) const
    return handle;
 }
 //_______________________________________________________________________________________
-bool GReWeightNonResonanceBkg::AppliesTo (ScatteringType_t type, bool /*is_cc*/) const
+bool GReWeightNonResonanceBkg::AppliesTo (const EventRecord & event) const
 {
+  auto type = event.Summary()->ProcInfo().ScatteringTypeId();
   if (type==kScDeepInelastic) {
     return true;
   }

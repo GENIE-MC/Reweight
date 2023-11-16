@@ -98,8 +98,8 @@ void GReWeightXSecEmpiricalMEC::Init(void) {
 #endif
 }
 
-bool GReWeightXSecEmpiricalMEC::AppliesTo(ScatteringType_t type,
-                                          bool /* is_cc */ ) const {
+bool GReWeightXSecEmpiricalMEC::AppliesTo(const EventRecord &event) const {
+  auto type = event.Summary()->ProcInfo().ScatteringTypeId();
   if (type==kScMEC) { // && is_cc ?
     return true;
   }
