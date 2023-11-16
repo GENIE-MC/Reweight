@@ -1,4 +1,5 @@
 #include "RwCalculators/GReWeightProfessor.h"
+#include "Framework/EventGen/EventRecord.h"
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/Utils/XmlParserUtils.h"
 #include <cstdlib>
@@ -9,8 +10,12 @@
 
 namespace genie {
 namespace rew {
-bool GReWeightProfessor::AppliesTo(ScatteringType_t type, bool is_cc) const {
-  return true;
+bool GReWeightProfessor::AppliesTo(const EventRecord & event) const {
+  bool ret {false};
+  for (auto &&[id, obs] : observable_map_from_id) {
+    // if 
+  }
+  return ret;
 }
 
 //! does the current weight calculator handle the input nuisance param?

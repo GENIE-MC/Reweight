@@ -61,8 +61,9 @@ bool GReWeightFGM::IsHandled(GSyst_t syst) const
   return false;
 }
 //_______________________________________________________________________________________
-bool GReWeightFGM::AppliesTo (ScatteringType_t type, bool /*is_cc*/) const
+bool GReWeightFGM::AppliesTo (const EventRecord & event) const
 {
+  auto type = event.Summary()->ProcInfo().ScatteringTypeId();
   switch (type) {
     case kScCoherentProduction:
     case kScDiffractive:

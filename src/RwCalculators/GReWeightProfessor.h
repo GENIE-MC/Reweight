@@ -15,7 +15,7 @@ public:
   ~GReWeightProfessor(){};
 
   // inherited from GReWeightModel
-  virtual bool AppliesTo(ScatteringType_t type, bool is_cc) const override;
+  virtual bool AppliesTo (const EventRecord & event) const override;
   virtual bool IsHandled(GSyst_t syst) const override;
   virtual void SetSystematic(GSyst_t syst, double val) override;
   virtual void Reset(void) override;

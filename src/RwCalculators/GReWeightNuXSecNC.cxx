@@ -55,8 +55,9 @@ bool GReWeightNuXSecNC::IsHandled(GSyst_t syst) const
    return false;
 }
 //_______________________________________________________________________________________
-bool GReWeightNuXSecNC::AppliesTo(ScatteringType_t /*type*/, bool is_cc) const
+bool GReWeightNuXSecNC::AppliesTo(const EventRecord & event) const
 {
+  bool is_cc = event.Summary()->ProcInfo().IsWeakCC();
   if (!is_cc) {
     return true;
   }

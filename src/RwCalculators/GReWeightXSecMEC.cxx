@@ -112,8 +112,9 @@ bool GReWeightXSecMEC::IsHandled(GSyst_t syst) const
   return handle;
 }
 //_______________________________________________________________________________________
-bool GReWeightXSecMEC::AppliesTo(ScatteringType_t type, bool /*is_cc*/) const
+bool GReWeightXSecMEC::AppliesTo(const EventRecord & event) const
 {
+  auto type = event.Summary()->ProcInfo().ScatteringTypeId();
   // Weights can be calculated for CC, NC, and EM MEC events
   if ( type == kScMEC ) return true;
   return false;

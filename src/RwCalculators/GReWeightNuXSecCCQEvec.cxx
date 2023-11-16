@@ -71,8 +71,10 @@ bool GReWeightNuXSecCCQEvec::IsHandled(GSyst_t syst) const
    return false;
 }
 //_______________________________________________________________________________________
-bool GReWeightNuXSecCCQEvec::AppliesTo(ScatteringType_t type, bool is_cc) const
+bool GReWeightNuXSecCCQEvec::AppliesTo(const EventRecord &event) const
 {
+  auto type = event.Summary()->ProcInfo().ScatteringTypeId();
+  bool is_cc = event.Summary()->ProcInfo().IsWeakCC();
   if (type==kScQuasiElastic && is_cc) {
     return true;
   }

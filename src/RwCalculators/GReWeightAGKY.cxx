@@ -70,8 +70,9 @@ bool GReWeightAGKY::IsHandled(GSyst_t syst) const
   return false;
 }
 //_______________________________________________________________________________________
-bool GReWeightAGKY::AppliesTo (ScatteringType_t type, bool /*is_cc*/) const
+bool GReWeightAGKY::AppliesTo (const EventRecord & event) const
 {
+  auto type = event.Summary()->ProcInfo().ScatteringTypeId();
   if (type==kScDeepInelastic) {
     return true;
   }
