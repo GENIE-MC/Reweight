@@ -3,5 +3,6 @@
 <genie_config>
 
    <config alg="genie::rew::ObservableMuonMomentum"> ObservableMuonMomentum.xml </config>
+   <config alg="genie::rew::ObservablePMuEnu"> ObservableMuonMomentum.xml </config>
 
 </genie_config>

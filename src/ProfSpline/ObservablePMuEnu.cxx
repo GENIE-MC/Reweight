@@ -4,6 +4,12 @@
 
 namespace genie {
 namespace rew {
+ObservablePMuEnu::ObservablePMuEnu()
+    : RwgKineSpace("genie::rew::ObservablePMuEnu") {}
+
+ObservablePMuEnu::ObservablePMuEnu(std::string config)
+    : RwgKineSpace("genie::rew::ObservablePMuEnu", config) {}
+
 std::vector<double>
 ObservablePMuEnu::KinematicVariables(const EventRecord &event) const {
   // std::vector<double> ret;
@@ -21,6 +27,21 @@ ObservablePMuEnu::KinematicVariables(const EventRecord &event) const {
   probe.Boost(boost_vec);
   double enu = probe.E();
   return {pmu, enu};
+}
+
+bool ObservablePMuEnu::IsHandled(const EventRecord &event) const {
+  if (!event.Summary()->ProcInfo().IsWeakCC()) {
+    return false;
+  }
+  if (channelid == "ALL") {
+    return true;
+  }
+  return ScatteringType::AsString(
+             event.Summary()->ProcInfo().ScatteringTypeId()) == channelid;
+}
+
+void ObservablePMuEnu::LoadConfig(void) {
+  GetParamDef("channelid", channelid, std::string("ALL"));
 }
 
 } // namespace rew

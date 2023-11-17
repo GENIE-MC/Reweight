@@ -1,7 +1,9 @@
 #include "RwCalculators/GReWeightProfessor.h"
 #include "Framework/EventGen/EventRecord.h"
+#include "Framework/GHEP/GHepParticle.h"
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/Utils/XmlParserUtils.h"
+#include <cstddef>
 #include <cstdlib>
 #include <fstream>
 #include <memory>
@@ -10,12 +12,36 @@
 
 namespace genie {
 namespace rew {
-bool GReWeightProfessor::AppliesTo(const EventRecord & event) const {
-  bool ret {false};
-  for (auto &&[id, obs] : observable_map_from_id) {
-    // if 
+
+std::tuple<int, int> GetProbTarget(const EventRecord &event) {
+  GHepParticle *probe = event.Probe();
+  assert(probe);
+  Interaction *interaction = event.Summary();
+  Target *target = (interaction->InitState()).TgtPtr();
+  assert(target);
+  auto probid = probe->Pdg();
+  auto targetid = target->Pdg();
+  return {probid, targetid};
+}
+
+ObservableSplines *
+GReWeightProfessor::LocateObservableSplines(const EventRecord &event) const {
+  // auto [probid, targetid] = ;
+  if (observable_map_from_id.find(GetProbTarget(event)) ==
+      observable_map_from_id.end()) {
+    return nullptr;
   }
-  return ret;
+
+  for (auto &&[_, obs] : observable_map_from_id.at(GetProbTarget(event))) {
+    if (obs->IsHandled(event)) {
+      return obs.get();
+    }
+  }
+  return nullptr;
+}
+
+bool GReWeightProfessor::AppliesTo(const EventRecord &event) const {
+  return LocateObservableSplines(event);
 }
 
 //! does the current weight calculator handle the input nuisance param?
@@ -40,6 +66,16 @@ void GReWeightProfessor::Reconfigure(void) {}
 //! values
 double GReWeightProfessor::CalcWeight(const genie::EventRecord &event) {
   // return observable_splines->GetRatio(event, systematics_values, orig_value);
+  auto obs = LocateObservableSplines(event);
+  if (!obs) {
+    LOG("GReWeightProfessor::CalcWeight", pERROR)
+        << "Cannot find observable splines for event. "
+           "Missing Check GReWeightProfessor::AppliesTo ? "
+           "But Still return weight 1";
+
+    return 1;
+  }
+  return obs->GetRatio(event, systematics_values, orig_value);
 }
 
 void GReWeightProfessor::Initialize(std::string conf_file) {
@@ -47,6 +83,7 @@ void GReWeightProfessor::Initialize(std::string conf_file) {
   // GENIE_COMPARISONS/src/Observables/GeneralReweightObs.cxx
   // we may consider merging them in the future
   // ReadComparionConf(conf_file);
+  ReadComparionXML(conf_file);
 }
 
 void GReWeightProfessor::ReadProf2Spline(std::string filepath) {
@@ -78,19 +115,19 @@ void GReWeightProfessor::ReadProf2Spline(std::string filepath) {
         std::stringstream ss{var};
       }
     } else if (line.find("#") != std::string::npos) {
-      // "/${orbname}/${flavor}_${nuclid}#..."
+      // "/${orbname}/${orbname}_${flavor}_${nuclid}#..."
       auto path = line.substr(0, line.find("#"));
       auto name = path.substr(path.find_last_of("/") + 1);
-      auto orbname = path.substr(1, path.find_last_of("/"));
-      auto seperator_loc = name.find_last_of("_");
-      auto nuclid = std::stoi(name.substr(seperator_loc + 1));
-      auto flavor = std::stoi((name.substr(0, seperator_loc)));
+      auto orbname = path.substr(1, path.find_last_of("/") - 1);
+      auto name_trim_head = name.substr(orbname.length() + 1);
+      auto seperator_loc = name_trim_head.find_last_of("_");
+      auto nuclid = std::stoi(name_trim_head.substr(seperator_loc + 1));
+      auto flavor = std::stoi((name_trim_head.substr(0, seperator_loc)));
 
       std::string errline{}; // not used now
       // auto &varline = var_lines.emplace_back();
       auto &varline =
-          var_lines[std::make_tuple(orbname, flavor, nuclid)]
-              .emplace_back();
+          var_lines[std::make_tuple(orbname, flavor, nuclid)].emplace_back();
       std::getline(spline_file, varline);
       std::getline(spline_file, errline);
     } else {
@@ -99,7 +136,8 @@ void GReWeightProfessor::ReadProf2Spline(std::string filepath) {
     }
   }
   for (auto &&[id, lines] : var_lines) {
-    auto &observable = observable_map_from_id[id];
+    auto [name, flavor, nuclid] = id;
+    auto &observable = observable_map_from_id[{flavor, nuclid}][name];
     if (!observable) {
       LOG("GReWeightProfessor::ReadProf2Spline", pFATAL)
           << "Cannot find observable " << std::get<0>(id)
@@ -132,61 +170,70 @@ void GReWeightProfessor::ReadComparionXML(std::string filepath) {
        observable_node = observable_node->next) {
     if (observable_node->type == XML_ELEMENT_NODE) {
       auto nodename = std::string((const char *)observable_node->name);
-      auto algid = utils::xml::GetAttribute(observable_node, "AlgID");
+      auto algid = utils::xml::GetAttribute(observable_node, "Algid");
       for (auto blocknode = observable_node->children; blocknode;
            blocknode = blocknode->next) {
+        if (blocknode->type != XML_ELEMENT_NODE) {
+          continue;
+        }
         auto name = utils::xml::GetAttribute(blocknode, "name");
         auto prob = std::stoi(utils::xml::GetAttribute(blocknode, "prob"));
         auto nuclid = std::stoi(utils::xml::GetAttribute(blocknode, "nucl"));
+        auto bin_count =
+            std::stoul(utils::xml::GetAttribute(blocknode, "size"));
         // auto bin_count =
         //     std::stoul(utils::xml::GetAttribute(blocknode, "size"));
         auto dimension =
             std::stoul(utils::xml::GetAttribute(blocknode, "dimension"));
         std::vector<std::vector<std::pair<double, double>>> bin_edges{};
+        bin_edges.resize(bin_count);
         std::vector<std::set<size_t>> first_neighbour{};
+        first_neighbour.resize(bin_count);
         for (auto cur = blocknode->children; cur; cur = cur->next) {
-          if (xmlStrcmp(cur->name, (const xmlChar *)"bin")) {
-            auto bin_id = std::stoul(utils::xml::GetAttribute(cur, "binid"));
+          if (cur->type != XML_ELEMENT_NODE)
+            continue;
+          auto bin_id = std::stoul(utils::xml::GetAttribute(cur, "binid"));
 
-            // for each bin iteriate over all the attributes
-            // and get the bin edges and first neighbours
-            for (auto element = cur->children; element;
-                 element = element->next) {
-              if (xmlStrcmp(element->name, (const xmlChar *)"axis")) {
-                bin_edges[bin_id].resize(dimension);
+          // for each bin iteriate over all the attributes
+          // and get the bin edges and first neighbours
+          for (auto element = cur->children; element; element = element->next) {
+            if (element->type != XML_ELEMENT_NODE)
+              continue;
+            if (!xmlStrcmp(element->name, (const xmlChar *)"axis")) {
+              bin_edges[bin_id].resize(dimension);
 
-                auto axis_id =
-                    std::stoul(utils::xml::GetAttribute(element, "axisid"));
-                for (auto axis = element->children; axis; axis = axis->next) {
-                  std::pair<double, double> axis_range;
-                  if (xmlStrcmp(axis->name, (const xmlChar *)"min")) {
-                    auto str =
-                        xmlNodeListGetString(doc, axis->xmlChildrenNode, 1);
-                    axis_range.first = std::stod((const char *)str);
-                  } else if (xmlStrcmp(axis->name, (const xmlChar *)"max")) {
-                    auto str =
-                        xmlNodeListGetString(doc, axis->xmlChildrenNode, 1);
-                    axis_range.second = std::stod((const char *)str);
-                  }
-                  bin_edges[bin_id][axis_id] = axis_range;
+              auto axis_id =
+                  std::stoul(utils::xml::GetAttribute(element, "axisid"));
+              for (auto axis = element->children; axis; axis = axis->next) {
+                // std::pair<double, double> axis_range;
+                auto &axis_range = bin_edges[bin_id][axis_id];
+                if (!xmlStrcmp(axis->name, (const xmlChar *)"min")) {
+                  auto str =
+                      xmlNodeListGetString(doc, axis->xmlChildrenNode, 1);
+                  axis_range.first = std::stod((const char *)str);
+                } else if (!xmlStrcmp(axis->name, (const xmlChar *)"max")) {
+                  auto str =
+                      xmlNodeListGetString(doc, axis->xmlChildrenNode, 1);
+                  axis_range.second = std::stod((const char *)str);
                 }
-              } else if (xmlStrcmp(element->name,
-                                   (const xmlChar *)"neighbor")) {
-                auto str =
-                    xmlNodeListGetString(doc, element->xmlChildrenNode, 1);
-                std::stringstream str_view((const char *)str);
-                std::string item;
-                while (std::getline(str_view, item, ',')) {
-                  first_neighbour[bin_id].insert(std::stoul(item));
-                }
+                // bin_edges[bin_id][axis_id] = axis_range;
+              }
+            } else if (!xmlStrcmp(element->name, (const xmlChar *)"neighbor")) {
+              auto str = xmlNodeListGetString(doc, element->xmlChildrenNode, 1);
+              std::stringstream str_view((const char *)str);
+              std::string item;
+              while (std::getline(str_view, item, ',')) {
+                first_neighbour[bin_id].insert(std::stoul(item));
               }
             }
           }
         } // end of per block loop
-        auto obj =
-            std::make_shared<ObservableSplines>(bin_edges, first_neighbour);
         // observable_map_from_name[name] = obj;
-        observable_map_from_id[std::make_tuple(nodename, prob, nuclid)] = obj;
+        auto obj = std::make_unique<ObservableSplines>(
+            bin_edges, first_neighbour, dimension, prob, nuclid);
+        obj->InitializeObservable(algid);
+        observable_map_from_id[std::make_tuple(prob, nuclid)].insert(
+            {nodename, std::move(obj)});
       }
     }
   }
