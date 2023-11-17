@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 namespace genie {
 namespace rew {
@@ -15,7 +16,7 @@ public:
   ~GReWeightProfessor(){};
 
   // inherited from GReWeightModel
-  virtual bool AppliesTo (const EventRecord & event) const override;
+  virtual bool AppliesTo(const EventRecord &event) const override;
   virtual bool IsHandled(GSyst_t syst) const override;
   virtual void SetSystematic(GSyst_t syst, double val) override;
   virtual void Reset(void) override;
@@ -51,12 +52,18 @@ public:
 
   void ReadComparionXML(std::string filepath);
 
+  ObservableSplines *LocateObservableSplines(const EventRecord &event) const;
+
 private:
-  // the observable splines
-  // std::unique_ptr<ObservableSplines> observable_splines;
-  // std::vector<std::shared_ptr<ObservableSplines>> observable_splines;
-  // std::map<std::string, std::shared_ptr<ObservableSplines>> observable_map_from_name;
-  std::map<std::tuple<std::string, int, int>, std::shared_ptr<ObservableSplines>> observable_map_from_id;
+  std::map<std::tuple<int /*probe id*/, int /*nuclear id*/>,
+           // 2 step lookup for the map
+           // the reason is sometimes we don't lookup by name, but iterate over
+           // all the splines with given probe and target, and see if isHandled
+           // is true but not using vector here since we still want to do a
+           // lookup by name when propgating ipols
+           std::unordered_map<std::string /*observable name*/,
+                              std::unique_ptr<ObservableSplines>>>
+      observable_map_from_id;
   std::vector<double> systematics_values, orig_value;
   std::vector<std::string> spline_vars;
   std::vector<double> var_min, var_max;
