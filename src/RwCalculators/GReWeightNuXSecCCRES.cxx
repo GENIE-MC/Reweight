@@ -101,8 +101,10 @@ bool GReWeightNuXSecCCRES::IsHandled(GSyst_t syst) const
    return handle;
 }
 //_______________________________________________________________________________________
-bool GReWeightNuXSecCCRES::AppliesTo(ScatteringType_t type, bool is_cc) const
+bool GReWeightNuXSecCCRES::AppliesTo(const EventRecord & event) const
 {
+  auto type = event.Summary()->ProcInfo().ScatteringTypeId();
+  bool is_cc = event.Summary()->ProcInfo().IsWeakCC();
   if (type==kScResonant && is_cc) {
     return true;
   }

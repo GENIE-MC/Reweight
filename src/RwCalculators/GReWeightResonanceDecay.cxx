@@ -62,8 +62,9 @@ bool GReWeightResonanceDecay::IsHandled(GSyst_t syst) const
   return false;
 }
 //_______________________________________________________________________________________
-bool GReWeightResonanceDecay::AppliesTo (ScatteringType_t type, bool /*is_cc*/) const
+bool GReWeightResonanceDecay::AppliesTo (const EventRecord & event) const
 {
+  auto type = event.Summary()->ProcInfo().ScatteringTypeId();
   if (type==kScResonant) {
     return true;
   }
