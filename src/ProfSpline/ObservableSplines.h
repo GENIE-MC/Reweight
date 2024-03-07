@@ -9,8 +9,9 @@
 
 #ifndef _OBSERVABLE_SPLINES_
 #define _OBSERVABLE_SPLINES_
+#include "Framework/Algorithm/AlgId.h"
 #include "Framework/EventGen/EventRecord.h"
-#include "ProfSpline/ObservableI.h"
+#include "ProfSpline/RwgKineSpace.h"
 #include "Professor/Ipol.h"
 #include "libxml/tree.h"
 #include <memory>
@@ -38,6 +39,7 @@ public:
 
   void InitializeObservable(const std::string name, const std::string config);
   void InitializeObservable(const std::string AlgID);
+  void InitializeObservable(AlgId id);
 
   double GetValueInterpolated(const std::vector<double> &obvs,
                               const std::vector<double> &paras) const;

@@ -26,7 +26,6 @@ std::tuple<int, int> GetProbTarget(const EventRecord &event) {
 
 ObservableSplines *
 GReWeightProfessor::LocateObservableSplines(const EventRecord &event) const {
-  // auto [probid, targetid] = ;
   if (observable_map_from_id.find(GetProbTarget(event)) ==
       observable_map_from_id.end()) {
     return nullptr;

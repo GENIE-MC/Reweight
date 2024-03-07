@@ -14,9 +14,6 @@ namespace rew {
 /// }
 class RwgKineSpace : public Algorithm {
 public:
-  // ObservableI(std::string name) : Algorithm(name) {}
-  using Algorithm::Algorithm;
-
   // calculate the value for each observable
   // maybe we can merge with binning lookup function below
   // but seperating them may benefit the idea of merging implementation
@@ -34,6 +31,7 @@ public:
 
 protected:
   virtual void LoadConfig(void) = 0;
+  using Algorithm::Algorithm;
 };
 } // namespace rew
 } // namespace genie
