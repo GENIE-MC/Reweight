@@ -1,6 +1,6 @@
 #ifndef _ObservablePMuEnuW_H_
 #define _ObservablePMuEnuW_H_
-#include "ProfSpline/ObservableI.h"
+#include "ProfSpline/RwgKineSpace.h"
 
 namespace genie {
 namespace rew {

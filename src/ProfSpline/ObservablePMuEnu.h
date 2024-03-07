@@ -1,13 +1,15 @@
 #ifndef _ObservablePMuEnu_H_
 #define _ObservablePMuEnu_H_
-#include "ProfSpline/ObservableI.h"
+#include "ProfSpline/RwgKineSpace.h"
 
 namespace genie {
 namespace rew {
 class ObservablePMuEnu : public RwgKineSpace {
-public:
+protected:
   ObservablePMuEnu();
   ObservablePMuEnu(std::string config);
+
+public:
   virtual std::vector<double>
   KinematicVariables(const EventRecord &event) const override;
 

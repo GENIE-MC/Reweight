@@ -60,7 +60,7 @@ private:
            // the reason is sometimes we don't lookup by name, but iterate over
            // all the splines with given probe and target, and see if isHandled
            // is true but not using vector here since we still want to do a
-           // lookup by name when propgating ipols
+           // lookup by name when propagating ipols
            std::unordered_map<std::string /*observable name*/,
                               std::unique_ptr<ObservableSplines>>>
       observable_map_from_id;

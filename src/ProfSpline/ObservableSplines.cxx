@@ -1,5 +1,6 @@
 #include "ProfSpline/ObservableSplines.h"
 #include "Framework/Algorithm/AlgFactory.h"
+#include "Framework/Algorithm/AlgId.h"
 #include "Framework/Algorithm/Algorithm.h"
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/Utils/XmlParserUtils.h"
@@ -99,6 +100,16 @@ void ObservableSplines::InitializeObservable(const std::string AlgID) {
   LOG("ObservableSplines", pINFO)
       << "Initializing observable " << name << " with config " << config;
   InitializeObservable(name, config);
+}
+
+void ObservableSplines::InitializeObservable(AlgId id) {
+  observable = dynamic_cast<const genie::rew::RwgKineSpace *>(
+      AlgFactory::Instance()->GetAlgorithm(id));
+  if (!observable) {
+    LOG("ObservableSplines", pFATAL)
+        << "Cannot find observable " << id << " in rew algorithm list";
+    exit(1);
+  }
 }
 
 double ObservableSplines::GetValueInterpolated(
