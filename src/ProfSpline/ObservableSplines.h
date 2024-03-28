@@ -55,10 +55,12 @@ public:
 
   template <class BinningT, class FirstNeighbors>
   ObservableSplines(BinningT &&bin_in, FirstNeighbors &&first_neighbour_in,
-                    int dimension, int probid, int nuclid)
+                    int dimension, int probid, int nuclid, std::string algid)
       : bin_edges(std::forward<BinningT>(bin_in)),
         first_neighbour(std::forward<FirstNeighbors>(first_neighbour_in)),
-        nuclid(nuclid), probid(probid), dimension(dimension) {}
+        nuclid(nuclid), probid(probid), dimension(dimension) {
+    InitializeObservable(algid);
+  }
 
   ObservableSplines() = default;
 

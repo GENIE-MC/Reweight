@@ -21,6 +21,8 @@
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/Ntuple/NtpMCEventRecord.h"
 #include "Framework/Utils/XSecSplineList.h"
+#include "RwCalculators/GReWeightProfessor.h"
+
 
 // GENIE/Reweight includes
 
@@ -31,7 +33,7 @@
 #include "RwCalculators/GReWeightXSecEmpiricalMEC.h"
 #include "RwCalculators/GReWeightXSecMEC.h"
 
-#include "RwCalculators/GReWeightProfessor.h"
+#include "RwCalculators/GReWeightProfessorModel.h"
 #include "TAttLine.h"
 #include "TF1.h"
 #include "TLorentzVector.h"

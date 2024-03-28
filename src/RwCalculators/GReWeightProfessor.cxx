@@ -24,7 +24,7 @@ std::tuple<int, int> GetProbTarget(const EventRecord &event) {
   return {probid, targetid};
 }
 
-ObservableSplines *
+GReWeightProfessorModel *
 GReWeightProfessor::LocateObservableSplines(const EventRecord &event) const {
   if (observable_map_from_id.find(GetProbTarget(event)) ==
       observable_map_from_id.end()) {
@@ -32,7 +32,7 @@ GReWeightProfessor::LocateObservableSplines(const EventRecord &event) const {
   }
 
   for (auto &&[_, obs] : observable_map_from_id.at(GetProbTarget(event))) {
-    if (obs->IsHandled(event)) {
+    if (obs->AppliesTo(event)) {
       return obs.get();
     }
   }
@@ -51,7 +51,7 @@ void GReWeightProfessor::SetSystematic(GSyst_t syst, double val) {
   // TODO: figure out how to do it
   // We need a map of GSyst_t to the index of the nuisance parameter
   // Again this should match whatever in the comparison package
-  // And same information will be used in GReWeightProfessor::IsHandled
+  // And same information will be used in GReWeightProfModel::IsHandled
   // systematics_values[systematics_map[syst]] = val;
 }
 
@@ -67,14 +67,14 @@ double GReWeightProfessor::CalcWeight(const genie::EventRecord &event) {
   // return observable_splines->GetRatio(event, systematics_values, orig_value);
   auto obs = LocateObservableSplines(event);
   if (!obs) {
-    LOG("GReWeightProfessor::CalcWeight", pERROR)
+    LOG("GReWeightProfModel::CalcWeight", pERROR)
         << "Cannot find observable splines for event. "
-           "Missing Check GReWeightProfessor::AppliesTo ? "
+           "Missing Check GReWeightProfModel::AppliesTo ? "
            "But Still return weight 1";
 
     return 1;
   }
-  return obs->GetRatio(event, systematics_values, orig_value);
+  return obs->CalcWeight(event);
 }
 
 void GReWeightProfessor::Initialize(std::string conf_file) {
@@ -130,7 +130,7 @@ void GReWeightProfessor::ReadProf2Spline(std::string filepath) {
       std::getline(spline_file, varline);
       std::getline(spline_file, errline);
     } else {
-      LOG("GReWeightProfessor::ReadProf2Spline", pINFO)
+      LOG("GReWeightProfModel::ReadProf2Spline", pINFO)
           << "Unknown line: " << line;
     }
   }
@@ -138,7 +138,7 @@ void GReWeightProfessor::ReadProf2Spline(std::string filepath) {
     auto [name, flavor, nuclid] = id;
     auto &observable = observable_map_from_id[{flavor, nuclid}][name];
     if (!observable) {
-      LOG("GReWeightProfessor::ReadProf2Spline", pFATAL)
+      LOG("GReWeightProfModel::ReadProf2Spline", pFATAL)
           << "Cannot find observable " << std::get<0>(id)
           << "for neutrino flavor" << std::get<1>(id) << " and nuclid "
           << std::get<2>(id) << " in rew algorithm list";
@@ -153,13 +153,13 @@ GReWeightProfessor::GReWeightProfessor(std::string name)
 void GReWeightProfessor::ReadComparionXML(std::string filepath) {
   auto doc = xmlParseFile(filepath.c_str());
   if (!doc) {
-    LOG("GReWeightProfessor::ReadComparionXML", pFATAL)
+    LOG("GReWeightProfModel::ReadComparionXML", pFATAL)
         << "Cannot parse xml file " << filepath;
     exit(1);
   }
   auto root = xmlDocGetRootElement(doc);
   if (!root) {
-    LOG("GReWeightProfessor::ReadComparionXML", pFATAL)
+    LOG("GReWeightProfModel::ReadComparionXML", pFATAL)
         << "Cannot get root element of xml file " << filepath;
     exit(1);
   }
@@ -228,9 +228,9 @@ void GReWeightProfessor::ReadComparionXML(std::string filepath) {
           }
         } // end of per block loop
         // observable_map_from_name[name] = obj;
-        auto obj = std::make_unique<ObservableSplines>(
-            bin_edges, first_neighbour, dimension, prob, nuclid);
-        obj->InitializeObservable(algid);
+        auto obj = std::make_unique<GReWeightProfessorModel>("", 
+            bin_edges, first_neighbour, dimension, prob, nuclid, algid);
+        // obj->InitializeObservable(algid);
         observable_map_from_id[std::make_tuple(prob, nuclid)].insert(
             {nodename, std::move(obj)});
       }
