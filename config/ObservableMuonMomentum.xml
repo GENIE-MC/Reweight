@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<alg_conf>
+
+  <param_set name="Default"> 
+    <param type="string" name="channelid"> QES </param>
+  </param_set>
+
+  <param_set name="QES"> 
+    <param type="string" name="channelid"> QES </param>
+  </param_set>
+
+  <param_set name="DIS"> 
+    <param type="string" name="channelid"> DIS </param>
+  </param_set>
+
+  <param_set name="RES"> 
+    <param type="string" name="channelid"> RES </param>
+  </param_set>
+
+  <param_set name="MEC"> 
+    <param type="string" name="channelid"> MEC </param>
+  </param_set>
+  
+
+</alg_conf>
