@@ -36,6 +36,9 @@ Imperial College London
 #include "RwCalculators/GReWeightUtils.h"
 #include "RwFramework/GSystSet.h"
 #include "RwFramework/GSystUncertainty.h"
+#include "TRandom3.h"
+#include "TVectorD.h"
+#include "TDecompChol.h"
 
 using namespace genie;
 using namespace genie::rew;
@@ -69,15 +72,21 @@ GReWeightNuXSecCCQEELFF::~GReWeightNuXSecCCQEELFF()
   if ( fXSecModel ) delete fXSecModel;
   if ( fXSecModelDef ) delete fXSecModelDef;
 
-  if ( fXSecIntegrator ) delete fXSecIntegrator;
-  if ( fXSecIntegratorDef ) delete fXSecIntegratorDef;
+  if ( fZExpParaDef.fZ_ANn ) delete fZExpParaDef.fZ_ANn;
+  if ( fZExpParaDef.fZ_APn ) delete fZExpParaDef.fZ_APn;
+  if ( fZExpParaDef.fZ_BNn ) delete fZExpParaDef.fZ_BNn;
+  if ( fZExpParaDef.fZ_BPn ) delete fZExpParaDef.fZ_BPn;
 
-#ifdef _G_REWEIGHT_CCQE_DEBUG_
-  fTestFile->cd();
-  fTestNtp ->Write();
-  fTestFile->Close();
-  delete fTestFile;
-#endif
+  if ( fZExpPara.fZ_ANn ) delete fZExpPara.fZ_ANn;
+  if ( fZExpPara.fZ_APn ) delete fZExpPara.fZ_APn;
+  if ( fZExpPara.fZ_BNn ) delete fZExpPara.fZ_BNn;
+  if ( fZExpPara.fZ_BPn ) delete fZExpPara.fZ_BPn;
+
+  if ( fZExpParaTwkDial.fZ_ANn ) delete fZExpParaTwkDial.fZ_ANn;
+  if ( fZExpParaTwkDial.fZ_APn ) delete fZExpParaTwkDial.fZ_APn;
+  if ( fZExpParaTwkDial.fZ_BNn ) delete fZExpParaTwkDial.fZ_BNn;
+  if ( fZExpParaTwkDial.fZ_BPn ) delete fZExpParaTwkDial.fZ_BPn;
+
 }
 //_______________________________________________________________________________________
 bool GReWeightNuXSecCCQEELFF::IsHandled(GSyst_t syst) const
@@ -86,13 +95,7 @@ bool GReWeightNuXSecCCQEELFF::IsHandled(GSyst_t syst) const
   bool handle;
 
   switch(syst) {
-        // TODO add ZExp vector parameters
-    case ( kXSecTwkDial_ZExpELFF_T0 ) :
-    case ( kXSecTwkDial_ZExpELFF_Tcut ) :
-    case ( kXSecTwkDial_ZExpELFF_Gep0 ) :
-    case ( kXSecTwkDial_ZExpELFF_Gmp0 ) :
-    case ( kXSecTwkDial_ZExpELFF_Gen0 ) :
-    case ( kXSecTwkDial_ZExpELFF_Gmn0 ) :
+    // TODO add ZExp vector parameters
     case ( kXSecTwkDial_ZExpELFF_AN1 ) :
     case ( kXSecTwkDial_ZExpELFF_AN2 ) :
     case ( kXSecTwkDial_ZExpELFF_AN3 ) :
@@ -110,23 +113,18 @@ bool GReWeightNuXSecCCQEELFF::IsHandled(GSyst_t syst) const
     case ( kXSecTwkDial_ZExpELFF_BP3 ) :
     case ( kXSecTwkDial_ZExpELFF_BP4 ) : 
       if(fMode==kModeZExp && fModelIsZExp){
-      handle = true;
+        handle = true;
       }else {
         handle = false;
       }
       break;
-/*    case ( kXSecTwkDial_ZExpA1CCQE ):
-    case ( kXSecTwkDial_ZExpA2CCQE ):
-    case ( kXSecTwkDial_ZExpA3CCQE ):
-    case ( kXSecTwkDial_ZExpA4CCQE ):
-      if(fMode==kModeZExp && fModelIsZExp)
-    {
-      handle = true;
-    } else {
-      handle = false;
-    }
+    case ( kXSecTwkDial_ZExpELFF ) : 
+      if(fMode==kModeZExp && fModelIsZExp){
+        handle = true;
+      }else {
+        handle = false;
+      }
       break;
-*/
     default:
       handle = false;
       break;
@@ -154,81 +152,74 @@ void GReWeightNuXSecCCQEELFF::SetSystematic(GSyst_t syst, double twk_dial)
     return;
   }
   switch(syst) {
-    case ( kXSecTwkDial_ZExpELFF_T0 ) :
-       fZExpParaTwkDial.fT0 = twk_dial; 
-      break;
-    case ( kXSecTwkDial_ZExpELFF_Tcut ) :
-       fZExpParaTwkDial.fTcut = twk_dial; 
-      break;
-    case ( kXSecTwkDial_ZExpELFF_Gep0 ) :
-       fZExpParaTwkDial.fGep0 = twk_dial; 
-      break;
-    case ( kXSecTwkDial_ZExpELFF_Gmp0 ) :
-       fZExpParaTwkDial.fGmp0 = twk_dial; 
-      break;
-    case ( kXSecTwkDial_ZExpELFF_Gen0 ) :
-       fZExpParaTwkDial.fGen0 = twk_dial; 
-      break;
-    case ( kXSecTwkDial_ZExpELFF_Gmn0 ) :
-       fZExpParaTwkDial.fGmn0 = twk_dial; 
+    case (kXSecTwkDial_ZExpELFF):
+      fZExpTwkDial = twk_dial;
+      fIsAllPara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AP1 ) :
-       fZExpParaTwkDial.fZ_APn[0] = twk_dial; 
+      fZExpParaTwkDial.fZ_APn[0] = twk_dial; 
+      fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AP2 ) :
-       fZExpParaTwkDial.fZ_APn[1] = twk_dial; 
+      fZExpParaTwkDial.fZ_APn[1] = twk_dial; 
+      fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AP3 ) :
-       fZExpParaTwkDial.fZ_APn[2] = twk_dial; 
+      fZExpParaTwkDial.fZ_APn[2] = twk_dial; 
+      fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AP4 ) :
-       fZExpParaTwkDial.fZ_APn[3] = twk_dial; 
+      fZExpParaTwkDial.fZ_APn[3] = twk_dial; 
+      fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AN1 ) :
-       fZExpParaTwkDial.fZ_ANn[0] = twk_dial; 
+      fZExpParaTwkDial.fZ_ANn[0] = twk_dial; 
+      fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AN2 ) :
-       fZExpParaTwkDial.fZ_ANn[1] = twk_dial; 
+      fZExpParaTwkDial.fZ_ANn[1] = twk_dial; 
+      fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AN3 ) :
-       fZExpParaTwkDial.fZ_ANn[2] = twk_dial; 
+      fZExpParaTwkDial.fZ_ANn[2] = twk_dial; 
+      fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AN4 ) :
-       fZExpParaTwkDial.fZ_ANn[3] = twk_dial; 
+      fZExpParaTwkDial.fZ_ANn[3] = twk_dial; 
+      fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BP1 ) :
-       fZExpParaTwkDial.fZ_BPn[0] = twk_dial; 
+      fZExpParaTwkDial.fZ_BPn[0] = twk_dial; 
+      fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BP2 ) :
-       fZExpParaTwkDial.fZ_BPn[1] = twk_dial; 
+      fZExpParaTwkDial.fZ_BPn[1] = twk_dial; 
+      fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BP3 ) :
-       fZExpParaTwkDial.fZ_BPn[2] = twk_dial; 
+      fZExpParaTwkDial.fZ_BPn[2] = twk_dial; 
+      fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BP4 ) :
-       fZExpParaTwkDial.fZ_BPn[3] = twk_dial; 
+      fZExpParaTwkDial.fZ_BPn[3] = twk_dial; 
+      fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BN1 ) :
-       fZExpParaTwkDial.fZ_BNn[0] = twk_dial; 
+      fZExpParaTwkDial.fZ_BNn[0] = twk_dial; 
+      fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BN2 ) :
-       fZExpParaTwkDial.fZ_BNn[1] = twk_dial; 
+      fZExpParaTwkDial.fZ_BNn[1] = twk_dial; 
+      fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BN3 ) :
-       fZExpParaTwkDial.fZ_BNn[2] = twk_dial; 
+      fZExpParaTwkDial.fZ_BNn[2] = twk_dial; 
+      fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BN4 ) :
-       fZExpParaTwkDial.fZ_BNn[3] = twk_dial; 
+      fZExpParaTwkDial.fZ_BNn[3] = twk_dial; 
+      fIsSinglePara = true;
       break; 
-//    case ( kXSecTwkDial_ZExpA2CCQE ) :
-//      if(fZExpMaxCoef>1){ fZExpTwkDial[1] = twk_dial; }
-//      break;
-//    case ( kXSecTwkDial_ZExpA3CCQE ) :
-//      if(fZExpMaxCoef>2){ fZExpTwkDial[2] = twk_dial; }
-//      break;
-//    case ( kXSecTwkDial_ZExpA4CCQE ) :
-//      if(fZExpMaxCoef>3){ fZExpTwkDial[3] = twk_dial; }
-//      break;
     default:
       break;
   }
@@ -260,127 +251,101 @@ void GReWeightNuXSecCCQEELFF::Reset(void)
     fZExpParaTwkDial.fZ_BNn[i] = 0.;
     fZExpParaTwkDial.fZ_APn[i] = 0.;
   }
-
   this->Reconfigure();
 }
 //_______________________________________________________________________________________
 void GReWeightNuXSecCCQEELFF::Reconfigure(void)
 {
+  if(fIsSinglePara && fIsAllPara){
+    LOG("ReW",pERROR) << "can't not set kXSecTwkDial_ZExpELFF and kXSecTwkDial_ZExpELFFXXX at the same time";
+    abort();
+  }
   GSystUncertainty * fracerr = GSystUncertainty::Instance();
   if(fMode==kModeZExp && fModelIsZExp) {
-    int     sign_twk = 0;
-    double  fracerr_zexp = 0.;
-//    double  fracerr_norm = fracerr->OneSigmaErr(kXSecTwkDial_ZNormCCQE, sign_twk);
-    sign_twk = utils::rew::Sign(fZExpParaTwkDial.fT0);
-    fracerr_zexp = fracerr->OneSigmaErr(kXSecTwkDial_ZExpELFF_T0, sign_twk);
-    fZExpPara.fT0 = fZExpParaDef.fT0 * (1. + fZExpParaTwkDial.fT0 * fracerr_zexp);
-    sign_twk = utils::rew::Sign(fZExpParaTwkDial.fTcut);
-    fracerr_zexp = fracerr->OneSigmaErr(kXSecTwkDial_ZExpELFF_Tcut, sign_twk);
-    fZExpPara.fTcut = fZExpParaDef.fTcut * (1. + fZExpParaTwkDial.fTcut * fracerr_zexp);
-    sign_twk = utils::rew::Sign(fZExpParaTwkDial.fGep0);
-    fracerr_zexp = fracerr->OneSigmaErr(kXSecTwkDial_ZExpELFF_Gep0, sign_twk);
-    fZExpPara.fGep0 = fZExpParaDef.fGep0 * (1. + fZExpParaTwkDial.fGep0 * fracerr_zexp);
-    sign_twk = utils::rew::Sign(fZExpParaTwkDial.fGmp0);
-    fracerr_zexp = fracerr->OneSigmaErr(kXSecTwkDial_ZExpELFF_Gmp0, sign_twk);
-    fZExpPara.fGmp0 = fZExpParaDef.fGmp0 * (1. + fZExpParaTwkDial.fGmp0 * fracerr_zexp);
-    sign_twk = utils::rew::Sign(fZExpParaTwkDial.fGen0);
-    fracerr_zexp = fracerr->OneSigmaErr(kXSecTwkDial_ZExpELFF_Gen0, sign_twk);
-    fZExpPara.fGen0 = fZExpParaDef.fGen0 * (1. + fZExpParaTwkDial.fGen0 * fracerr_zexp);
-    sign_twk = utils::rew::Sign(fZExpParaTwkDial.fGmn0);
-    fracerr_zexp = fracerr->OneSigmaErr(kXSecTwkDial_ZExpELFF_Gmn0, sign_twk);
-    fZExpPara.fGmn0 = fZExpParaDef.fGmn0 * (1. + fZExpParaTwkDial.fGmn0 * fracerr_zexp);
+    if(fIsSinglePara){
+      int     sign_twk = 0;
+      double  fracerr_zexp = 0.;
+      GSyst_t syst;
+      // loop over all indices and update each
+      for (int i=0;i<fZExpParaDef.fKmax;i++)
+      {
+        switch(i){
+          case 0: syst = kXSecTwkDial_ZExpELFF_AP1; break;
+          case 1: syst = kXSecTwkDial_ZExpELFF_AP2; break;
+          case 2: syst = kXSecTwkDial_ZExpELFF_AP3; break;
+          case 3: syst = kXSecTwkDial_ZExpELFF_AP4; break;
+          default: return; break;
+        }
+        sign_twk = utils::rew::Sign(fZExpParaTwkDial.fZ_APn[i]);
+        fracerr_zexp = fracerr->OneSigmaErr(syst, sign_twk);
+        fZExpPara.fZ_APn[i] = fZExpParaDef.fZ_APn[i] * ( 1.0 + fZExpParaTwkDial.fZ_APn[i] * fracerr_zexp);
+        switch(i){
+          case 0: syst = kXSecTwkDial_ZExpELFF_BP1; break;
+          case 1: syst = kXSecTwkDial_ZExpELFF_BP2; break;
+          case 2: syst = kXSecTwkDial_ZExpELFF_BP3; break;
+          case 3: syst = kXSecTwkDial_ZExpELFF_BP4; break;
+          default: return; break;
+        }
+        sign_twk = utils::rew::Sign(fZExpParaTwkDial.fZ_BPn[i]);
+        fracerr_zexp = fracerr->OneSigmaErr(syst, sign_twk);
+        fZExpPara.fZ_BPn[i] = fZExpParaDef.fZ_BPn[i] *  (1.0 + fZExpParaTwkDial.fZ_BPn[i] * fracerr_zexp);
+        switch(i){
+          case 0: syst = kXSecTwkDial_ZExpELFF_AN1; break;
+          case 1: syst = kXSecTwkDial_ZExpELFF_AN2; break;
+          case 2: syst = kXSecTwkDial_ZExpELFF_AN3; break;
+          case 3: syst = kXSecTwkDial_ZExpELFF_AN4; break;
+          default: return; break;
+        }
+        sign_twk = utils::rew::Sign(fZExpParaTwkDial.fZ_ANn[i]);
+        fracerr_zexp = fracerr->OneSigmaErr(syst, sign_twk);
+        fZExpPara.fZ_ANn[i] = fZExpParaDef.fZ_ANn[i] * ( 1.0 + fZExpParaTwkDial.fZ_ANn[i] * fracerr_zexp);
+        switch(i){
+          case 0: syst = kXSecTwkDial_ZExpELFF_BN1; break;
+          case 1: syst = kXSecTwkDial_ZExpELFF_BN2; break;
+          case 2: syst = kXSecTwkDial_ZExpELFF_BN3; break;
+          case 3: syst = kXSecTwkDial_ZExpELFF_BN4; break;
+          default: return; break;
+        }
+        sign_twk = utils::rew::Sign(fZExpParaTwkDial.fZ_BNn[i]);
+        fracerr_zexp = fracerr->OneSigmaErr(syst, sign_twk);
+        fZExpPara.fZ_BNn[i] = fZExpParaDef.fZ_BNn[i] * ( 1.0 + fZExpParaTwkDial.fZ_BNn[i] * fracerr_zexp);
+      }
 
-    GSyst_t syst;
-    // loop over all indices and update each
-    for (int i=0;i<fZExpParaDef.fKmax;i++)
-    {
-      switch(i){
-        case 0: syst = kXSecTwkDial_ZExpELFF_AP1; break;
-        case 1: syst = kXSecTwkDial_ZExpELFF_AP2; break;
-        case 2: syst = kXSecTwkDial_ZExpELFF_AP3; break;
-        case 3: syst = kXSecTwkDial_ZExpELFF_AP4; break;
-        default: return; break;
+
+      Registry r("GReWeightNuXSecCCQEELFF",false);
+      //~ Registry r(fXSecModel->GetConfig());
+      if (fMode==kModeZExp)
+      {
+        ostringstream alg_key;
+        for (int i=0;i<fZExpParaDef.fKmax;i++)
+        {
+          alg_key.str(""); // algorithm key for each coefficient
+          alg_key << fZExpPath << "QEL-Z_AN" << i+1;
+          r.Set(alg_key.str(), fZExpPara.fZ_ANn[i]);
+          alg_key.str(""); // algorithm key for each coefficient
+          alg_key << fZExpPath << "QEL-Z_AP" << i+1;
+          r.Set(alg_key.str(), fZExpPara.fZ_APn[i]);
+          alg_key.str(""); // algorithm key for each coefficient
+          alg_key << fZExpPath << "QEL-Z_BN" << i+1;
+          r.Set(alg_key.str(), fZExpPara.fZ_BNn[i]);
+          alg_key.str(""); // algorithm key for each coefficient
+          alg_key << fZExpPath << "QEL-Z_BP" << i+1;
+          r.Set(alg_key.str(), fZExpPara.fZ_BPn[i]);
+        }
       }
-      sign_twk = utils::rew::Sign(fZExpParaTwkDial.fZ_APn[i]);
-      fracerr_zexp = fracerr->OneSigmaErr(syst, sign_twk);
-      fZExpPara.fZ_APn[i] = fZExpParaDef.fZ_APn[i] * (1. + fZExpParaTwkDial.fZ_APn[i] * fracerr_zexp);
-      switch(i){
-        case 0: syst = kXSecTwkDial_ZExpELFF_BP1; break;
-        case 1: syst = kXSecTwkDial_ZExpELFF_BP2; break;
-        case 2: syst = kXSecTwkDial_ZExpELFF_BP3; break;
-        case 3: syst = kXSecTwkDial_ZExpELFF_BP4; break;
-        default: return; break;
-      }
-      sign_twk = utils::rew::Sign(fZExpParaTwkDial.fZ_BPn[i]);
-      fracerr_zexp = fracerr->OneSigmaErr(syst, sign_twk);
-      fZExpPara.fZ_BPn[i] = fZExpParaDef.fZ_BPn[i] * (1. + fZExpParaTwkDial.fZ_BPn[i] * fracerr_zexp);
-      switch(i){
-        case 0: syst = kXSecTwkDial_ZExpELFF_AN1; break;
-        case 1: syst = kXSecTwkDial_ZExpELFF_AN2; break;
-        case 2: syst = kXSecTwkDial_ZExpELFF_AN3; break;
-        case 3: syst = kXSecTwkDial_ZExpELFF_AN4; break;
-        default: return; break;
-      }
-      sign_twk = utils::rew::Sign(fZExpParaTwkDial.fZ_ANn[i]);
-      fracerr_zexp = fracerr->OneSigmaErr(syst, sign_twk);
-      fZExpPara.fZ_ANn[i] = fZExpParaDef.fZ_ANn[i] * (1. + fZExpParaTwkDial.fZ_ANn[i] * fracerr_zexp);
-      switch(i){
-        case 0: syst = kXSecTwkDial_ZExpELFF_BN1; break;
-        case 1: syst = kXSecTwkDial_ZExpELFF_BN2; break;
-        case 2: syst = kXSecTwkDial_ZExpELFF_BN3; break;
-        case 3: syst = kXSecTwkDial_ZExpELFF_BN4; break;
-        default: return; break;
-      }
-      sign_twk = utils::rew::Sign(fZExpParaTwkDial.fZ_BNn[i]);
-      fracerr_zexp = fracerr->OneSigmaErr(syst, sign_twk);
-      fZExpPara.fZ_BNn[i] = fZExpParaDef.fZ_BNn[i] * (1. + fZExpParaTwkDial.fZ_BNn[i] * fracerr_zexp);
+      fXSecModel->Configure(r);
+    }
+    else if(fIsAllPara){
+      int     sign_twk = 0;
+      double  fracerr_zexp = 0.;
+      sign_twk = utils::rew::Sign(fZExpTwkDial);
+      fracerr_zexp = fracerr->OneSigmaErr(kXSecTwkDial_ZExpELFF, sign_twk);
+      fZExp_Scale = fZExpTwkDial * fracerr_zexp;
     }
   }
   else {
     return;
   }
-
-
-  Registry r("GReWeightNuXSecCCQEELFF",false);
-  //~ Registry r(fXSecModel->GetConfig());
-  if (fMode==kModeZExp)
-  {
-    ostringstream alg_key;
-    alg_key.str(""); // algorithm key for each coefficient
-    alg_key << fZExpPath << "QEL-T0";
-    r.Set(alg_key.str(), fZExpPara.fT0);
-    alg_key.str(""); // algorithm key for each coefficient
-    alg_key << fZExpPath << "QEL-Tcut";
-    r.Set(alg_key.str(), fZExpPara.fTcut);
-    alg_key.str(""); // algorithm key for each coefficient
-    alg_key << fZExpPath << "QEL-Gep0";
-    r.Set(alg_key.str(), fZExpPara.fGep0);
-    alg_key.str(""); // algorithm key for each coefficient
-    alg_key << fZExpPath << "QEL-Gmp0";
-    r.Set(alg_key.str(), fZExpPara.fGmp0);
-    alg_key.str(""); // algorithm key for each coefficient
-    alg_key << fZExpPath << "QEL-Gen0";
-    r.Set(alg_key.str(), fZExpPara.fGen0);
-    alg_key.str(""); // algorithm key for each coefficient
-    alg_key << fZExpPath << "QEL-Gmn0";
-    r.Set(alg_key.str(), fZExpPara.fGmn0);
-    for (int i=0;i<fZExpParaDef.fKmax;i++)
-    {
-      alg_key.str(""); // algorithm key for each coefficient
-      alg_key << fZExpPath << "QEL-Z_AN" << i+1;
-      r.Set(alg_key.str(), fZExpPara.fZ_ANn[i]);
-      alg_key.str(""); // algorithm key for each coefficient
-      alg_key << fZExpPath << "QEL-Z_AP" << i+1;
-      r.Set(alg_key.str(), fZExpPara.fZ_APn[i]);
-      alg_key.str(""); // algorithm key for each coefficient
-      alg_key << fZExpPath << "QEL-Z_BN" << i+1;
-      r.Set(alg_key.str(), fZExpPara.fZ_BNn[i]);
-      alg_key.str(""); // algorithm key for each coefficient
-      alg_key << fZExpPath << "QEL-Z_BP" << i+1;
-      r.Set(alg_key.str(), fZExpPara.fZ_BPn[i]);
-    }
-  }
-  fXSecModel->Configure(r);
 }
 //_______________________________________________________________________________________
 double GReWeightNuXSecCCQEELFF::CalcWeight(const genie::EventRecord & event)
@@ -408,11 +373,10 @@ double GReWeightNuXSecCCQEELFF::CalcWeight(const genie::EventRecord & event)
   if ( nupdg==kPdgAntiNuE  && !fRewNuebar ) return 1.;
 
   double wght = 1.0;
-      if ( fMode==kModeZExp && fModelIsZExp ) {
-        wght *=  this->CalcWeightZExp( event );
-        return wght;
-      }
-
+  if ( fMode==kModeZExp && fModelIsZExp ) {
+      wght *=  this->CalcWeightZExp( event );
+      return wght;
+  }
   return 1.;
 }
 //_______________________________________________________________________________________
@@ -439,25 +403,6 @@ void GReWeightNuXSecCCQEELFF::Init(void)
   fXSecModel = dynamic_cast<XSecAlgorithmI*>(alg_twk);
   fXSecModel->AdoptSubstructure();
 
-  // Get the Algorithm objects that should be used to integrate the cross
-  // sections. Use the "ReweightShape" configuration, which turns off averaging
-  // over the initial state nucleon distribution.
-  AlgId alg_def_integ_ID( alg_def->GetConfig().GetAlg("XSec-Integrator").name,
-      "ReweightShape");
-
-  fXSecIntegratorDef = dynamic_cast<XSecIntegratorI*>(
-      algf->AdoptAlgorithm(alg_def_integ_ID));
-
-  assert( fXSecIntegratorDef );
-
-  AlgId alg_twk_integ_ID( alg_twk->GetConfig().GetAlg("XSec-Integrator").name,
-      "ReweightShape");
-
-  fXSecIntegrator = dynamic_cast<XSecIntegratorI*>(
-      algf->AdoptAlgorithm(alg_twk_integ_ID));
-
-  assert( fXSecIntegrator );
-
   // Check what kind of form factors we're using in the tweaked cross section
   // model
   fXSecModelConfig = new Registry(fXSecModel->GetConfig());
@@ -467,14 +412,15 @@ void GReWeightNuXSecCCQEELFF::Init(void)
 
   fModelIsZExp      = (strcmp(fFFModel.c_str(),kModelZExp  ) == 0);
 
+  fIsSinglePara = false;
+  fIsAllPara = false;
+
   this->RewNue    (true);
   this->RewNuebar (true);
   this->RewNumu   (true);
   this->RewNumubar(true);
 
-  //this->SetMaPath("FormFactorsAlg/Ma");
   this->SetZExpPath("FormFactorsAlg/ElasticFormFactorsModel/");
-  // this->SetZExpPath("FormFactorsAlg/AxialFormFactorModel/");
 
   if (fModelIsZExp)
   {
@@ -508,57 +454,192 @@ void GReWeightNuXSecCCQEELFF::Init(void)
     fZExpParaTwkDial.fGen0    = 0.;
     fZExpParaTwkDial.fGmn0    = 0.;
 
-
-
-  ostringstream alg_key;
-  for(int i = 0; i < fZExpParaDef.fKmax; i++){
-    alg_key.str("");
-    alg_key << fZExpPath << "QEL-Z_AN" << i+1;
-    fZExpParaDef.fZ_ANn[i] = fXSecModelConfig->GetDouble(alg_key.str());
-    alg_key.str("");
-    alg_key << fZExpPath << "QEL-Z_AP" << i+1;
-    fZExpParaDef.fZ_APn[i] = fXSecModelConfig->GetDouble(alg_key.str());
-    alg_key.str("");
-    alg_key << fZExpPath << "QEL-Z_BN" << i+1;
-    fZExpParaDef.fZ_BNn[i] = fXSecModelConfig->GetDouble(alg_key.str());
-    alg_key.str("");
-    alg_key << fZExpPath << "QEL-Z_BP" << i+1;
-    fZExpParaDef.fZ_BPn[i] = fXSecModelConfig->GetDouble(alg_key.str());
-    fZExpParaTwkDial.fZ_ANn[i] = 0.;
-    fZExpParaTwkDial.fZ_APn[i] = 0.;
-    fZExpParaTwkDial.fZ_BNn[i] = 0.;
-    fZExpParaTwkDial.fZ_BPn[i] = 0.;
-    fZExpPara.fZ_ANn[i] = 0.;
-    fZExpPara.fZ_APn[i] = 0.;
-    fZExpPara.fZ_BNn[i] = 0.;
-    fZExpPara.fZ_BPn[i] = 0.;
+    ostringstream alg_key;
+    for(int i = 0; i < fZExpParaDef.fKmax; i++){
+      alg_key.str("");
+      alg_key << fZExpPath << "QEL-Z_AN" << i+1;
+      fZExpParaDef.fZ_ANn[i] = fXSecModelConfig->GetDouble(alg_key.str());
+      alg_key.str("");
+      alg_key << fZExpPath << "QEL-Z_AP" << i+1;
+      fZExpParaDef.fZ_APn[i] = fXSecModelConfig->GetDouble(alg_key.str());
+      alg_key.str("");
+      alg_key << fZExpPath << "QEL-Z_BN" << i+1;
+      fZExpParaDef.fZ_BNn[i] = fXSecModelConfig->GetDouble(alg_key.str());
+      alg_key.str("");
+      alg_key << fZExpPath << "QEL-Z_BP" << i+1;
+      fZExpParaDef.fZ_BPn[i] = fXSecModelConfig->GetDouble(alg_key.str());
+      fZExpParaTwkDial.fZ_ANn[i] = 0.;
+      fZExpParaTwkDial.fZ_APn[i] = 0.;
+      fZExpParaTwkDial.fZ_BNn[i] = 0.;
+      fZExpParaTwkDial.fZ_BPn[i] = 0.;
+      fZExpPara.fZ_ANn[i] = 0.;
+      fZExpPara.fZ_APn[i] = 0.;
+      fZExpPara.fZ_BNn[i] = 0.;
+      fZExpPara.fZ_BPn[i] = 0.;
+    }
   }
-  }
-
-#ifdef _G_REWEIGHT_CCQE_DEBUG_
-  fTestFile = new TFile("./ccqe_reweight_test.root","recreate");
-  fTestNtp  = new TNtupleD("testntp","","E:Q2:wght");
-#endif
 }
 //_______________________________________________________________________________________
 double GReWeightNuXSecCCQEELFF::CalcWeightZExp(const genie::EventRecord & event)
 {
-  // very similar to CalcWeightMa
-  bool tweaked = false;
-  tweaked = tweaked || (TMath::Abs(fZExpParaTwkDial.fT0)   > controls::kASmallNum);
-  tweaked = tweaked || (TMath::Abs(fZExpParaTwkDial.fTcut) > controls::kASmallNum);
-  tweaked = tweaked || (TMath::Abs(fZExpParaTwkDial.fGep0) > controls::kASmallNum);
-  tweaked = tweaked || (TMath::Abs(fZExpParaTwkDial.fGmp0) > controls::kASmallNum);
-  tweaked = tweaked || (TMath::Abs(fZExpParaTwkDial.fGen0) > controls::kASmallNum);
-  tweaked = tweaked || (TMath::Abs(fZExpParaTwkDial.fGmn0) > controls::kASmallNum);
-  for (int i=0;i<fZExpParaDef.fKmax;i++)
-  {
-    tweaked = tweaked || (TMath::Abs(fZExpParaTwkDial.fZ_APn[i]) > controls::kASmallNum);
-    tweaked = tweaked || (TMath::Abs(fZExpParaTwkDial.fZ_ANn[i]) > controls::kASmallNum);
-    tweaked = tweaked || (TMath::Abs(fZExpParaTwkDial.fZ_BPn[i]) > controls::kASmallNum);
-    tweaked = tweaked || (TMath::Abs(fZExpParaTwkDial.fZ_BNn[i]) > controls::kASmallNum);
+  if(fIsSinglePara){
+    bool tweaked = false;
+    for (int i=0;i<fZExpParaDef.fKmax;i++)
+    {
+      tweaked = tweaked || (TMath::Abs(fZExpParaTwkDial.fZ_APn[i]) > controls::kASmallNum);
+      tweaked = tweaked || (TMath::Abs(fZExpParaTwkDial.fZ_ANn[i]) > controls::kASmallNum);
+      tweaked = tweaked || (TMath::Abs(fZExpParaTwkDial.fZ_BPn[i]) > controls::kASmallNum);
+      tweaked = tweaked || (TMath::Abs(fZExpParaTwkDial.fZ_BNn[i]) > controls::kASmallNum);
+    }
+    if(!tweaked) { return 1.0; }
+
+    Interaction * interaction = event.Summary();
+
+    interaction->KinePtr()->UseSelectedKinematics();
+
+    // Retrieve the kinematic phase space used to generate the event
+    const KinePhaseSpace_t phase_space = event.DiffXSecVars();
+    double old_xsec = event.DiffXSec();
+
+    if (phase_space == kPSQ2fE) {
+      interaction->SetBit(kIAssumeFreeNucleon);
+    }
+
+    if (!fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo) {
+      double calc_old_xsec = fXSecModelDef->XSec(interaction, phase_space);
+      if (fNWeightChecksDone < fNWeightChecksToDo) {
+        if (std::abs(calc_old_xsec - old_xsec)/old_xsec > controls::kASmallNum) {
+          LOG("ReW",pWARN) << "Warning - default dxsec does not match dxsec saved in tree. Does the config match?";
+        }
+        fNWeightChecksDone++;
+      }
+      if(!fUseOldWeightFromFile) {
+        old_xsec = calc_old_xsec;
+      }
+    }
+    double old_weight = event.Weight();
+    double new_xsec   = fXSecModel->XSec(interaction, phase_space);
+    double new_weight = old_weight * (new_xsec/old_xsec);
+
+
+    interaction->KinePtr()->ClearRunningValues();
+
+    if (phase_space == kPSQ2fE) {
+      interaction->ResetBit(kIAssumeFreeNucleon);
+    }
+
+    return new_weight;
   }
-  if(!tweaked) { return 1.0; }
+  else{  // uncertainty propagation
+    bool tweaked = false;
+    tweaked = tweaked || (TMath::Abs(fZExpTwkDial) > controls::kASmallNum);
+    if(!tweaked) { return 1.0; }
+    double oneSigma = GetOneSigma(event);
+    double old_xsec = event.DiffXSec();
+    double new_weight = (fZExp_Scale * oneSigma + old_xsec) / old_xsec;
+ //   LOG("ReW", pNOTICE) << fZExp_Scale << "  " << oneSigma << "  " << old_xsec;
+    return new_weight;
+  }
+}
+
+//_______________________________________________________________________________________
+// Calculate the partial derivative of the cross section
+// A_f is the partial derivative
+// A_f = ∂ XSec() / ∂ p_i = (XSec(p_i + σ_i * delta ) - XSec(p_i - σ_i * delta )) / ( 2.0 * delta * σ_i)
+//
+
+void GReWeightNuXSecCCQEELFF::XSecPartialDerivative(const EventRecord & event){
+  // Get the uncertainties from the error matrix
+  // ap1, ap2, ap3, ap4, 
+  // bp1, bp2, bp3, bp4, 
+  // an1, an2, an3, an4,
+  // bn1, bn2, bn3, bn4
+  for(int i = 0; i < fZExpParaDef.fKmax * 4; i++){
+    errors[i] = TMath::Sqrt(error_mat[i][i]);
+    A_f[i] = 0.0;
+  }
+
+  double delta = 0.1;
+
+  for(int index = 0; index < fZExpParaDef.fKmax * 4; index++){
+    double xsec_tmp_0;
+    double xsec_tmp_1;
+
+    for(int sign = -1; sign < 2; sign++){
+      if(sign == 0) continue;
+
+      for(int ipara = 0; ipara < fZExpParaDef.fKmax; ipara++){
+        fZExpPara.fZ_APn[ipara] = fZExpParaDef.fZ_APn[ipara];
+        fZExpPara.fZ_BPn[ipara] = fZExpParaDef.fZ_BPn[ipara];
+        fZExpPara.fZ_BPn[ipara] = fZExpParaDef.fZ_BPn[ipara];
+        fZExpPara.fZ_BNn[ipara] = fZExpParaDef.fZ_BNn[ipara];
+      }
+
+      int icoff = index / fZExpParaDef.fKmax;
+      int jcoff = index % fZExpParaDef.fKmax;
+
+      switch (icoff){
+        case 0 : fZExpPara.fZ_APn[jcoff] = fZExpParaDef.fZ_APn[jcoff] + errors[index] * delta * sign; break;
+        case 1 : fZExpPara.fZ_BPn[jcoff] = fZExpParaDef.fZ_BPn[jcoff] + errors[index] * delta * sign; break;
+        case 2 : fZExpPara.fZ_ANn[jcoff] = fZExpParaDef.fZ_ANn[jcoff] + errors[index] * delta * sign; break;
+        case 3 : fZExpPara.fZ_BNn[jcoff] = fZExpParaDef.fZ_BNn[jcoff] + errors[index] * delta * sign; break;
+        default: break;
+      }
+
+      Registry r("GReWeightNuXSecCCQEELFF",false);
+      //~ Registry r(fXSecModel->GetConfig());
+      if (fMode==kModeZExp)
+      {
+        ostringstream alg_key;
+        for (int i=0;i<fZExpParaDef.fKmax;i++)
+        {
+          alg_key.str(""); // algorithm key for each coefficient
+          alg_key << fZExpPath << "QEL-Z_AN" << i+1;
+          r.Set(alg_key.str(), fZExpPara.fZ_ANn[i]);
+          alg_key.str(""); // algorithm key for each coefficient
+          alg_key << fZExpPath << "QEL-Z_AP" << i+1;
+          r.Set(alg_key.str(), fZExpPara.fZ_APn[i]);
+          alg_key.str(""); // algorithm key for each coefficient
+          alg_key << fZExpPath << "QEL-Z_BN" << i+1;
+          r.Set(alg_key.str(), fZExpPara.fZ_BNn[i]);
+          alg_key.str(""); // algorithm key for each coefficient
+          alg_key << fZExpPath << "QEL-Z_BP" << i+1;
+          r.Set(alg_key.str(), fZExpPara.fZ_BPn[i]);
+        }
+      }
+      fXSecModel->Configure(r);
+      if(sign == -1){
+        xsec_tmp_0 = UpdateXSec(event) ;
+      }
+      else if(sign == 1){
+        xsec_tmp_1 = UpdateXSec(event) ;
+      }
+    }
+
+    double delta_xsec = xsec_tmp_1 - xsec_tmp_0;
+    A_f[index] = delta_xsec/(errors[index] * delta * 2.0);
+    //   LOG("ReW", pNOTICE) << A_f[index] ;
+  }
+}
+
+//_______________________________________________________________________________________
+//  Uncertainty propagation
+//  σ^2 = Σ_ij A_f[i] * A_f[j] * cov(i, j) * σ_i * σ_j
+double GReWeightNuXSecCCQEELFF::GetOneSigma(const EventRecord & event){
+  XSecPartialDerivative(event);
+  double OneSigma2 = 0;
+  for(int i = 0; i < fZExpParaDef.fKmax * 4; i++){
+    for(int j = 0; j < fZExpParaDef.fKmax * 4; j++){
+      OneSigma2+= A_f[i]*A_f[j]*error_mat[i][j];
+    }
+  }
+  return TMath::Sqrt(OneSigma2);
+}
+
+//_______________________________________________________________________________________
+
+
+double GReWeightNuXSecCCQEELFF::UpdateXSec(const EventRecord & event){
 
   Interaction * interaction = event.Summary();
 
@@ -584,9 +665,7 @@ double GReWeightNuXSecCCQEELFF::CalcWeightZExp(const genie::EventRecord & event)
       old_xsec = calc_old_xsec;
     }
   }
-  double old_weight = event.Weight();
   double new_xsec   = fXSecModel->XSec(interaction, phase_space);
-  double new_weight = old_weight * (new_xsec/old_xsec);
 
   interaction->KinePtr()->ClearRunningValues();
 
@@ -594,7 +673,7 @@ double GReWeightNuXSecCCQEELFF::CalcWeightZExp(const genie::EventRecord & event)
     interaction->ResetBit(kIAssumeFreeNucleon);
   }
 
-  return new_weight;
+  return new_xsec;
 }
-//_______________________________________________________________________________________
+
 

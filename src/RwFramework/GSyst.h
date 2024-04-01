@@ -222,12 +222,7 @@ typedef enum EGSyst {
   //
   // Alternative approach to CCQE form factors (z-expansion) vector form factor
   //
-  kXSecTwkDial_ZExpELFF_T0,
-  kXSecTwkDial_ZExpELFF_Tcut,
-  kXSecTwkDial_ZExpELFF_Gep0,
-  kXSecTwkDial_ZExpELFF_Gmp0,
-  kXSecTwkDial_ZExpELFF_Gen0,
-  kXSecTwkDial_ZExpELFF_Gmn0,
+  kXSecTwkDial_ZExpELFF,
   kXSecTwkDial_ZExpELFF_AP1,
   kXSecTwkDial_ZExpELFF_AP2,
   kXSecTwkDial_ZExpELFF_AP3,

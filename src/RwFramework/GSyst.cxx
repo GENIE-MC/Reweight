@@ -121,12 +121,7 @@ std::map<GSyst_t, std::string> GSyst::BuildGSystToStringMap() {
   temp_map[ kXSecTwkDial_CoulombCCQE ] = "CoulombCCQE";
   temp_map[ kXSecTwkDial_NormCCCOHpi ] = "NormCCCOH";
   temp_map[ kXSecTwkDial_NormNCCOHpi ] = "NormNCCOH";
-  temp_map[ kXSecTwkDial_ZExpELFF_T0 ] = "ZExpELFFT0CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_Tcut ] = "ZExpELFFTcutCCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_Gep0 ] = "ZExpELFFGep0CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_Gmp0 ] = "ZExpELFFGmp0CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_Gen0 ] = "ZExpELFFGen0CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_Gmn0 ] = "ZExpELFFGmn0CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF ] = "ZExpELFFCCQE";
   temp_map[ kXSecTwkDial_ZExpELFF_AP1 ] = "ZExpELFFAP1CCQE";
   temp_map[ kXSecTwkDial_ZExpELFF_AP2 ] = "ZExpELFFAP2CCQE";
   temp_map[ kXSecTwkDial_ZExpELFF_AP3 ] = "ZExpELFFAP3CCQE";
