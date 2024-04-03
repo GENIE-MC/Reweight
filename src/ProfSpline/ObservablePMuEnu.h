@@ -10,8 +10,8 @@ protected:
   ObservablePMuEnu(std::string config);
 
 public:
-  virtual std::vector<double>
-  KinematicVariables(const EventRecord &event) const override;
+  virtual KinematicVariables
+  CalcKinematicVariables(const EventRecord &event) const override;
 
   virtual ~ObservablePMuEnu() = default;
 

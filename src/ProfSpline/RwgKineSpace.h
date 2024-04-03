@@ -5,6 +5,7 @@
 #define _OBSERVABLE_I_
 #include "Framework/Algorithm/Algorithm.h"
 #include "Framework/EventGen/EventRecord.h"
+#include "ProfSpline/KinematicVariables.h"
 #include <string>
 #include <vector>
 namespace genie {
@@ -18,8 +19,8 @@ public:
   // maybe we can merge with binning lookup function below
   // but seperating them may benefit the idea of merging implementation
   // of corresponding ObservablePrediction in comparison package?
-  virtual std::vector<double>
-  KinematicVariables(const EventRecord &event) const = 0;
+  virtual KinematicVariables
+  CalcKinematicVariables(const EventRecord &event) const = 0;
 
   virtual bool IsHandled(const EventRecord &event) const = 0;
   // virtual std::vector<double> GetObservablesValues() const = 0;

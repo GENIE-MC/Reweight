@@ -14,8 +14,8 @@ protected:
 public:
   virtual ~ObservableMuonMomentum() = default;
 
-  virtual std::vector<double>
-  KinematicVariables(const EventRecord &event) const override;
+  virtual KinematicVariables
+  CalcKinematicVariables(const EventRecord &event) const override;
 
   virtual bool IsHandled(const EventRecord &event) const override;
 

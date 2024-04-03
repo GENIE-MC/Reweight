@@ -10,8 +10,9 @@ ObservablePMuEnu::ObservablePMuEnu()
 ObservablePMuEnu::ObservablePMuEnu(std::string config)
     : RwgKineSpace("genie::rew::ObservablePMuEnu", config) {}
 
-std::vector<double>
-ObservablePMuEnu::KinematicVariables(const EventRecord &event) const {
+KinematicVariables
+ObservablePMuEnu::CalcKinematicVariables(const EventRecord &event) const {
+  KinematicVariables ret{};
   // std::vector<double> ret;
   GHepParticle *target_nucleus_p = event.HitNucleon();
   // in case we are dealing with COH, which comes with no hit nucleon
@@ -26,7 +27,18 @@ ObservablePMuEnu::KinematicVariables(const EventRecord &event) const {
   auto probe = *(event.Probe()->P4());
   probe.Boost(boost_vec);
   double enu = probe.E();
-  return {pmu, enu};
+  auto &vars = ret.GetVars();
+  vars.resize(2);
+  vars[0] = pmu;
+  vars[1] = enu;
+
+  auto &channel = ret.GetChannel();
+  channel.resize(2);
+  int nucleon = event.TargetNucleus()->Pdg();
+  int neutrino = event.Probe()->Pdg();
+  channel[0] = nucleon;
+  channel[1] = neutrino;
+  return ret;
 }
 
 bool ObservablePMuEnu::IsHandled(const EventRecord &event) const {

@@ -49,8 +49,8 @@ public:
     return observable->IsHandled(event);
   }
 
-  std::vector<double> KinematicVariables(const EventRecord &event) const {
-    return observable->KinematicVariables(event);
+  KinematicVariables KinematicVariables(const EventRecord &event) const {
+    return observable->CalcKinematicVariables(event);
   }
 
   template <class BinningT, class FirstNeighbors>
