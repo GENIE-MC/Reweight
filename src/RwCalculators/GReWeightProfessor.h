@@ -1,9 +1,8 @@
-#ifndef _G_REWEIGHT_MODEL_PROFESSOR_
-#define _G_REWEIGHT_MODEL_PROFESSOR_
+#ifndef _G_REWEIGHT_PROFESSOR_
+#define _G_REWEIGHT_PROFESSOR_
 
 #include "ProfSpline/ObservableSplines.h"
 #include "RwCalculators/GReWeightModel.h"
-#include "RwCalculators/GReWeightProfessorModel.h"
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -24,7 +23,7 @@ public:
   virtual void Reconfigure(void) override;
   virtual double CalcWeight(const genie::EventRecord &event) override;
 
-  // Some GReWeightProfModel specific functions
+  // Some GReWeightProfessor specific functions
   // TODO: we need to do
   //  - Get binning information and pass it to ObservableSplines
   //  - Get Observable information and pass it to ObservableSplines
@@ -53,7 +52,7 @@ public:
 
   void ReadComparionXML(std::string filepath);
 
-  GReWeightProfessorModel *LocateObservableSplines(const EventRecord &event) const;
+  ObservableSplines *LocateObservableSplines(const EventRecord &event) const;
 
 private:
   std::map<std::tuple<int /*probe id*/, int /*nuclear id*/>,
@@ -63,7 +62,7 @@ private:
            // is true but not using vector here since we still want to do a
            // lookup by name when propagating ipols
            std::unordered_map<std::string /*observable name*/,
-                              std::unique_ptr<GReWeightProfessorModel>>>
+                              std::unique_ptr<ObservableSplines>>>
       observable_map_from_id;
   std::vector<double> systematics_values, orig_value;
   std::vector<std::string> spline_vars;
