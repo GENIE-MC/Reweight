@@ -5,13 +5,15 @@
 namespace genie {
 namespace rew {
 class ObservablePMuEnu : public RwgKineSpace {
-protected:
+public:
   ObservablePMuEnu();
   ObservablePMuEnu(std::string config);
 
 public:
   virtual KinematicVariables
   CalcKinematicVariables(const EventRecord &event) const override;
+
+  virtual ChannelIDs ChannelID(const EventRecord &event) const override;
 
   virtual ~ObservablePMuEnu() = default;
 

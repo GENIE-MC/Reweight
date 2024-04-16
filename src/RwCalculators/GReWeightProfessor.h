@@ -1,12 +1,10 @@
 #ifndef _G_REWEIGHT_PROFESSOR_
 #define _G_REWEIGHT_PROFESSOR_
 
+#include "ProfSpline/KinematicVariables.h"
 #include "ProfSpline/ObservableSplines.h"
 #include "RwCalculators/GReWeightModel.h"
-#include <cstddef>
-#include <memory>
 #include <string>
-#include <unordered_map>
 
 namespace genie {
 namespace rew {
@@ -23,26 +21,10 @@ public:
   virtual void Reconfigure(void) override;
   virtual double CalcWeight(const genie::EventRecord &event) override;
 
-  // Some GReWeightProfessor specific functions
-  // TODO: we need to do
-  //  - Get binning information and pass it to ObservableSplines
-  //  - Get Observable information and pass it to ObservableSplines
-  //  - Get a list of nuisance parameters and maintain a map and the vector
-
-  void Initialize(std::string);
-
-  void ReadProf2Spline(std::string filepath);
-
-  // void InitializeObservable(std::string name) {
-  //   if (!observable_splines)
-  //     observable_splines = std::make_unique<ObservableSplines>();
-  //   observable_splines->InitializeObservable(name);
-  // }
-  // void InitializeBins(std::vector<std::vector<double>> binning) {
-  //   if (!observable_splines)
-  //     observable_splines = std::make_unique<ObservableSplines>();
-  //   observable_splines->InitializeBins(binning);
-  // }
+  std::map<std::tuple<std::string /*configuration full id*/,
+                      ChannelIDs /*Channel selection ID*/>,
+           std::vector<std::string> /*the vars lines from prof2*/>
+  ReadProf2Spline(std::string filepath);
 
   void SetSystematic(const std::vector<double> &m_systematics_values,
                      const std::vector<double> &m_orig_value) {
@@ -50,20 +32,10 @@ public:
     orig_value = m_orig_value;
   }
 
-  void ReadComparionXML(std::string filepath);
-
-  ObservableSplines *LocateObservableSplines(const EventRecord &event) const;
+  void ReadComparisonXML(std::string filepath, std::string spline_path);
 
 private:
-  std::map<std::tuple<int /*probe id*/, int /*nuclear id*/>,
-           // 2 step lookup for the map
-           // the reason is sometimes we don't lookup by name, but iterate over
-           // all the splines with given probe and target, and see if isHandled
-           // is true but not using vector here since we still want to do a
-           // lookup by name when propagating ipols
-           std::unordered_map<std::string /*observable name*/,
-                              std::unique_ptr<ObservableSplines>>>
-      observable_map_from_id;
+  std::vector<ObservableSplines> observables{};
   std::vector<double> systematics_values, orig_value;
   std::vector<std::string> spline_vars;
   std::vector<double> var_min, var_max;

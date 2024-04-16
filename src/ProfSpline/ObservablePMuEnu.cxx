@@ -12,8 +12,6 @@ ObservablePMuEnu::ObservablePMuEnu(std::string config)
 
 KinematicVariables
 ObservablePMuEnu::CalcKinematicVariables(const EventRecord &event) const {
-  KinematicVariables ret{};
-  // std::vector<double> ret;
   GHepParticle *target_nucleus_p = event.HitNucleon();
   // in case we are dealing with COH, which comes with no hit nucleon
   // we use the target nucleus instead
@@ -27,18 +25,26 @@ ObservablePMuEnu::CalcKinematicVariables(const EventRecord &event) const {
   auto probe = *(event.Probe()->P4());
   probe.Boost(boost_vec);
   double enu = probe.E();
-  auto &vars = ret.GetVars();
-  vars.resize(2);
-  vars[0] = pmu;
-  vars[1] = enu;
+  return {pmu, enu};
+}
 
-  auto &channel = ret.GetChannel();
-  channel.resize(2);
-  int nucleon = event.TargetNucleus()->Pdg();
-  int neutrino = event.Probe()->Pdg();
-  channel[0] = nucleon;
-  channel[1] = neutrino;
-  return ret;
+ChannelIDs ObservablePMuEnu::ChannelID(const EventRecord &event) const {
+  if (event.TargetNucleus()) {
+    return {
+        event.Probe()->Pdg(),
+        event.TargetNucleus()->Pdg(),
+    };
+  } else if (event.HitNucleon()) {
+    return {
+        event.Probe()->Pdg(),
+        event.HitNucleon()->Pdg(),
+    };
+  } else {
+    return {
+        event.Probe()->Pdg(),
+        0,
+    };
+  }
 }
 
 bool ObservablePMuEnu::IsHandled(const EventRecord &event) const {

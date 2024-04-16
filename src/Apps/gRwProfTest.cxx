@@ -237,11 +237,8 @@ int main(int argc, char **argv) {
       "gtree",
       input_from_file); // read the tree from the file
   auto observable_splines = std::make_unique<GReWeightProfessor>("");
-  observable_splines->Initialize("/var/home/yan/code/Comparisons/data/"
-                                 "observables/pmu_enu_W/configure.xml");
-  // std::string observable_name = "genie::rew::ObservablePMuEnu";
-  // observable_splines->InitializeObservable(observable_name);
-  // LOG("Test", pNOTICE) << "Initialize Professor Reweight success";
+  // observable_splines->Initialize("/var/home/yan/code/Comparisons/data/"
+  //                                "observables/pmu_enu_W/configure.xml");
 
   observable_splines->ReadProf2Spline(ipol_path);
   LOG("Test", pNOTICE) << "Read Professor Reweight success";

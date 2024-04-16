@@ -21,6 +21,7 @@ public:
   // of corresponding ObservablePrediction in comparison package?
   virtual KinematicVariables
   CalcKinematicVariables(const EventRecord &event) const = 0;
+  virtual ChannelIDs ChannelID(const EventRecord &event) const = 0;
 
   virtual bool IsHandled(const EventRecord &event) const = 0;
   // virtual std::vector<double> GetObservablesValues() const = 0;

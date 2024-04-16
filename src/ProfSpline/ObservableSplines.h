@@ -11,10 +11,10 @@
 #define _OBSERVABLE_SPLINES_
 #include "Framework/Algorithm/AlgId.h"
 #include "Framework/EventGen/EventRecord.h"
+#include "ProfSpline/KinematicVariables.h"
 #include "ProfSpline/RwgKineSpace.h"
 #include "Professor/Ipol.h"
 #include "libxml/tree.h"
-#include <memory>
 #include <vector>
 
 namespace genie {
@@ -49,16 +49,21 @@ public:
     return observable->IsHandled(event);
   }
 
-  KinematicVariables KinematicVariables(const EventRecord &event) const {
+  KinematicVariables CalcKinematicVariables(const EventRecord &event) const {
     return observable->CalcKinematicVariables(event);
   }
 
-  template <class BinningT, class FirstNeighbors>
+  ChannelIDs ChannelID(const EventRecord &event) const {
+    return observable->ChannelID(event);
+  }
+
+  template <class BinningT, class FirstNeighbors, class channelT>
   ObservableSplines(BinningT &&bin_in, FirstNeighbors &&first_neighbour_in,
-                    int dimension, int probid, int nuclid)
+                    channelT &&channel_in, int dimension)
       : bin_edges(std::forward<BinningT>(bin_in)),
         first_neighbour(std::forward<FirstNeighbors>(first_neighbour_in)),
-        nuclid(nuclid), probid(probid), dimension(dimension) {}
+        dimension(dimension),
+        channel(std::forward<channelT>(channel_in)) {}
 
   ObservableSplines() = default;
 
@@ -74,8 +79,8 @@ private:
       bin_edges{};
   std::vector<std::set<size_t>> first_neighbour{};
 
-  int nuclid{}, probid{};
   size_t dimension{};
+  ChannelIDs channel{};
   // std::string name{};
 };
 } // namespace rew

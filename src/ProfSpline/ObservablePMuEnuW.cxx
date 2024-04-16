@@ -4,9 +4,14 @@
 
 namespace genie {
 namespace rew {
+ObservablePMuEnuW::ObservablePMuEnuW()
+    : RwgKineSpace("genie::rew::ObservablePMuEnuW") {}
+
+ObservablePMuEnuW::ObservablePMuEnuW(std::string config)
+    : RwgKineSpace("genie::rew::ObservablePMuEnuW", config) {}
+
 KinematicVariables
 ObservablePMuEnuW::CalcKinematicVariables(const EventRecord &event) const {
-  KinematicVariables ret;
   // GHepParticle *target_nucleus_p = event.HitNucleon();
   // in case we are dealing with COH, which comes with no hit nucleon
   // we use the target nucleus instead
@@ -26,20 +31,26 @@ ObservablePMuEnuW::CalcKinematicVariables(const EventRecord &event) const {
     W = event.Summary()->Kine().W(false);
   }
   W = W == -99999 ? 0 : W;
-  // return {pmu, enu, W};
-  auto &vars = ret.GetVars();
-  vars.resize(3);
-  vars[0] = pmu;
-  vars[1] = enu;
-  vars[2] = W;
+  return {pmu, enu, W};
+}
 
-  auto &channel = ret.GetChannel();
-  channel.resize(2);
-  int nucleon = event.TargetNucleus()->Pdg();
-  int neutrino = event.Probe()->Pdg();
-  channel[0] = nucleon;
-  channel[1] = neutrino;
-  return ret;
+ChannelIDs ObservablePMuEnuW::ChannelID(const EventRecord &event) const {
+  if (event.TargetNucleus()) {
+    return {
+        event.Probe()->Pdg(),
+        event.TargetNucleus()->Pdg(),
+    };
+  } else if (event.HitNucleon()) {
+    return {
+        event.Probe()->Pdg(),
+        event.HitNucleon()->Pdg(),
+    };
+  } else {
+    return {
+        event.Probe()->Pdg(),
+        0,
+    };
+  }
 }
 
 } // namespace rew

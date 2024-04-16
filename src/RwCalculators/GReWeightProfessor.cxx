@@ -3,12 +3,14 @@
 #include "Framework/GHEP/GHepParticle.h"
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/Utils/XmlParserUtils.h"
+#include "ProfSpline/KinematicVariables.h"
 #include <cstddef>
 #include <cstdlib>
 #include <fstream>
 #include <memory>
 #include <sstream>
 #include <string>
+#include <tuple>
 
 namespace genie {
 namespace rew {
@@ -24,23 +26,8 @@ std::tuple<int, int> GetProbTarget(const EventRecord &event) {
   return {probid, targetid};
 }
 
-ObservableSplines *
-GReWeightProfessor::LocateObservableSplines(const EventRecord &event) const {
-  if (observable_map_from_id.find(GetProbTarget(event)) ==
-      observable_map_from_id.end()) {
-    return nullptr;
-  }
-
-  for (auto &&[_, obs] : observable_map_from_id.at(GetProbTarget(event))) {
-    if (obs->IsHandled(event)) {
-      return obs.get();
-    }
-  }
-  return nullptr;
-}
-
 bool GReWeightProfessor::AppliesTo(const EventRecord &event) const {
-  return LocateObservableSplines(event);
+  return true;
 }
 
 //! does the current weight calculator handle the input nuisance param?
@@ -65,31 +52,19 @@ void GReWeightProfessor::Reconfigure(void) {}
 //! values
 double GReWeightProfessor::CalcWeight(const genie::EventRecord &event) {
   // return observable_splines->GetRatio(event, systematics_values, orig_value);
-  auto obs = LocateObservableSplines(event);
-  if (!obs) {
-    LOG("GReWeightProfessor::CalcWeight", pERROR)
-        << "Cannot find observable splines for event. "
-           "Missing Check GReWeightProfessor::AppliesTo ? "
-           "But Still return weight 1";
-
-    return 1;
+  double weight{1.};
+  for (auto &&calc : observables) {
+    weight *= calc.GetRatio(event, orig_value, systematics_values);
   }
-  return obs->GetRatio(event, systematics_values, orig_value);
+  return weight;
 }
 
-void GReWeightProfessor::Initialize(std::string conf_file) {
-  // This is a very simliar function to the one in
-  // GENIE_COMPARISONS/src/Observables/GeneralReweightObs.cxx
-  // we may consider merging them in the future
-  // ReadComparionConf(conf_file);
-  ReadComparionXML(conf_file);
-}
-
-void GReWeightProfessor::ReadProf2Spline(std::string filepath) {
+std::map<std::tuple<std::string /*observable id*/,
+                    ChannelIDs /*Channel selection ID*/>,
+         std::vector<std::string> /*the vars lines from prof2*/>
+GReWeightProfessor::ReadProf2Spline(std::string filepath) {
+  std::map<std::tuple<std::string, ChannelIDs>, std::vector<std::string>> ret;
   std::ifstream spline_file{filepath};
-  // std::vector<std::string> var_lines{};
-  std::map<std::tuple<std::string, int, int>, std::vector<std::string>>
-      var_lines{};
   for (std::string line; std::getline(spline_file, line);) {
     auto seperator = line.find(":");
     if (seperator != std::string::npos) {
@@ -114,19 +89,21 @@ void GReWeightProfessor::ReadProf2Spline(std::string filepath) {
         std::stringstream ss{var};
       }
     } else if (line.find("#") != std::string::npos) {
-      // "/${orbname}/${orbname}_${flavor}_${nuclid}#..."
+      // "/${orbname}/${orbname}__<channel_string>#..."
       auto path = line.substr(0, line.find("#"));
       auto name = path.substr(path.find_last_of("/") + 1);
       auto orbname = path.substr(1, path.find_last_of("/") - 1);
-      auto name_trim_head = name.substr(orbname.length() + 1);
-      auto seperator_loc = name_trim_head.find_last_of("_");
-      auto nuclid = std::stoi(name_trim_head.substr(seperator_loc + 1));
-      auto flavor = std::stoi((name_trim_head.substr(0, seperator_loc)));
+      auto sep_loc = name.find_last_of("__");
+      auto channelstr = name.substr(sep_loc + 2);
+      ChannelIDs channel(channelstr, "_");
+      // auto name_trim_head = name.substr(orbname.length() + 1);
+      // auto seperator_loc = name_trim_head.find_last_of("_");
+      // auto nuclid = std::stoi(name_trim_head.substr(seperator_loc + 1));
+      // auto flavor = std::stoi((name_trim_head.substr(0, seperator_loc)));
 
       std::string errline{}; // not used now
       // auto &varline = var_lines.emplace_back();
-      auto &varline =
-          var_lines[std::make_tuple(orbname, flavor, nuclid)].emplace_back();
+      auto &varline = ret[std::make_tuple(orbname, channel)].emplace_back();
       std::getline(spline_file, varline);
       std::getline(spline_file, errline);
     } else {
@@ -134,23 +111,14 @@ void GReWeightProfessor::ReadProf2Spline(std::string filepath) {
           << "Unknown line: " << line;
     }
   }
-  for (auto &&[id, lines] : var_lines) {
-    auto [name, flavor, nuclid] = id;
-    auto &observable = observable_map_from_id[{flavor, nuclid}][name];
-    if (!observable) {
-      LOG("GReWeightProfessor::ReadProf2Spline", pFATAL)
-          << "Cannot find observable " << std::get<0>(id)
-          << "for neutrino flavor" << std::get<1>(id) << " and nuclid "
-          << std::get<2>(id) << " in rew algorithm list";
-    }
-    observable->InitializeIpols(lines);
-  }
+  return ret;
 }
 
 GReWeightProfessor::GReWeightProfessor(std::string name)
     : GReWeightModel(name) {}
 
-void GReWeightProfessor::ReadComparionXML(std::string filepath) {
+void GReWeightProfessor::ReadComparisonXML(std::string filepath,
+                                           std::string spline_path) {
   auto doc = xmlParseFile(filepath.c_str());
   if (!doc) {
     LOG("GReWeightProfessor::ReadComparionXML", pFATAL)
@@ -163,6 +131,7 @@ void GReWeightProfessor::ReadComparionXML(std::string filepath) {
         << "Cannot get root element of xml file " << filepath;
     exit(1);
   }
+  auto splines = ReadProf2Spline(spline_path);
   // get node "binning"
   auto node = utils::xml::FindNode(doc, "binning");
   for (auto observable_node = node->children; observable_node;
@@ -175,9 +144,11 @@ void GReWeightProfessor::ReadComparionXML(std::string filepath) {
         if (blocknode->type != XML_ELEMENT_NODE) {
           continue;
         }
+        ChannelIDs channel{};
+        // TODO: read channel from file
         auto name = utils::xml::GetAttribute(blocknode, "name");
-        auto prob = std::stoi(utils::xml::GetAttribute(blocknode, "prob"));
-        auto nuclid = std::stoi(utils::xml::GetAttribute(blocknode, "nucl"));
+        // auto prob = std::stoi(utils::xml::GetAttribute(blocknode, "prob"));
+        // auto nuclid = std::stoi(utils::xml::GetAttribute(blocknode, "nucl"));
         auto bin_count =
             std::stoul(utils::xml::GetAttribute(blocknode, "size"));
         // auto bin_count =
@@ -227,12 +198,10 @@ void GReWeightProfessor::ReadComparionXML(std::string filepath) {
             }
           }
         } // end of per block loop
-        // observable_map_from_name[name] = obj;
-        auto obj = std::make_unique<ObservableSplines>(
-            bin_edges, first_neighbour, dimension, prob, nuclid);
-        obj->InitializeObservable(algid);
-        observable_map_from_id[std::make_tuple(prob, nuclid)].insert(
-            {nodename, std::move(obj)});
+        auto &&observable = observables.emplace_back(bin_edges, first_neighbour,
+                                                     channel, dimension);
+        observable.InitializeObservable(algid);
+        observable.InitializeIpols(splines.at(std::make_tuple(name, channel)));
       }
     }
   }

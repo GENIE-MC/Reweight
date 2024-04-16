@@ -14,20 +14,27 @@ ObservableMuonMomentum::ObservableMuonMomentum(std::string config)
 KinematicVariables
 ObservableMuonMomentum::CalcKinematicVariables(const EventRecord &event) const {
   // std::vector<double> muon_momentum;
-  KinematicVariables ret{};
-  auto & muon_momentum = ret.GetVars();
-  auto & channel = ret.GetChannel();
   double muon_momentum_v = event.FinalStatePrimaryLepton()->P4()->P();
-  muon_momentum.resize(1);
-  muon_momentum[0] = muon_momentum_v;
-  
-  channel.resize(2);
-  int nucleon = event.TargetNucleus()->Pdg();
-  int neutrino = event.Probe()->Pdg();
-  channel[0] = nucleon;
-  channel[1] = neutrino;
-  return ret;
-  // return muon_momentum;
+  return {muon_momentum_v};
+}
+
+ChannelIDs ObservableMuonMomentum::ChannelID(const EventRecord &event) const {
+  if (event.TargetNucleus()) {
+    return {
+        event.Probe()->Pdg(),
+        event.TargetNucleus()->Pdg(),
+    };
+  } else if (event.HitNucleon()) {
+    return {
+        event.Probe()->Pdg(),
+        event.HitNucleon()->Pdg(),
+    };
+  } else {
+    return {
+        event.Probe()->Pdg(),
+        0,
+    };
+  }
 }
 
 bool ObservableMuonMomentum::IsHandled(const EventRecord &event) const {

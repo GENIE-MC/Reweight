@@ -22,31 +22,23 @@ const Professor::Ipol &ObservableSplines::GetBin(size_t bin_id) const {
 
 double ObservableSplines::GetDXsec(const EventRecord &evt,
                                    const std::vector<double> &para) const {
-  auto bin_id = lookupBinID(observable->CalcKinematicVariables(evt).GetVars());
+  auto bin_id = lookupBinID(observable->CalcKinematicVariables(evt));
   return bins[bin_id].value(para);
 }
 
 double ObservableSplines::GetRatio(const EventRecord &evt,
                                    const std::vector<double> &para,
                                    const std::vector<double> &para_orig) const {
+  if (!(observable->ChannelID(evt) == channel)) {
+    return 1.;
+  }
   auto obvs = observable->CalcKinematicVariables(evt);
-  auto new_weight = GetValueInterpolated(obvs.GetVars(), para);
-  auto old_weight = GetValueInterpolated(obvs.GetVars(), para_orig);
+  auto new_weight = GetValueInterpolated(obvs, para);
+  auto old_weight = GetValueInterpolated(obvs, para_orig);
   const auto product = new_weight / old_weight;
   /// \uml{skip}
   if (product < 0 || isnan(product)) {
-    auto bin_id = lookupBinID(obvs.GetVars());
-    // Sometimes we can reach here, this can be due to rare
-    // events that not being recorded during generation of
-    // splines
-    // OR
-    // Something went wrong during generation of spline or doing
-    // interpolation
-    // .. For now we just "passthrough" the events
-    // .. But warn here since too much of such events
-    // .. is definitely a problem
-    // auto &&kin_vars = observable->GetKinematicVariables(evt);
-    /// \uml{skip}
+    auto bin_id = lookupBinID(obvs);
     LOG("ObservableSplines", pERROR) << "Negative ratio: " << new_weight << " \
     / " << old_weight << " for bin " << bin_id
                                      << " with kinematic variables: " <<
@@ -56,8 +48,7 @@ double ObservableSplines::GetRatio(const EventRecord &evt,
             ss << i << "\t";
           }
           return ss.str();
-        }(obvs.GetVars())
-                                     << " new weight: " << new_weight
+        }(obvs) << " new weight: " << new_weight
                                      << " old weight: " << old_weight << " \
     ratio: " << new_weight / old_weight;
     // exit(1);

@@ -7,7 +7,7 @@
 namespace genie {
 namespace rew {
 class ObservableMuonMomentum : public RwgKineSpace {
-protected:
+public:
   ObservableMuonMomentum();
   ObservableMuonMomentum(std::string config);
 
@@ -16,6 +16,8 @@ public:
 
   virtual KinematicVariables
   CalcKinematicVariables(const EventRecord &event) const override;
+
+  virtual ChannelIDs ChannelID(const EventRecord &event) const override;
 
   virtual bool IsHandled(const EventRecord &event) const override;
 
