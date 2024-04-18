@@ -92,7 +92,7 @@ namespace rew   {
    string fFFModel; ///< String name of form factor model
    bool fModelIsDipole;           ///< Using dipole form factors?
    bool fModelIsZExp;             ///< Using Zexp form factors?
-   bool fModelIsRunningMa;       ///< Using  Kuzmin-Naumov form factors?
+   bool fModelIsMArunAxial;       ///< Using  running axial mass form factors?
    std::string fManualModelName; ///< If using a tweaked model that isn't the same as default, name
    std::string fManualModelType; ///< If using a tweaked model that isn't the same as default, type
 
