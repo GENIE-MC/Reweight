@@ -43,7 +43,7 @@ using std::ostringstream;
 
 static const char* kModelDipole        = "genie::DipoleAxialFormFactorModel";
 static const char* kModelZExp          = "genie::ZExpAxialFormFactorModel";
-static const char* kModelRunningMa     = "genie::KuzminNaumov2016AxialFormFactorModel";
+static const char* kModelMArunAxial    = "genie::MArunAxialFormFactorModel";
 
 const int GReWeightNuXSecCCQE::kModeMa;
 const int GReWeightNuXSecCCQE::kModeNormAndMaShape;
@@ -100,7 +100,7 @@ bool GReWeightNuXSecCCQE::IsHandled(GSyst_t syst) const
        break;
 
      case ( kXSecTwkDial_NormCCQE    ) :
-       if(fMode==kModeNormAndMaShape && (fModelIsDipole || fModelIsRunningMa))
+       if(fMode==kModeNormAndMaShape && (fModelIsDipole || fModelIsMArunAxial))
        {
           handle = true;
        } else {
@@ -110,7 +110,7 @@ bool GReWeightNuXSecCCQE::IsHandled(GSyst_t syst) const
 
      case ( kXSecTwkDial_MaCCQEshape ) :
      case ( kXSecTwkDial_E0CCQEshape ) :
-       if(fMode==kModeNormAndMaShape && (fModelIsDipole || fModelIsRunningMa) )
+       if(fMode==kModeNormAndMaShape && (fModelIsDipole || fModelIsMArunAxial) )
        {
           handle = true;
        } else {
@@ -120,7 +120,7 @@ bool GReWeightNuXSecCCQE::IsHandled(GSyst_t syst) const
 
      case ( kXSecTwkDial_MaCCQE ) :
      case ( kXSecTwkDial_E0CCQE ) :
-       if(fMode==kModeMa && (fModelIsDipole || fModelIsRunningMa))
+       if(fMode==kModeMa && (fModelIsDipole || fModelIsMArunAxial))
        {
           handle = true;
        } else {
@@ -254,7 +254,7 @@ void GReWeightNuXSecCCQE::Reconfigure(void)
      fMaCurr   = TMath::Max(0., fMaCurr  );
   }
   else
-  if(fMode==kModeMa && fModelIsRunningMa) {
+  if(fMode==kModeMa && fModelIsMArunAxial) {
      int    sign_matwk = utils::rew::Sign(fMaTwkDial);
      int    sign_e0twk = utils::rew::Sign(fE0TwkDial);
      double fracerr_ma = fracerr->OneSigmaErr(kXSecTwkDial_MaCCQE, sign_matwk);
@@ -265,7 +265,7 @@ void GReWeightNuXSecCCQE::Reconfigure(void)
      fE0Curr = TMath::Max(0., fE0Curr  );
   }
   else
-  if(fMode==kModeNormAndMaShape && fModelIsRunningMa) {
+  if(fMode==kModeNormAndMaShape && fModelIsMArunAxial) {
      int    sign_normtwk = utils::rew::Sign(fNormTwkDial);
      int    sign_mashtwk = utils::rew::Sign(fMaTwkDial  );
      int    sign_e0shtwk = utils::rew::Sign(fE0TwkDial);
@@ -366,12 +366,12 @@ double GReWeightNuXSecCCQE::CalcWeight(const genie::EventRecord & event)
 
   wght *= this->CalcWeightCoulomb( event );
 
-  if ( fMode==kModeMa && (fModelIsDipole || fModelIsRunningMa) ) {
+  if ( fMode==kModeMa && (fModelIsDipole || fModelIsMArunAxial) ) {
      wght *= this->CalcWeightMa(event);
      return wght;
   }
   else
-  if ( fMode==kModeNormAndMaShape && (fModelIsDipole || fModelIsRunningMa) ) {
+  if ( fMode==kModeNormAndMaShape && (fModelIsDipole || fModelIsMArunAxial) ) {
      wght *= this->CalcWeightNorm( event ) * this->CalcWeightMaShape( event );
      return wght;
   }
@@ -433,7 +433,7 @@ void GReWeightNuXSecCCQE::Init(void)
 
   fModelIsDipole    = (strcmp(fFFModel.c_str(),kModelDipole) == 0);
   fModelIsZExp      = (strcmp(fFFModel.c_str(),kModelZExp  ) == 0);
-  fModelIsRunningMa = (strcmp(fFFModel.c_str(),kModelRunningMa  ) == 0);
+  fModelIsMArunAxial = (strcmp(fFFModel.c_str(),kModelMArunAxial  ) == 0);
 
   this->RewNue    (true);
   this->RewNuebar (true);
@@ -451,7 +451,7 @@ void GReWeightNuXSecCCQE::Init(void)
     fMaDef       = fXSecModelConfig->GetDouble(fMaPath);
     fZExpMaxCoef = 0;
   }
-  else if (fModelIsRunningMa)
+  else if (fModelIsMArunAxial)
   {
     this->SetMode(kModeNormAndMaShape);
     fMaDef       = fXSecModelConfig->GetDouble(fMaPath);
@@ -523,7 +523,7 @@ double GReWeightNuXSecCCQE::CalcWeightNorm(const genie::EventRecord & /*event*/)
 //_______________________________________________________________________________________
 double GReWeightNuXSecCCQE::CalcWeightMa(const genie::EventRecord & event)
 {
-  bool tweaked = (TMath::Abs(fMaTwkDial) > controls::kASmallNum) || ((TMath::Abs(fE0TwkDial) > controls::kASmallNum) && fModelIsRunningMa);
+  bool tweaked = (TMath::Abs(fMaTwkDial) > controls::kASmallNum) || ((TMath::Abs(fE0TwkDial) > controls::kASmallNum) && fModelIsMArunAxial);
   if(!tweaked) return 1.0;
 
   Interaction * interaction = event.Summary();
@@ -572,7 +572,7 @@ double GReWeightNuXSecCCQE::CalcWeightMa(const genie::EventRecord & event)
 //_______________________________________________________________________________________
 double GReWeightNuXSecCCQE::CalcWeightMaShape(const genie::EventRecord & event)
 {
-  bool tweaked = (TMath::Abs(fMaTwkDial) > controls::kASmallNum) || ((TMath::Abs(fE0TwkDial) > controls::kASmallNum) && fModelIsRunningMa);
+  bool tweaked = (TMath::Abs(fMaTwkDial) > controls::kASmallNum) || ((TMath::Abs(fE0TwkDial) > controls::kASmallNum) && fModelIsMArunAxial);
   if(!tweaked) return 1.0;
 
   Interaction * interaction = event.Summary();
