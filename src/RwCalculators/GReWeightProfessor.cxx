@@ -15,17 +15,6 @@
 namespace genie {
 namespace rew {
 
-std::tuple<int, int> GetProbTarget(const EventRecord &event) {
-  GHepParticle *probe = event.Probe();
-  assert(probe);
-  Interaction *interaction = event.Summary();
-  Target *target = (interaction->InitState()).TgtPtr();
-  assert(target);
-  auto probid = probe->Pdg();
-  auto targetid = target->Pdg();
-  return {probid, targetid};
-}
-
 bool GReWeightProfessor::AppliesTo(const EventRecord &event) const {
   return true;
 }
@@ -54,7 +43,8 @@ double GReWeightProfessor::CalcWeight(const genie::EventRecord &event) {
   // return observable_splines->GetRatio(event, systematics_values, orig_value);
   double weight{1.};
   for (auto &&calc : observables) {
-    weight *= calc.GetRatio(event, orig_value, systematics_values);
+    auto ratio = calc.GetRatio(event, systematics_values, orig_value);
+    weight *= ratio;
   }
   return weight;
 }
@@ -93,14 +83,9 @@ GReWeightProfessor::ReadProf2Spline(std::string filepath) {
       auto path = line.substr(0, line.find("#"));
       auto name = path.substr(path.find_last_of("/") + 1);
       auto orbname = path.substr(1, path.find_last_of("/") - 1);
-      auto sep_loc = name.find_last_of("__");
+      auto sep_loc = name.find("__");
       auto channelstr = name.substr(sep_loc + 2);
       ChannelIDs channel(channelstr, "_");
-      // auto name_trim_head = name.substr(orbname.length() + 1);
-      // auto seperator_loc = name_trim_head.find_last_of("_");
-      // auto nuclid = std::stoi(name_trim_head.substr(seperator_loc + 1));
-      // auto flavor = std::stoi((name_trim_head.substr(0, seperator_loc)));
-
       std::string errline{}; // not used now
       // auto &varline = var_lines.emplace_back();
       auto &varline = ret[std::make_tuple(orbname, channel)].emplace_back();
@@ -144,15 +129,11 @@ void GReWeightProfessor::ReadComparisonXML(std::string filepath,
         if (blocknode->type != XML_ELEMENT_NODE) {
           continue;
         }
-        ChannelIDs channel{};
-        // TODO: read channel from file
         auto name = utils::xml::GetAttribute(blocknode, "name");
-        // auto prob = std::stoi(utils::xml::GetAttribute(blocknode, "prob"));
-        // auto nuclid = std::stoi(utils::xml::GetAttribute(blocknode, "nucl"));
+        auto channelstr = name.substr(name.find("__") + 2);
+        ChannelIDs channel{channelstr, "_"};
         auto bin_count =
             std::stoul(utils::xml::GetAttribute(blocknode, "size"));
-        // auto bin_count =
-        //     std::stoul(utils::xml::GetAttribute(blocknode, "size"));
         auto dimension =
             std::stoul(utils::xml::GetAttribute(blocknode, "dimension"));
         std::vector<std::vector<std::pair<double, double>>> bin_edges{};
@@ -163,9 +144,6 @@ void GReWeightProfessor::ReadComparisonXML(std::string filepath,
           if (cur->type != XML_ELEMENT_NODE)
             continue;
           auto bin_id = std::stoul(utils::xml::GetAttribute(cur, "binid"));
-
-          // for each bin iteriate over all the attributes
-          // and get the bin edges and first neighbours
           for (auto element = cur->children; element; element = element->next) {
             if (element->type != XML_ELEMENT_NODE)
               continue;
@@ -175,7 +153,6 @@ void GReWeightProfessor::ReadComparisonXML(std::string filepath,
               auto axis_id =
                   std::stoul(utils::xml::GetAttribute(element, "axisid"));
               for (auto axis = element->children; axis; axis = axis->next) {
-                // std::pair<double, double> axis_range;
                 auto &axis_range = bin_edges[bin_id][axis_id];
                 if (!xmlStrcmp(axis->name, (const xmlChar *)"min")) {
                   auto str =
@@ -186,7 +163,6 @@ void GReWeightProfessor::ReadComparisonXML(std::string filepath,
                       xmlNodeListGetString(doc, axis->xmlChildrenNode, 1);
                   axis_range.second = std::stod((const char *)str);
                 }
-                // bin_edges[bin_id][axis_id] = axis_range;
               }
             } else if (!xmlStrcmp(element->name, (const xmlChar *)"neighbor")) {
               auto str = xmlNodeListGetString(doc, element->xmlChildrenNode, 1);
@@ -198,10 +174,16 @@ void GReWeightProfessor::ReadComparisonXML(std::string filepath,
             }
           }
         } // end of per block loop
+        LOG("GReWeightProfessor::ReadComparisonXML", pINFO)
+            << "Initializing observable " << name << " with " << bin_count
+            << " bins and " << dimension << " dimensions";
         auto &&observable = observables.emplace_back(bin_edges, first_neighbour,
                                                      channel, dimension);
         observable.InitializeObservable(algid);
-        observable.InitializeIpols(splines.at(std::make_tuple(name, channel)));
+        LOG("GReWeightProfessor::ReadComparisonXML", pINFO)
+            << "applying splines for " << nodename << " " << channelstr;
+        observable.InitializeIpols(
+            splines.at(std::make_tuple(nodename, channel)));
       }
     }
   }

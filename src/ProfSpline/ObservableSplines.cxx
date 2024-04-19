@@ -29,6 +29,9 @@ double ObservableSplines::GetDXsec(const EventRecord &evt,
 double ObservableSplines::GetRatio(const EventRecord &evt,
                                    const std::vector<double> &para,
                                    const std::vector<double> &para_orig) const {
+  if (!observable->IsHandled(evt)) {
+    return 1.;
+  }
   if (!(observable->ChannelID(evt) == channel)) {
     return 1.;
   }
@@ -51,7 +54,6 @@ double ObservableSplines::GetRatio(const EventRecord &evt,
         }(obvs) << " new weight: " << new_weight
                                      << " old weight: " << old_weight << " \
     ratio: " << new_weight / old_weight;
-    // exit(1);
     return 1;
   }
   return product;

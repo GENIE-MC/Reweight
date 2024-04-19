@@ -24,7 +24,6 @@
 
 // GENIE/Reweight includes
 
-
 #include "RwCalculators/GReWeightDeltaradAngle.h"
 #include "RwCalculators/GReWeightINukeParams.h"
 #include "RwCalculators/GReWeightNuXSecNC.h"
@@ -123,9 +122,8 @@ double get_genie_normalize(ROOT::RDF::RNode df, std::string filename, int Z) {
                   },
                   {"gmcrec"})
           .Histo1D({"", "", 256, 0, 0}, "neutrinoE");
-  auto spline_obj = get_object<TGraph>(filename, "nu_mu_bar_H1/tot_cc");
+  auto spline_obj = get_object<TGraph>(filename, "nu_mu_bar_C12/tot_cc");
   auto [tot, xsec] = get_xsec(h.GetPtr(), spline_obj.get());
-  std::cerr << "tot: " << tot << " xsec: " << xsec << std::endl;
   xsec *= 1. / ((double)Z) * 1e-38;
   return xsec / tot;
 }
@@ -214,7 +212,7 @@ int main(int argc, char **argv) {
   TH1::AddDirectory(false);
   std::string from_id = argc > 1 ? argv[1] : "0000";
   std::string to_id = argc > 2 ? argv[2] : "0002";
-  std::string basedir = argc > 3 ? argv[3] : "/var/home/yan/neutrino/rewq2new/";
+  std::string basedir = argc > 3 ? argv[3] : "/var/home/yan/neutrino/proftest/";
   if (basedir.back() != '/')
     basedir += "/";
 
@@ -232,20 +230,14 @@ int main(int argc, char **argv) {
   auto spline_path_to = basedir + "scan/" + to_id +
                         "/master-professor_tune_01-xsec_vA/total_xsec.root";
   auto ipol_path = basedir + "ipol_test.dat";
+  auto binningxml = basedir + "binning.xml";
 
   ROOT::RDataFrame input_from_tree(
       "gtree",
       input_from_file); // read the tree from the file
   auto observable_splines = std::make_unique<GReWeightProfessor>("");
-  // observable_splines->Initialize("/var/home/yan/code/Comparisons/data/"
-  //                                "observables/pmu_enu_W/configure.xml");
-
-  observable_splines->ReadProf2Spline(ipol_path);
+  observable_splines->ReadComparisonXML(binningxml, ipol_path);
   LOG("Test", pNOTICE) << "Read Professor Reweight success";
-
-  // // observable_splines->InitializeBins({bin_edges_pmu, bin_edges_enu});
-  // LOG("Test", pNOTICE) << "Initialize Professor Reweight success";
-  // now observable_splines should just work
 
   auto from = fromdat(basedir + "scan/" + from_id + "/params.dat");
   auto to = fromdat(basedir + "scan/" + to_id + "/params.dat");
@@ -364,8 +356,9 @@ int main(int argc, char **argv) {
           tree_rew.Filter(cut, {"gmcrec"}).Histo1D<double>(model, var);
     }
   }
-
+  std::cout << "calculating normalization for " << spline_path_to << std::endl; 
   auto normalize_to = get_genie_normalize(tree_to, spline_path_to, 1);
+  std::cout << "calculating normalization for " << spline_path_from << std::endl;
   auto normalize_from =
       get_genie_normalize(input_from_tree, spline_path_from, 1);
   // auto normalize_to = std::bind(get_genie_normalize,
