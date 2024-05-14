@@ -71,22 +71,6 @@ GReWeightNuXSecCCQEELFF::~GReWeightNuXSecCCQEELFF()
 
   if ( fXSecModel ) delete fXSecModel;
   if ( fXSecModelDef ) delete fXSecModelDef;
-
-  if ( fZExpParaDef.fZ_ANn ) delete fZExpParaDef.fZ_ANn;
-  if ( fZExpParaDef.fZ_APn ) delete fZExpParaDef.fZ_APn;
-  if ( fZExpParaDef.fZ_BNn ) delete fZExpParaDef.fZ_BNn;
-  if ( fZExpParaDef.fZ_BPn ) delete fZExpParaDef.fZ_BPn;
-
-  if ( fZExpPara.fZ_ANn ) delete fZExpPara.fZ_ANn;
-  if ( fZExpPara.fZ_APn ) delete fZExpPara.fZ_APn;
-  if ( fZExpPara.fZ_BNn ) delete fZExpPara.fZ_BNn;
-  if ( fZExpPara.fZ_BPn ) delete fZExpPara.fZ_BPn;
-
-  if ( fZExpParaTwkDial.fZ_ANn ) delete fZExpParaTwkDial.fZ_ANn;
-  if ( fZExpParaTwkDial.fZ_APn ) delete fZExpParaTwkDial.fZ_APn;
-  if ( fZExpParaTwkDial.fZ_BNn ) delete fZExpParaTwkDial.fZ_BNn;
-  if ( fZExpParaTwkDial.fZ_BPn ) delete fZExpParaTwkDial.fZ_BPn;
-
 }
 //_______________________________________________________________________________________
 bool GReWeightNuXSecCCQEELFF::IsHandled(GSyst_t syst) const
@@ -95,7 +79,7 @@ bool GReWeightNuXSecCCQEELFF::IsHandled(GSyst_t syst) const
   bool handle;
 
   switch(syst) {
-    // TODO add ZExp vector parameters
+    // add ZExp vector parameters
     case ( kXSecTwkDial_ZExpELFF_AN1 ) :
     case ( kXSecTwkDial_ZExpELFF_AN2 ) :
     case ( kXSecTwkDial_ZExpELFF_AN3 ) :
@@ -246,10 +230,10 @@ void GReWeightNuXSecCCQEELFF::Reset(void)
     fZExpPara.fZ_APn[i] = fZExpParaDef.fZ_APn[i];
     fZExpPara.fZ_BNn[i] = fZExpParaDef.fZ_BNn[i];
     fZExpPara.fZ_BPn[i] = fZExpParaDef.fZ_BPn[i];
+    fZExpParaTwkDial.fZ_APn[i] = 0.;
+    fZExpParaTwkDial.fZ_BPn[i] = 0.;
     fZExpParaTwkDial.fZ_ANn[i] = 0.;
-    fZExpParaTwkDial.fZ_APn[i] = 0.;
     fZExpParaTwkDial.fZ_BNn[i] = 0.;
-    fZExpParaTwkDial.fZ_APn[i] = 0.;
   }
   this->Reconfigure();
 }
@@ -320,16 +304,16 @@ void GReWeightNuXSecCCQEELFF::Reconfigure(void)
         for (int i=0;i<fZExpParaDef.fKmax;i++)
         {
           alg_key.str(""); // algorithm key for each coefficient
-          alg_key << fZExpPath << "QEL-Z_AN" << i+1;
+          alg_key << fZExpPath << "QEL-Z_AN-" << i;
           r.Set(alg_key.str(), fZExpPara.fZ_ANn[i]);
           alg_key.str(""); // algorithm key for each coefficient
-          alg_key << fZExpPath << "QEL-Z_AP" << i+1;
+          alg_key << fZExpPath << "QEL-Z_AP-" << i;
           r.Set(alg_key.str(), fZExpPara.fZ_APn[i]);
           alg_key.str(""); // algorithm key for each coefficient
-          alg_key << fZExpPath << "QEL-Z_BN" << i+1;
+          alg_key << fZExpPath << "QEL-Z_BN-" << i;
           r.Set(alg_key.str(), fZExpPara.fZ_BNn[i]);
           alg_key.str(""); // algorithm key for each coefficient
-          alg_key << fZExpPath << "QEL-Z_BP" << i+1;
+          alg_key << fZExpPath << "QEL-Z_BP-" << i;
           r.Set(alg_key.str(), fZExpPara.fZ_BPn[i]);
         }
       }
@@ -384,7 +368,25 @@ void GReWeightNuXSecCCQEELFF::Init(void)
 {
   AlgConfigPool * conf_pool = AlgConfigPool::Instance();
   Registry * gpl = conf_pool->GlobalParameterList();
+  conf_pool->Print(std::cout);
+  gpl->Print(std::cout);
+  Registry * rgcovmat = conf_pool->FindRegistry("genie::rew::GSystUncertaintyTable/CovarianceMatrix");
+  int n_row = rgcovmat->GetInt(Algorithm::BuildParamMatRowSizeKey("ZExpELFF@CovarianceMatrix"));
+  int n_col = rgcovmat->GetInt(Algorithm::BuildParamMatColSizeKey("ZExpELFF@CovarianceMatrix"));
+  if(n_row != n_col){
+    exit(1);
+  }
+  error_mat.ResizeTo(n_row, n_row);
+  errors.resize(n_row);
+  A_f.resize(n_row);
+  for(int i = 0; i < n_row; i++){
+    for(int j = 0; j < n_row; j++){
+      error_mat[i][j] = rgcovmat->GetDouble(Algorithm::BuildParamMatKey("ZExpELFF@CovarianceMatrix", i, j));
+    }
+  }
+  rgcovmat->Print(std::cout);
   RgAlg xsec_alg = gpl->GetAlg("XSecModel@genie::EventGenerator/QEL-CC");
+
 
   AlgId id(xsec_alg);
 
@@ -433,18 +435,20 @@ void GReWeightNuXSecCCQEELFF::Init(void)
     fZExpParaDef.fGmp0    = fXSecModelConfig->GetDouble(fZExpPath + "QEL-Gmp0");
     fZExpParaDef.fGen0    = fXSecModelConfig->GetDouble(fZExpPath + "QEL-Gen0");
     fZExpParaDef.fGmn0    = fXSecModelConfig->GetDouble(fZExpPath + "QEL-Gmn0");
-    fZExpParaDef.fZ_ANn = new double [fZExpParaDef.fKmax];
-    fZExpParaDef.fZ_APn = new double [fZExpParaDef.fKmax];
-    fZExpParaDef.fZ_BNn = new double [fZExpParaDef.fKmax];
-    fZExpParaDef.fZ_BPn = new double [fZExpParaDef.fKmax];
-    fZExpPara.fZ_ANn = new double [fZExpParaDef.fKmax];
-    fZExpPara.fZ_APn = new double [fZExpParaDef.fKmax];
-    fZExpPara.fZ_BNn = new double [fZExpParaDef.fKmax];
-    fZExpPara.fZ_BPn = new double [fZExpParaDef.fKmax];
-    fZExpParaTwkDial.fZ_ANn = new double [fZExpParaDef.fKmax];
-    fZExpParaTwkDial.fZ_APn = new double [fZExpParaDef.fKmax];
-    fZExpParaTwkDial.fZ_BNn = new double [fZExpParaDef.fKmax];
-    fZExpParaTwkDial.fZ_BPn = new double [fZExpParaDef.fKmax];
+
+    fZExpParaDef.fZ_ANn.resize(fZExpParaDef.fKmax);
+    fZExpParaDef.fZ_APn.resize(fZExpParaDef.fKmax);
+    fZExpParaDef.fZ_BNn.resize(fZExpParaDef.fKmax);
+    fZExpParaDef.fZ_BPn.resize(fZExpParaDef.fKmax);
+    fZExpPara.fZ_ANn.resize(fZExpParaDef.fKmax);
+    fZExpPara.fZ_APn.resize(fZExpParaDef.fKmax);
+    fZExpPara.fZ_BNn.resize(fZExpParaDef.fKmax);
+    fZExpPara.fZ_BPn.resize(fZExpParaDef.fKmax);
+    fZExpParaTwkDial.fZ_ANn.resize(fZExpParaDef.fKmax);
+    fZExpParaTwkDial.fZ_APn.resize(fZExpParaDef.fKmax);
+    fZExpParaTwkDial.fZ_BNn.resize(fZExpParaDef.fKmax);
+    fZExpParaTwkDial.fZ_BPn.resize(fZExpParaDef.fKmax);
+
     fZExpParaTwkDial.fQ4limit = 0.;
     fZExpParaTwkDial.fKmax    = 0.;
     fZExpParaTwkDial.fT0      = 0.;
@@ -457,16 +461,16 @@ void GReWeightNuXSecCCQEELFF::Init(void)
     ostringstream alg_key;
     for(int i = 0; i < fZExpParaDef.fKmax; i++){
       alg_key.str("");
-      alg_key << fZExpPath << "QEL-Z_AN" << i+1;
+      alg_key << fZExpPath << "QEL-Z_AN-" << i;
       fZExpParaDef.fZ_ANn[i] = fXSecModelConfig->GetDouble(alg_key.str());
       alg_key.str("");
-      alg_key << fZExpPath << "QEL-Z_AP" << i+1;
+      alg_key << fZExpPath << "QEL-Z_AP-" << i;
       fZExpParaDef.fZ_APn[i] = fXSecModelConfig->GetDouble(alg_key.str());
       alg_key.str("");
-      alg_key << fZExpPath << "QEL-Z_BN" << i+1;
+      alg_key << fZExpPath << "QEL-Z_BN-" << i;
       fZExpParaDef.fZ_BNn[i] = fXSecModelConfig->GetDouble(alg_key.str());
       alg_key.str("");
-      alg_key << fZExpPath << "QEL-Z_BP" << i+1;
+      alg_key << fZExpPath << "QEL-Z_BP-" << i;
       fZExpParaDef.fZ_BPn[i] = fXSecModelConfig->GetDouble(alg_key.str());
       fZExpParaTwkDial.fZ_ANn[i] = 0.;
       fZExpParaTwkDial.fZ_APn[i] = 0.;
@@ -545,7 +549,7 @@ double GReWeightNuXSecCCQEELFF::CalcWeightZExp(const genie::EventRecord & event)
 //_______________________________________________________________________________________
 // Calculate the partial derivative of the cross section
 // A_f is the partial derivative
-// A_f = ∂ XSec() / ∂ p_i = (XSec(p_i + σ_i * delta ) - XSec(p_i - σ_i * delta )) / ( 2.0 * delta * σ_i)
+// A_f = \patial XSec() / \patial p_i = (XSec(p_i + \delta * error_i ) - XSec(p_i - \delta * error_i )) / ( 2.0 * \delta * error_i )
 //
 
 void GReWeightNuXSecCCQEELFF::XSecPartialDerivative(const EventRecord & event){
@@ -554,6 +558,7 @@ void GReWeightNuXSecCCQEELFF::XSecPartialDerivative(const EventRecord & event){
   // bp1, bp2, bp3, bp4, 
   // an1, an2, an3, an4,
   // bn1, bn2, bn3, bn4
+
   for(int i = 0; i < fZExpParaDef.fKmax * 4; i++){
     errors[i] = TMath::Sqrt(error_mat[i][i]);
     A_f[i] = 0.0;
@@ -562,8 +567,8 @@ void GReWeightNuXSecCCQEELFF::XSecPartialDerivative(const EventRecord & event){
   double delta = 0.1;
 
   for(int index = 0; index < fZExpParaDef.fKmax * 4; index++){
-    double xsec_tmp_0;
-    double xsec_tmp_1;
+    double xsec_tmp_0 = 0.0;
+    double xsec_tmp_1 = 0.0;
 
     for(int sign = -1; sign < 2; sign++){
       if(sign == 0) continue;
@@ -571,7 +576,7 @@ void GReWeightNuXSecCCQEELFF::XSecPartialDerivative(const EventRecord & event){
       for(int ipara = 0; ipara < fZExpParaDef.fKmax; ipara++){
         fZExpPara.fZ_APn[ipara] = fZExpParaDef.fZ_APn[ipara];
         fZExpPara.fZ_BPn[ipara] = fZExpParaDef.fZ_BPn[ipara];
-        fZExpPara.fZ_BPn[ipara] = fZExpParaDef.fZ_BPn[ipara];
+        fZExpPara.fZ_ANn[ipara] = fZExpParaDef.fZ_ANn[ipara];
         fZExpPara.fZ_BNn[ipara] = fZExpParaDef.fZ_BNn[ipara];
       }
 
@@ -594,17 +599,21 @@ void GReWeightNuXSecCCQEELFF::XSecPartialDerivative(const EventRecord & event){
         for (int i=0;i<fZExpParaDef.fKmax;i++)
         {
           alg_key.str(""); // algorithm key for each coefficient
-          alg_key << fZExpPath << "QEL-Z_AN" << i+1;
+          alg_key << fZExpPath << "QEL-Z_AN-" << i;
           r.Set(alg_key.str(), fZExpPara.fZ_ANn[i]);
+          LOG("ReW", pINFO) << alg_key.str() << "  " << fZExpParaDef.fZ_ANn[i] - fZExpPara.fZ_ANn[i] << "  " << fZExpPara.fZ_ANn[i];
           alg_key.str(""); // algorithm key for each coefficient
-          alg_key << fZExpPath << "QEL-Z_AP" << i+1;
+          alg_key << fZExpPath << "QEL-Z_AP-" << i;
           r.Set(alg_key.str(), fZExpPara.fZ_APn[i]);
+          LOG("ReW", pINFO) << alg_key.str() << "  " << fZExpParaDef.fZ_APn[i] - fZExpPara.fZ_APn[i] << "  " << fZExpPara.fZ_APn[i];
           alg_key.str(""); // algorithm key for each coefficient
-          alg_key << fZExpPath << "QEL-Z_BN" << i+1;
+          alg_key << fZExpPath << "QEL-Z_BN-" << i;
           r.Set(alg_key.str(), fZExpPara.fZ_BNn[i]);
+          LOG("ReW", pINFO) << alg_key.str() << "  " << fZExpParaDef.fZ_BNn[i] - fZExpPara.fZ_BNn[i] << "  " << fZExpPara.fZ_BNn[i];
           alg_key.str(""); // algorithm key for each coefficient
-          alg_key << fZExpPath << "QEL-Z_BP" << i+1;
+          alg_key << fZExpPath << "QEL-Z_BP-" << i;
           r.Set(alg_key.str(), fZExpPara.fZ_BPn[i]);
+          LOG("ReW", pINFO) << alg_key.str() << "  " << fZExpParaDef.fZ_BPn[i] - fZExpPara.fZ_BPn[i] <<  "  " <<  fZExpPara.fZ_BPn[i];
         }
       }
       fXSecModel->Configure(r);
@@ -624,7 +633,8 @@ void GReWeightNuXSecCCQEELFF::XSecPartialDerivative(const EventRecord & event){
 
 //_______________________________________________________________________________________
 //  Uncertainty propagation
-//  σ^2 = Σ_ij A_f[i] * A_f[j] * cov(i, j) * σ_i * σ_j
+//  
+//  \sigma_{XSec}^2 = A_f[i] *A_f[j] *M_ij
 double GReWeightNuXSecCCQEELFF::GetOneSigma(const EventRecord & event){
   XSecPartialDerivative(event);
   double OneSigma2 = 0;

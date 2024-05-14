@@ -24,6 +24,7 @@
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightModel.h"
 #include "TRandom3.h"
+#include "TMatrixDSym.h"
 
 class TFile;
 class TNtupleD;
@@ -101,42 +102,29 @@ namespace genie {
           double fGmp0;
           double fGen0;
           double fGmn0;
-          double *fZ_APn;
-          double *fZ_BPn;
-          double *fZ_ANn;
-          double *fZ_BNn;
+          std::vector<double> fZ_APn;
+          std::vector<double> fZ_BPn;
+          std::vector<double> fZ_ANn;
+          std::vector<double> fZ_BNn;
         } fZExpParaDef, fZExpPara, fZExpParaTwkDial;
         // tweek dial and scale factor in propagation method
         double fZExpTwkDial;
         double fZExp_Scale;
 
-        bool fIsSinglePara;  
+        // Two methods are provided to calculate the uncertainties of XSec
+        // 1. propagation of errors: it is based on grwght1p
+        // 2. Cholesky decomposition: it is based on grwghtnp
+        bool fIsSinglePara;     // it will be used for Cholesky decomposition
         bool fIsAllPara;        // flag of propagation method
-        double A_f[16];
+        std::vector<double> A_f;
 
         // List of the uncertainties of parameters from Kaushik
         // ap1, ap2, ap3, ap4, 
         // bp1, bp2, bp3, bp4, 
         // an1, an2, an3, an4,
         // bn1, bn2, bn3, bn4
-        double errors[16]; 
-        double error_mat[16][16] = 
-        {{ 9.37324e-05,0.000153491,-0.00104771,7.3357e-05,-0.000116564,0.00105353,-0.000441308,-0.00681675,     0,     0,     0,     0,     0,     0,     0,     0},
-        {0.000153491,0.00272255,0.0020043,-0.0193067,-0.00104321,-0.00112326,0.02234,-0.0162318,     0,     0,     0,     0,     0,     0,     0,     0},
-        {-0.00104771,0.0020043,0.0216328,-0.0375785,0.000483311,-0.0176086,0.0429679,0.0794517,     0,     0,     0,     0,     0,     0,     0,     0},
-        {7.3357e-05,-0.0193067,-0.0375785,0.165852,0.00580325,0.0259044,-0.187424,0.0155864,     0,     0,     0,     0,     0,     0,     0,     0},
-        {-0.000116564,-0.00104321,0.000483311,0.00580325,0.00089678,-0.00171593,-0.00890089,0.0248036,     0,     0,     0,     0,     0,     0,     0,     0},
-        {0.00105353,-0.00112326,-0.0176086,0.0259044,-0.00171593,0.0282469,-0.0571237,-0.150721,     0,     0,     0,     0,     0,     0,     0,     0},
-        {-0.000441308,0.02234,0.0429679,-0.187424,-0.00890089,-0.0571237,0.353319,0.0423899,     0,     0,     0,     0,     0,     0,     0,     0},
-        {-0.00681675,-0.0162318,0.0794517,0.0155864,0.0248036,-0.150721,0.0423899,1.12658,     0,     0,     0,     0,     0,     0,     0,     0},
-        {     0,     0,     0,     0,     0,     0,     0,     0,0.000317543,4.97647e-05,-0.00552168,0.00614938,     0,     0,     0,     0},
-        {     0,     0,     0,     0,     0,     0,     0,     0,4.97647e-05,0.00401998,0.00255274,-0.0260365,     0,     0,     0,     0},
-        {     0,     0,     0,     0,     0,     0,     0,     0,-0.00552168,0.00255274,0.102708,-0.136429,     0,     0,     0,     0},
-        {     0,     0,     0,     0,     0,     0,     0,     0,0.00614938,-0.0260365,-0.136429,0.312044,     0,     0,     0,     0},
-        {     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,0.00558202,-0.0170784,-0.0436313,0.18835},
-        {     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,-0.0170784,0.107663,0.064924,-0.856043},
-        {     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,-0.0436313,0.064924,0.570347,-1.20359},
-        {     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,0.18835,-0.856043,-1.20359,7.84867 }};
+        std::vector<double> errors; 
+        TMatrixDSym error_mat;
     };
 
   } // rew   namespace
