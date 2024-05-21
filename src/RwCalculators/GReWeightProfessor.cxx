@@ -4,6 +4,7 @@
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/Utils/XmlParserUtils.h"
 #include "ProfSpline/KinematicVariables.h"
+#include "RwFramework/GSyst.h"
 #include <cstddef>
 #include <cstdlib>
 #include <fstream>
@@ -20,7 +21,9 @@ bool GReWeightProfessor::AppliesTo(const EventRecord &event) const {
 }
 
 //! does the current weight calculator handle the input nuisance param?
-bool GReWeightProfessor::IsHandled(GSyst_t syst) const { return true; }
+bool GReWeightProfessor::IsHandled(GSyst_t syst) const {
+  return syst == GSyst_t::kProfRew;
+}
 
 //! update the value for the specified nuisance param
 void GReWeightProfessor::SetSystematic(GSyst_t syst, double val) {
