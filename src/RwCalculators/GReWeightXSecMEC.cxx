@@ -937,6 +937,8 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
   // The XSecShape_CCMEC parameter reweights from the default SuSAv2 CCMEC
   // model to the Valencia CCMEC model (or vice versa in case a tune with
   // the Valencia CCMEC cross section model is used as input).
+  // TODO: The reweighting from SuSAv2 to Valencia is very slow. Find ways speed
+  // this up.
   // TODO: The reweighting from Valencia to SuSAv2 does not work yet. See comment
   // above for "AlgId alt_id2". Implement this.
 
