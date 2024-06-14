@@ -8,6 +8,9 @@
 \author   Steven Gardiner <gardiner \at fnal.gov>
           Fermi National Accelerator Laboratory
 
+\edits    Lars Bathe-Peters <lars.bathe-peters \at ox.ac.uk>
+          University of Oxford
+
 \created  Sep 11, 2019
 
 \cpright  Copyright (c) 2003-2019, The GENIE Collaboration
@@ -39,7 +42,7 @@ namespace rew   {
   ~GReWeightXSecMEC();
 
    // implement the GReWeightI interface
-   bool   AppliesTo      (const EventRecord & event) const;
+   bool   AppliesTo      (ScatteringType_t type, bool is_cc) const;
    bool   IsHandled      (GSyst_t syst) const;
    void   SetSystematic  (GSyst_t syst, double val);
    void   Reset          (void);
@@ -53,10 +56,16 @@ namespace rew   {
    double CalcWeightAngularDist(const EventRecord& event);
    double CalcWeightPNDelta(const EventRecord& event);
    double CalcWeightXSecShape(const EventRecord& event);
+   double CalcWeightXSecShape_Empirical(const EventRecord& event);
+   double CalcWeightXSecShape_Martini(const EventRecord& event);
+   double CalcWeightEnergyDependence(const EventRecord& event);
 
    /// Helper function for CalcWeightXSecShape
    double GetXSecIntegral(const XSecAlgorithmI* xsec_alg,
-     const Interaction* interaction);
+   const Interaction* interaction);
+
+   /// Helper function for CalcWeightEnergyDependence
+   double CalcWeight2p2hEnergyDependence(const EventRecord& event);
 
    /// Simple struct containing tweak dial information for the
    /// normalization of one MEC interaction type (CC, NC, EM)
@@ -80,6 +89,10 @@ namespace rew   {
    /// distribution
    double fDecayAngTwkDial;
 
+   /// Another tweak dial value for adjusting the nucleon cluster decay
+   /// angular distribution
+   double fDecayAng2TwkDial;
+
    /// Tweak dial value for adjusting the fraction of CC events that
    /// involve an initial pn pair
    double fFracPN_CCTwkDial;
@@ -91,15 +104,24 @@ namespace rew   {
    /// CCMEC cross section model used to generate the events (untweaked)
    XSecAlgorithmI* fXSecAlgCCDef;
 
-   /// Alternate CCMEC cross section model
-   XSecAlgorithmI* fXSecAlgCCAlt;
+   /// Alternate CCMEC cross section models
+   XSecAlgorithmI* fXSecAlgCCAlt_Nieves;
+   XSecAlgorithmI* fXSecAlgCCAlt_SuSAv2;
+   XSecAlgorithmI* fXSecAlgCCAlt_Empirical;
+   XSecAlgorithmI* fXSecAlgCCAlt_Martini;
 
    /// Integrator used by the CalcWeightXSecShape function
    const XSecIntegratorI* fXSecIntegrator;
 
-   /// Tweak dial that interpolates the shape of the CCMEC differential cross
-   /// section between models
+   /// Tweak dials that interpolates the shape of the CCMEC differential 
+   // cross section between models
    double fCCXSecShapeTwkDial;
+   double fCCXSecShapeEmpiricalTwkDial;
+   double fCCXSecShapeMartiniTwkDial;
+
+   /// Tweak dial value for adjusting the energy dependence of the CCMEC 
+   //cross section
+   double fEnergyDependenceTwkDial;
 };
 
 } // rew   namespace
