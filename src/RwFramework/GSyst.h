@@ -11,6 +11,10 @@
           Steven Gardiner <gardiner \at fnal.gov>
           Fermi National Accelerator Laboratory
 
+Additions and Edits:
+          Lars Bathe-Peters <lars.bathe-peters \at ox.ac.uk>
+          University of Oxford
+
 \created  Aug 1, 2009
 
 \cpright  Copyright (c) 2003-2018, The GENIE Collaboration
@@ -190,6 +194,7 @@ typedef enum EGSyst {
 
   // MEC nucleon cluster decay angular distribution
   kXSecTwkDial_DecayAngMEC,
+  kXSecTwkDial_DecayAng2MEC,
 
   // Fraction of CCMEC initial nucleon clusters that are p+n
   kXSecTwkDial_FracPN_CCMEC,
@@ -201,6 +206,12 @@ typedef enum EGSyst {
   // Shape of CCMEC differential cross section (interpolates
   // between models)
   kXSecTwkDial_XSecShape_CCMEC,
+  kXSecTwkDial_XSecShape_CCMEC_Empirical,
+  kXSecTwkDial_XSecShape_CCMEC_Martini,
+
+  // Considers energy dependence of CCMEC differential cross 
+  // section models
+  kXSecTwkDial_EnergyDependence_CCMEC,
 
   // Interpolates between the default CCQE model and the same
   // one with RPA off (only gives non-unit weights for Nieves CCQE)

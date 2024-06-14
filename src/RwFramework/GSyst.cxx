@@ -8,6 +8,10 @@
 
           Steven Gardiner <gardiner \at fnal.gov>
           Fermi National Accelerator Laboratory
+
+Additions and Edits:
+          Lars Bathe-Peters <lars.bathe-peters \at ox.ac.uk>
+          University of Oxford
 */
 //____________________________________________________________________________
 
@@ -113,9 +117,13 @@ std::map<GSyst_t, std::string> GSyst::BuildGSystToStringMap() {
   temp_map[ kXSecTwkDial_NormNCMEC ]  = "NormNCMEC";
   temp_map[ kXSecTwkDial_NormEMMEC ]  = "NormEMMEC";
   temp_map[ kXSecTwkDial_DecayAngMEC ]  = "DecayAngMEC";
+  temp_map[ kXSecTwkDial_DecayAng2MEC ]  = "DecayAng2MEC";
   temp_map[ kXSecTwkDial_FracPN_CCMEC ] = "FracPN_CCMEC";
   temp_map[ kXSecTwkDial_FracDelta_CCMEC ] = "FracDelta_CCMEC";
   temp_map[ kXSecTwkDial_XSecShape_CCMEC ] = "XSecShape_CCMEC";
+  temp_map[ kXSecTwkDial_XSecShape_CCMEC_Empirical ] = "XSecShape_CCMEC_Empirical";
+  temp_map[ kXSecTwkDial_XSecShape_CCMEC_Martini ] = "XSecShape_CCMEC_Martini";
+  temp_map[ kXSecTwkDial_EnergyDependence_CCMEC ] = "EnergyDependence_CCMEC";
   temp_map[ kXSecTwkDial_RPA_CCQE ] = "RPA_CCQE";
   temp_map[ kRDcyTwkDial_Theta_Delta2NRad ] = "ThetaDelta2NRad";
   temp_map[ kXSecTwkDial_CoulombCCQE ] = "CoulombCCQE";
