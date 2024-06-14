@@ -1141,24 +1141,24 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
 //  std::cout << "tot_xsec_def  = " << std::setprecision(30) << tot_xsec_def << std::endl;
 //  std::cout << "tot_xsec_alt  = " << std::setprecision(30) << tot_xsec_alt << std::endl;
 
-  std::cout << "diff_xsec_def = " << diff_xsec_def << std::endl;
-  std::cout << "diff_xsec_alt = " << diff_xsec_alt << std::endl;
-  std::cout << "tot_xsec_def  = " << tot_xsec_def << std::endl;
-  std::cout << "tot_xsec_alt  = " << tot_xsec_alt << std::endl;
+  // std::cout << "diff_xsec_def = " << diff_xsec_def << std::endl;
+  // std::cout << "diff_xsec_alt = " << diff_xsec_alt << std::endl;
+  // std::cout << "tot_xsec_def  = " << tot_xsec_def << std::endl;
+  // std::cout << "tot_xsec_alt  = " << tot_xsec_alt << std::endl;
 
-  std::cout << "prob_density_def     = " << prob_density_def << std::endl;
-  std::cout << "prob_density_alt     = " << prob_density_alt << std::endl;
+  // std::cout << "prob_density_def     = " << prob_density_def << std::endl;
+  // std::cout << "prob_density_alt     = " << prob_density_alt << std::endl;
 
   // Compute a new probability density for this event by interpolating between
   // the two models while preserving the total cross section
   double tweaked_prob_density = (1. - twk_dial)*prob_density_def + twk_dial*prob_density_alt;
 
-  std::cout << "tweaked_prob_density = " << tweaked_prob_density << std::endl;
+  // std::cout << "tweaked_prob_density = " << tweaked_prob_density << std::endl;
 
   // The weight is then the likelihood ratio
   double weight = tweaked_prob_density / prob_density_def;
 
-  std::cout << "weight = " << weight << std::endl;
+  // std::cout << "weight = " << weight << std::endl;
 
   LOG("ReW", pDEBUG) << "xsec_def = " << diff_xsec_def << ", xsec_alt = " << diff_xsec_alt;
   LOG("ReW", pDEBUG) << "tot_xsec_def = " << tot_xsec_def << ", tot_xsec_alt = " << tot_xsec_alt;
@@ -1288,8 +1288,8 @@ double GReWeightXSecMEC::CalcWeightXSecShape_Empirical(const genie::EventRecord&
   //LOG("RwMEC", pERROR) << "NIEVES: W = " << W << ", Q2 = " << Q2;
   //if ( rW.min <= W && rW.max >= W && rQ2.min <= Q2 && rQ2.max >= Q2 ) {
 
-  std::cout << "Input (default) CCMEC cross section model: " << cc_def_alg_name << std::endl;
-  std::cout << "Alternative CCMEC cross section model: " << cc_alt3_alg_name << std::endl; 
+  // std::cout << "Input (default) CCMEC cross section model: " << cc_def_alg_name << std::endl;
+  // std::cout << "Alternative CCMEC cross section model: " << cc_alt3_alg_name << std::endl; 
 
   // Once the CCMEC Martini model is available, just change fXSecAlgCCAlt3 
   // (reweight from SuSAv2 or Valencia to the Empirical model) to 
@@ -1447,8 +1447,8 @@ double GReWeightXSecMEC::CalcWeightXSecShape_Martini(const genie::EventRecord& e
   //LOG("RwMEC", pERROR) << "NIEVES: W = " << W << ", Q2 = " << Q2;
   //if ( rW.min <= W && rW.max >= W && rQ2.min <= Q2 && rQ2.max >= Q2 ) {
 
-  std::cout << "Input (default) CCMEC cross section model: " << cc_def_alg_name << std::endl;
-  std::cout << "Alternative CCMEC cross section model: " << cc_alt4_alg_name << std::endl;
+  // std::cout << "Input (default) CCMEC cross section model: " << cc_def_alg_name << std::endl;
+  // std::cout << "Alternative CCMEC cross section model: " << cc_alt4_alg_name << std::endl;
 
   // Once the CCMEC Martini model is available, just change fXSecAlgCCAlt3 
   // (reweight from SuSAv2 or Valencia to the Empirical model) to 
