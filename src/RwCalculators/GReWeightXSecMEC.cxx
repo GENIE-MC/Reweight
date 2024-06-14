@@ -5,6 +5,10 @@
 
  Authors: Steven Gardiner <gardiner \at fnal.gov>
           Fermi National Accelerator Laboratory
+
+Additions and Edits:
+          Lars Bathe-Peters <lars.bathe-peters \at ox.ac.uk>
+          University of Oxford
 */
 //____________________________________________________________________________
 
