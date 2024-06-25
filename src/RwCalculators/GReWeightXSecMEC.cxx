@@ -465,19 +465,19 @@ double GReWeightXSecMEC::CalcWeight(const genie::EventRecord& event)
   if ( !is_mec ) return 1.;
 
   double weight = this->CalcWeightNorm( event );
-    std::cout << "Weight norm: " << weight << std::endl;
+    std::cout << "Weight norm:                " << weight << std::endl;
   weight *= this->CalcWeightAngularDist( event );
-    std::cout << "Weight ang: " << weight << std::endl;
+    std::cout << "Weight ang:                 " << weight << std::endl;
   weight *= this->CalcWeightPNDelta( event );
     std::cout << "Weight pndel: " << weight << std::endl;
   weight *= this->CalcWeightXSecShape( event );
-    std::cout << "Weight xsecshape: " << weight << std::endl;
+    std::cout << "Weight xsecshape:           " << weight << std::endl;
   weight *= this->CalcWeightXSecShape_Empirical( event );
     std::cout << "Weight xsecshape_empirical: " << weight << std::endl;
   weight *= this->CalcWeightXSecShape_Martini( event );
-    std::cout << "Weight xsecshape_martini: " << weight << std::endl;
+    std::cout << "Weight xsecshape_martini:   " << weight << std::endl;
   weight *= this->CalcWeightEnergyDependence( event );
-    std::cout << "Weight edep: " << weight << std::endl;
+    std::cout << "Weight edep:                " << weight << std::endl;
   return weight;
 }
 //_______________________________________________________________________________________
@@ -1431,8 +1431,6 @@ double GReWeightXSecMEC::CalcWeightXSecShape_Martini(const genie::EventRecord& e
 //______________________________________________________________________________________
 double GReWeightXSecMEC::CalcWeightEnergyDependence(const genie::EventRecord& event)
 {
-  std::cout << "EnergyDependence dial works " << std::endl;
-
   // Only tweak dial values on the interval [0, 1] make sense for the energy
   // dependence dial. Enforce this here regardless of what the user requested.
   double twk_dial = std::max( std::min(1., fEnergyDependenceTwkDial), 0. );
