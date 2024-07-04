@@ -1,7 +1,7 @@
 #
 # Makefile for GENIE/Reweight Apps
 #
-# Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
+# Costas Andreopoulos <c.andreopoulos \at cern.ch>
 #
 
 SHELL = /bin/sh

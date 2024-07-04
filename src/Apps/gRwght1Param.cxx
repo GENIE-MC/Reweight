@@ -69,11 +69,11 @@
          Imperial College London
 
          Costas Andreopoulos, Jelena Ilic, Nick Grant
-         University of Liverpool & STFC Rutherford Appleton Lab
+         University of Liverpool
 
 \created June 10, 2010
 
-\cpright Copyright (c) 2003-2018, The GENIE Collaboration
+\cpright Copyright (c) 2003-2024, The GENIE Collaboration
          For the full text of the license visit http://copyright.genie-mc.org
 */
 //____________________________________________________________________________
