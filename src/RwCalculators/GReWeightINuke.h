@@ -19,12 +19,12 @@
 \author   Jim Dobson <J.Dobson07 \at imperial.ac.uk>
           Imperial College London
 
-          Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
-          University of Liverpool & STFC Rutherford Appleton Lab
+          Costas Andreopoulos <c.andreopoulos \at cern.ch>
+          University of Liverpool
 
 \created  Sep 10, 2009
 
-\cpright  Copyright (c) 2003-2018, The GENIE Collaboration
+\cpright  Copyright (c) 2003-2024, The GENIE Collaboration
           For the full text of the license visit http://copyright.genie-mc.org
 */
 //____________________________________________________________________________
