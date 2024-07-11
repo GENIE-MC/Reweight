@@ -56,6 +56,9 @@ namespace {
     return temp_map;
   }
 
+// Counter for loop over events
+int current_event = 0;
+
 // Neutrino Energies from 0.0 GeV to 3.0 GeV for
 // Energy_Dependence_CCMEC parameter. 
 static double const nu_energies[552] = {
@@ -463,6 +466,8 @@ double GReWeightXSecMEC::CalcWeight(const genie::EventRecord& event)
   bool is_mec = event.Summary()->ProcInfo().IsMEC();
   if ( !is_mec ) return 1.;
 
+    current_event++;
+    std::cout << "Event: " << current_event << "                                             <-- New event" << std::endl;
   double weight = this->CalcWeightNorm( event );
     std::cout << "Weight norm:                " << weight << std::endl;
   weight *= this->CalcWeightAngularDist( event );
@@ -546,8 +551,8 @@ void GReWeightXSecMEC::Init(void) {
   // TODO: look into details of AdoptAlgorithm to see why it cannot be 
   // set as the alternate model. 
   // AlgId alt_id2( "genie::NievesSimoVacasMECPXSec2016", "Default" );
-  // AlgId alt_id2( "genie::SuSAv2MECPXSec", "Default" );
-  AlgId alt_id2( "genie::EmpiricalMECPXSec2015", "Reweight" );
+  AlgId alt_id2( "genie::SuSAv2MECPXSec", "Default" );
+  //AlgId alt_id2( "genie::EmpiricalMECPXSec2015", "Reweight" );
   fXSecAlgCCAlt_SuSAv2 = dynamic_cast< XSecAlgorithmI* >( algf->AdoptAlgorithm(alt_id2) );
   assert( fXSecAlgCCAlt_SuSAv2 );
   fXSecAlgCCAlt_SuSAv2->AdoptSubstructure();
