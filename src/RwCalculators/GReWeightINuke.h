@@ -34,6 +34,8 @@
 
 //#define _G_REWEIGHT_INUKE_DEBUG_NTP_
 
+#include "Framework/GHEP/GHepParticle.h"
+
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightModel.h"
 #include "RwCalculators/GReWeightINukeParams.h"
