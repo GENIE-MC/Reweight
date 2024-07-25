@@ -223,9 +223,9 @@ typedef enum EGSyst {
   // Misc
   //
 
-  kNTwkDials /// < Not a real dial, just keep as last entry for looping purposes
+  kNTwkDials, /// < Not a real dial, just keep as last entry for looping purposes
 
-
+  kProfRew    /// Systematics to be handled by the Professor reweighting framework
 } GSyst_t;
 
 

@@ -23,6 +23,7 @@ BUILD_TARGETS =    print-make-info \
 		   reweight-framework \
 		   reweight-io \
 		   reweight-calculators \
+			 prof-spline \
 		   general-apps \
 		   install-scripts
 
@@ -83,7 +84,14 @@ reweight-calculators: FORCE
 	cd RwCalculators && make && cd .. && \
 	cd ${GENIE_REWEIGHT}
 
-general-apps : reweight-framework reweight-io reweight-calculators FORCE
+prof-spline: FORCE
+	@echo " "
+	@echo "** Building GENIE/Reweight ProfSpline utilities..."
+	cd ${GENIE_REWEIGHT}/src && \
+	cd ProfSpline && make && cd .. && \
+	cd ${GENIE_REWEIGHT}
+
+general-apps : reweight-framework reweight-io reweight-calculators prof-spline FORCE
 	@echo " "
 	@echo "** Apps..."
 	cd ${GENIE_REWEIGHT}/src/Apps && \
@@ -121,6 +129,7 @@ make-install-dirs: FORCE
 	mkdir ${GENIE_REWEIGHT_INC_INSTALLATION_PATH}/RwFramework
 	mkdir ${GENIE_REWEIGHT_INC_INSTALLATION_PATH}/RwIO
 	mkdir ${GENIE_REWEIGHT_INC_INSTALLATION_PATH}/RwCalculators
+	mkdir ${GENIE_REWEIGHT_INC_INSTALLATION_PATH}/ProfSpline
 
 copy-install-files: FORCE
 	@echo " "
@@ -129,7 +138,8 @@ copy-install-files: FORCE
 	cd ${GENIE_REWEIGHT}/src && \
 	cd RwFramework   &&    make install && cd .. && \
 	cd RwIO          &&    make install && cd .. && \
-	cd RwCalculators &&    make install && \
+	cd RwCalculators &&    make install && cd .. && \
+	cd ProfSpline    &&    make install && cd .. && \
 	cd ${GENIE_REWEIGHT}
 
 purge: FORCE
@@ -139,6 +149,7 @@ purge: FORCE
 	cd RwFramework   &&    make purge && cd .. && \
 	cd RwIO          &&    make purge && cd .. && \
 	cd RwCalculators &&    make purge && cd .. && \
+	cd ProfSpline    &&    make purge && cd .. && \
 	cd Apps          &&    make purge && \
 	cd ${GENIE_REWEIGHT}
 
@@ -151,8 +162,9 @@ clean-files: FORCE
 	cd RwFramework   &&    make clean && cd .. && \
 	cd RwIO          &&    make clean && cd .. && \
 	cd RwCalculators &&    make clean && cd .. && \
+	cd ProfSpline    &&    make clean && cd .. && \
 	cd Apps          &&    make clean && cd .. && \
-	cd scripts       &&    make clean && \
+	cd scripts       &&    make clean && cd .. && \
 	cd $(GENIE_REWEIGHT)
 
 clean-dir: FORCE
@@ -174,6 +186,7 @@ distclean: FORCE
 	cd RwFramework   &&    make distclean && cd .. && \
 	cd RwIO          &&    make distclean && cd .. && \
 	cd RwCalculators &&    make distclean && cd .. && \
+	cd ProfSpline    &&    make distclean && cd .. && \
 	cd scripts       &&    make distclean && \
 	cd ${GENIE_REWEIGHT}
 FORCE:
