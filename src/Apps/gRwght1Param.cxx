@@ -109,6 +109,7 @@
 #include "RwFramework/GReWeight.h"
 #include "RwCalculators/GReWeightNuXSecNCEL.h"
 #include "RwCalculators/GReWeightNuXSecCCQE.h"
+#include "RwCalculators/GReWeightNuXSecCCQEELFF.h"
 #include "RwCalculators/GReWeightNuXSecCCRES.h"
 #include "RwCalculators/GReWeightNuXSecCOH.h"
 #include "RwCalculators/GReWeightNonResonanceBkg.h"
@@ -233,6 +234,7 @@ int main(int argc, char ** argv)
   GReWeight rw;
   rw.AdoptWghtCalc( "xsec_ncel",       new GReWeightNuXSecNCEL      );
   rw.AdoptWghtCalc( "xsec_ccqe",       new GReWeightNuXSecCCQE      );
+  rw.AdoptWghtCalc( "xsec_ccqe_elff",  new GReWeightNuXSecCCQEELFF      );
   rw.AdoptWghtCalc( "xsec_ccqe_axial", new GReWeightNuXSecCCQEaxial );
   //rwh - xsec_ccqe_vec is problematic for various tunes
   rw.AdoptWghtCalc( "xsec_ccqe_vec",   new GReWeightNuXSecCCQEvec   );
