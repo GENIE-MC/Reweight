@@ -16,7 +16,8 @@ PACKAGE           = RwCalculators
 PACKAGE_ABBREV    = RwClc
 DICTIONARY        = _ROOT_DICT_$(PACKAGE_ABBREV)
 LIBNAME           = libG$(PACKAGE_ABBREV)
-EXTRA_EXT_LIBS    =
+EXTRA_EXT_LIBS    = $(ROOT_LIBRARIES) -L$(GENIE_REWEIGHT_LIB_PATH) -lGRwFwk \
+  -L$(GENIE_LIB_PATH) -lGFwGHEP -lGFwAlg -lGPhXSIg -lGPhHadTransp
 
 all     : rootcint lib lib-link
 install : install-inc install-lib
