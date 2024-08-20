@@ -1,4 +1,3 @@
-#pragma once
 #ifndef OBSERVABLEHADRONIZATION_H
 #define OBSERVABLEHADRONIZATION_H
 #include "ProfSpline/RwgKineSpace.h"
