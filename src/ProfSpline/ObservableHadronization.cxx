@@ -1,7 +1,9 @@
 #include "ObservableHadronization.h"
 #include "Framework/GHEP/GHepParticle.h"
 #include "Framework/GHEP/GHepStatus.h"
+#include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Utils/KineUtils.h"
+#include "TLorentzVector.h"
 
 namespace genie {
 namespace rew {
@@ -17,12 +19,22 @@ KinematicVariables ObservableHadronization::CalcKinematicVariables(
   // This is a dummy implementation
   std::vector<double> ret;
 
-  auto interaction = event.Summary();
-  auto W = genie::utils::kinematics::W(interaction);
+  double W = event.Summary()->Kine().W(true);
   ret.push_back(W);
 
-  auto hadron = event.FinalStateHadronicSystem();
-  auto pt = hadron->P4()->Pt();
+  // auto hadron = event.FinalStateHadronicSystem();
+  // auto pt = hadron->P4()->Pt();
+  // ret.push_back(pt);
+  auto np = event.GetEntries();
+  TLorentzVector p{};
+  for (int i{}; i < np; i++) {
+    auto particle = event.Particle(i);
+    if (particle->Status() == kIStStableFinalState &&
+        pdg::IsHadron(particle->Pdg())) {
+      p += *particle->P4();
+    }
+  }
+  auto pt = p.Pt();
   ret.push_back(pt);
 
   return ret;
@@ -71,7 +83,10 @@ ChannelIDs ObservableHadronization::ChannelID(const EventRecord &event) const {
 }
 
 bool ObservableHadronization::IsHandled(const EventRecord &event) const {
-  return event.FinalStateHadronicSystem(); // for events with HadronicSystem
+  return event.Summary()->ProcInfo().IsResonant() ||
+         event.Summary()->ProcInfo().IsDeepInelastic() ||
+         event.Summary()->ProcInfo().IsSinglePion() ||
+         event.Summary()->ProcInfo().IsSingleKaon();
 }
 
 void ObservableHadronization::LoadConfig(void) {}
