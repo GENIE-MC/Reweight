@@ -66,8 +66,8 @@ ChannelIDs ObservableHadronization::ChannelID(const EventRecord &event) const {
       nch++;
     }
   }
-  // if (nch > 4)
-  //   nch = 4;
+  if (nch > 17)
+    nch = 17;
   ret.push_back(nch);
 
   bool cc = event.Summary()->ProcInfo().IsWeakCC();
@@ -84,9 +84,7 @@ ChannelIDs ObservableHadronization::ChannelID(const EventRecord &event) const {
 
 bool ObservableHadronization::IsHandled(const EventRecord &event) const {
   return event.Summary()->ProcInfo().IsResonant() ||
-         event.Summary()->ProcInfo().IsDeepInelastic() ||
-         event.Summary()->ProcInfo().IsSinglePion() ||
-         event.Summary()->ProcInfo().IsSingleKaon();
+         event.Summary()->ProcInfo().IsDeepInelastic();
 }
 
 void ObservableHadronization::LoadConfig(void) {}
