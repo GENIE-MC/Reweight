@@ -111,6 +111,7 @@
 #include "RwCalculators/GReWeightResonanceDecay.h"
 #include "RwCalculators/GReWeightXSecEmpiricalMEC.h"
 #include "RwCalculators/GReWeightXSecMEC.h"
+#include "RwCalculators/GReWeightNuXSecCCQEELFF.h"
 
 using namespace genie;
 using namespace genie::constants;
@@ -378,7 +379,7 @@ int main(int argc, char ** argv)
   for(int iev = nfirst; iev <= nlast; iev++) {
     branch_eventnum = iev;
     for (int itk = 0; itk < n_tweaks; itk++) {
-      wght_list[itk]->GetEntry(iev);
+      wght_list[itk]->GetEntry(iev - nfirst);
     } // tweak loop
     wght_tree->Fill();
   } // event loop
@@ -893,6 +894,28 @@ void AdoptWeightCalcs (vector<GSyst_t> lsyst, GReWeight & rw)
         LOG("grwghtnp", pNOTICE) << "Adopting xsec_mec weight calc";
         rw.AdoptWghtCalc( "xsec_mec", new GReWeightXSecMEC );
       }
+      break;
+   case kXSecTwkDial_ZExpELFF_AN1:
+   case kXSecTwkDial_ZExpELFF_AN2:
+   case kXSecTwkDial_ZExpELFF_AN3:
+   case kXSecTwkDial_ZExpELFF_AN4:
+   case kXSecTwkDial_ZExpELFF_AP1:
+   case kXSecTwkDial_ZExpELFF_AP2:
+   case kXSecTwkDial_ZExpELFF_AP3:
+   case kXSecTwkDial_ZExpELFF_AP4:
+   case kXSecTwkDial_ZExpELFF_BN1:
+   case kXSecTwkDial_ZExpELFF_BN2:
+   case kXSecTwkDial_ZExpELFF_BN3:
+   case kXSecTwkDial_ZExpELFF_BN4:
+   case kXSecTwkDial_ZExpELFF_BP1:
+   case kXSecTwkDial_ZExpELFF_BP2:
+   case kXSecTwkDial_ZExpELFF_BP3:
+   case kXSecTwkDial_ZExpELFF_BP4:
+      if(! rw.WghtCalc("xsec_ccqe_elff")){
+        LOG("grwghtnp", pNOTICE) << "Adopting xsec_ccqe zexp vector form factor";
+        rw.AdoptWghtCalc( "xsec_ccqe_elff", new GReWeightNuXSecCCQEELFF );
+      }
+      break;
     default: // no fine-tuning needed
     break;
     }
