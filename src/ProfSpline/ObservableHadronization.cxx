@@ -1,8 +1,10 @@
-#include "ObservableHadronization.h"
+#include <algorithm>
+
 #include "Framework/GHEP/GHepParticle.h"
 #include "Framework/GHEP/GHepStatus.h"
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Utils/KineUtils.h"
+#include "ObservableHadronization.h"
 #include "TLorentzVector.h"
 
 namespace genie {
@@ -31,11 +33,13 @@ KinematicVariables ObservableHadronization::CalcKinematicVariables(
     auto particle = event.Particle(i);
     if (particle->Status() == kIStStableFinalState &&
         pdg::IsHadron(particle->Pdg())) {
-      p += *particle->P4();
+      if (particle->P4()->P() > p.P()) {
+        p = *particle->P4();
+      }
     }
   }
-  auto pt = p.Pt();
-  ret.push_back(pt);
+  auto p_max = p.Pt();
+  ret.push_back(p_max);
 
   return ret;
 }
@@ -56,19 +60,21 @@ ChannelIDs ObservableHadronization::ChannelID(const EventRecord &event) const {
 
   const auto nucleus = ret[1];
 
-  size_t nch{};
+  size_t nch{}, nn{};
   for (int i{}; i < event.GetEntries(); ++i) {
     auto particle = event.Particle(i);
     if (particle->Status() == ((nucleus == 2212 || nucleus == 2112)
                                    ? kIStStableFinalState
-                                   : kIStHadronInTheNucleus) &&
-        particle->Charge()) {
-      nch++;
+                                   : kIStHadronInTheNucleus)) {
+      nch += (particle->Charge() != 0);
+      nn += (particle->Charge() == 0);
     }
   }
-  if (nch > 17)
-    nch = 17;
+  nch = std::min<size_t>(nch, 17);
   ret.push_back(nch);
+
+  nn = std::min<size_t>(nn, 3);
+  ret.push_back(nn);
 
   bool cc = event.Summary()->ProcInfo().IsWeakCC();
   ret.push_back(cc);
