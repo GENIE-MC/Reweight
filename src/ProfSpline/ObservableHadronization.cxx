@@ -38,7 +38,7 @@ KinematicVariables ObservableHadronization::CalcKinematicVariables(
       }
     }
   }
-  auto p_max = p.P();
+  auto p_max = p.Pz();
   ret.push_back(p_max);
 
   return ret;
