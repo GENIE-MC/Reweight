@@ -18,28 +18,13 @@ ObservableHadronization::ObservableHadronization(std::string config)
 
 KinematicVariables ObservableHadronization::CalcKinematicVariables(
     const EventRecord &event) const {
-  // This is a dummy implementation
   std::vector<double> ret;
 
   double W = event.Summary()->Kine().W(true);
   ret.push_back(W);
 
-  // auto hadron = event.FinalStateHadronicSystem();
-  // auto pt = hadron->P4()->Pt();
-  // ret.push_back(pt);
-  auto np = event.GetEntries();
-  TLorentzVector p{};
-  for (int i{}; i < np; i++) {
-    auto particle = event.Particle(i);
-    if (particle->Status() == kIStStableFinalState &&
-        pdg::IsHadron(particle->Pdg())) {
-      if (particle->P4()->P() > p.P()) {
-        p = *particle->P4();
-      }
-    }
-  }
-  auto p_max = p.Pz();
-  ret.push_back(p_max);
+  auto y = event.Summary()->Kine().y(true);
+  ret.push_back(y);
 
   return ret;
 }
@@ -61,7 +46,8 @@ ChannelIDs ObservableHadronization::ChannelID(const EventRecord &event) const {
   const auto nucleus = ret[1];
 
   size_t nch{}, nn{};
-  for (int i{}; i < event.GetEntries(); ++i) {
+  auto ne = event.GetEntriesFast();
+  for (int i{}; i < ne; ++i) {
     auto particle = event.Particle(i);
     if (particle->Status() == ((nucleus == 2212 || nucleus == 2112)
                                    ? kIStStableFinalState
