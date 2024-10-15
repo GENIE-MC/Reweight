@@ -18,13 +18,24 @@ ObservableHadronization::ObservableHadronization(std::string config)
 
 KinematicVariables ObservableHadronization::CalcKinematicVariables(
     const EventRecord &event) const {
+  // This is a dummy implementation
   std::vector<double> ret;
 
   double W = event.Summary()->Kine().W(true);
   ret.push_back(W);
 
-  auto y = event.Summary()->Kine().y(true);
-  ret.push_back(y);
+  auto np = event.GetEntriesFast();
+  double max_p_pion{};
+  for (int i{}; i < np; i++) {
+    auto particle = event.Particle(i);
+    if (particle->Status() == kIStStableFinalState &&
+        (particle->Pdg() == 211 || particle->Pdg() == -211 ||
+         particle->Pdg() == 111)) {
+      auto p = particle->P4()->P();
+      max_p_pion = std::max(max_p_pion, p);
+    }
+  }
+  ret.push_back(max_p_pion);
 
   return ret;
 }
