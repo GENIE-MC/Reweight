@@ -39,6 +39,15 @@ public:
     }
     push_back(std::stoi(str));
   }
+
+  ChannelIDs subset(size_t size = 2) const {
+    ChannelIDs sub;
+    sub.resize(size);
+    for (size_t i = 0; i < size; ++i) {
+      sub[i] = (*this)[i];
+    }
+    return sub;
+  }
 };
 
 using KinematicVariables = std::vector<double>;
