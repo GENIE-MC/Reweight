@@ -35,6 +35,9 @@ KinematicVariables ObservableHadronization::CalcKinematicVariables(
       max_p_pion = std::max(max_p_pion, p);
     }
   }
+  if (max_p_pion == 0) {
+    max_p_pion = 1e-6;
+  }
   ret.push_back(max_p_pion);
 
   return ret;
