@@ -36,6 +36,7 @@ KinematicVariables ObservableHadronization::CalcKinematicVariables(
   auto had_system_boost = had_system.BoostVector();
 
   double max_p_pion{};
+  double sum_of_transverse_momentum{};
   for (int i{}; i < np; i++) {
     auto particle = event.Particle(i);
     if (particle->Status() == kIStStableFinalState &&
@@ -46,12 +47,14 @@ KinematicVariables ObservableHadronization::CalcKinematicVariables(
       auto p_in_had_rest_frame = *(particle->P4());
       p_in_had_rest_frame.Boost(-had_system_boost);
       max_p_pion = std::max(max_p_pion, p_in_had_rest_frame.P());
+      sum_of_transverse_momentum += p_in_had_rest_frame.Pt();
     }
   }
   if (max_p_pion == 0) {
     max_p_pion = 1e-6;
   }
-  ret.push_back(max_p_pion);
+  // ret.push_back(max_p_pion);
+  ret.push_back(sum_of_transverse_momentum);
 
   return ret;
 }
@@ -102,8 +105,21 @@ ChannelIDs ObservableHadronization::ChannelID(const EventRecord &event) const {
 }
 
 bool ObservableHadronization::IsHandled(const EventRecord &event) const {
-  return event.Summary()->ProcInfo().IsResonant() ||
-         event.Summary()->ProcInfo().IsDeepInelastic();
+  if (!(event.Summary()->ProcInfo().IsResonant() ||
+        event.Summary()->ProcInfo().IsDeepInelastic())) {
+    return false;
+  }
+
+  // exclude event with Kaons
+  for (int i{}; i < event.GetEntriesFast(); ++i) {
+    auto particle = event.Particle(i);
+    if (particle->Status() == kIStStableFinalState &&
+        pdg::IsKaon(particle->Pdg())) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 void ObservableHadronization::LoadConfig(void) {}

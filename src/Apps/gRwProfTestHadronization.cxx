@@ -1,8 +1,11 @@
+#include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <fstream>
 #include <functional>
 #include <memory>
+#include <ranges>
 #include <sstream>
 #include <string>
 
@@ -302,7 +305,8 @@ int main(int argc, char **argv) {
   auto ipol_path = basedir + "ipol_test.dat";
   auto binningxml = basedir + "binning.xml";
 
-  auto input_from_tree = ROOT::RDataFrame{"gtree", input_from_file}; // read the tree from the file
+  auto input_from_tree =
+      ROOT::RDataFrame{"gtree", input_from_file}; // read the tree from the file
   ROOT::RDF::Experimental::AddProgressBar(input_from_tree);
   auto observable_splines = std::make_unique<GReWeightProfessor>("");
   observable_splines->ReadComparisonXML(binningxml, ipol_path);
@@ -336,105 +340,259 @@ int main(int argc, char **argv) {
                 // return weight;
               },
               {"gmcrec"});
-  // ROOT::RDF::Experimental::AddProgressBar(tree_rew);
-  // auto hist_rew_alt = tree_rew.Histo1D(model, "muonp", "weight_alt");
 
-  std::array<std::string, 14> varnames{"muonp",
-                                       "muon_theta",
-                                       "Q2",
-                                       "q0",
-                                       "visE",
-                                       "nch",
-                                       "pt",
-                                       "pl",
-                                       "W",
-                                       "angle_p_max_hadron",
-                                       "mag_p_max_hadron",
-                                       "angle_p_had_system",
-                                       "mag_p_had_system",
-                                       "mag_pl_max_hadron"
+  auto modelmap = std::to_array<std::tuple<std::string, ROOT::RDF::TH1DModel>>(
+      {{"muonp", {"muonp", ";p_{#mu};", 10, 0, 10.}},
+       {"muon_theta", {"muon_theta", ";#theta_{#mu};", 20, 0., 2.}},
+       {"Q2", {"Q2", ";Q^{2};", 30, 0., 6.}},
+       {"q0", {"q0", ";q^{0};", 30, 0., 6.}},
+       {"visE", {"visE", ";E_{vis};", 10, 0., 100.}},
+       {"visE", {"visE_low", ";E_{vis};", 10, 0., 10.}},
+       {"nch", {"nch", ";nch;", 19, -0.5, 18.5}},
+       {"pt", {"pt", ";pt;", 11, 0., 10.}},
+       {"pl", {"pl", ";pl;", 11, 0., 10.}},
+       {"W", {"W", ";W;", 20, 0., 30.}},
+       {"W", {"W_low", ";W;", 10, 0., 6.}},
+       {"W", {"W_3low", ";W;", 10, 0., 3.}},
+       {"angle_p_max_hadron",
+        {"angle_p_max_hadron", ";#theta_{p_{max}};", 10, 0, 1.5}},
+       {"mag_p_max_hadron", {"mag_p_max_hadron", ";|p_{max}|;", 10, 0., 10.}},
+       {"angle_p_had_system",
+        {"angle_p_had_system", ";#theta_{p_{had}};", 10, 0, 1.5}},
+       {"mag_p_had_system", {"mag_p_had_system", ";|p_{had}|;", 10, 0., 10.}},
+       {"mag_pl_max_hadron",
+        {"mag_pl_max_hadron", ";|p_{had}|;", 10, 0., 10.}}});
 
+  // auto
+
+  auto merge_cut_lists = [merge_cut_func = [](auto &&...args)
+                              -> std::function<bool(NtpMCEventRecord &)> {
+    return [args...](NtpMCEventRecord &event) { return (args(event) && ...); };
+  }](auto &&lista, auto &&listb) {
+    return std::views::transform(
+               std::views::cartesian_product(lista, listb),
+               [merge_cut_func](auto &&cuts) {
+                 auto [cuta, cutb] = cuts;
+                 auto [namea, cutfunc_a] = cuta;
+                 auto [nameb, cutfunc_b] = cutb;
+                 auto newcut = merge_cut_func(cutfunc_a, cutfunc_b);
+                 return std::make_tuple(namea + nameb, newcut);
+               }) |
+           std::ranges::to<std::vector>();
   };
 
-  std::unordered_map<std::string, ROOT::RDF::TH1DModel> modelmap{
-      {"muonp", {"", ";p_{#mu};", 10, 0, 10.}},
-      {"muon_theta", {"", ";#theta_{#mu};", 20, 0., 2.}},
-      {"Q2", {"", ";Q^{2};", 30, 0., 6.}},
-      {"q0", {"", ";q^{0};", 30, 0., 6.}},
-      {"visE", {"", ";E_{vis};", 10, 0., 100.}},
-      {"nch", {"", ";nch;", 19, -0.5, 18.5}},
-      {"pt", {"", ";pt;", 11, 0., 10.}},
-      {"pl", {"", ";pl;", 11, 0., 10.}},
-      {"W", {"", ";W;", 20, 0., 30.}},
-      {"angle_p_max_hadron", {"", ";#theta_{p_{max}};", 10, 0, 1.5}},
-      {"mag_p_max_hadron", {"", ";|p_{max}|;", 10, 0., 10.}},
-      {"angle_p_had_system", {"", ";#theta_{p_{had}};", 10, 0, 1.5}},
-      {"mag_p_had_system", {"", ";|p_{had}|;", 10, 0., 10.}},
-      {"mag_pl_max_hadron", {"", ";|p_{had}|;", 10, 0., 10.}}
+  auto W_cuts = std::to_array<
+      std::tuple<std::string, std::function<bool(NtpMCEventRecord &)>>>(
+      {{"LowW",
+        [](const NtpMCEventRecord &event) -> bool {
+          double W = event.event->Summary()->Kine().W(true);
+          return W < 2.3;
+        }},
+       {"MidW",
+        [](const NtpMCEventRecord &event) -> bool {
+          double W = event.event->Summary()->Kine().W(true);
+          return W > 2.3 && W < 3;
+        }},
+       {"HiW", [](const NtpMCEventRecord &event) -> bool {
+          double W = event.event->Summary()->Kine().W(true);
+          return W > 3;
+        }}});
 
-  };
-
-  // ROOT::RDF::TH1DModel model{"", "", 10, 0, 10.};
-
-  std::unordered_map<
-      std::string,
-      std::tuple<ROOT::RDF::RResultPtr<TH1D>,
-                 std::map<std::string, ROOT::RDF::RResultPtr<TH1D>>>>
-      hist_rew_m, hist_reference_m, hist_unrew_m;
-
-  for (auto &&var : varnames) {
-    auto &model = modelmap[var];
-    std::get<0>(hist_rew_m[var]) =
-        tree_rew.Histo1D<double, double>(model, var, "weight");
-    std::get<0>(hist_reference_m[var]) = ds_ref.Histo1D<double>(model, var);
-    std::get<0>(hist_unrew_m[var]) = tree_rew.Histo1D<double>(model, var);
-  }
-
-  auto do_plot = [&](std::string varname, bool do_normalize,
-                     std::string cut = "") {
-    // auto hist_rew = hist_rew_m[varname].GetPtr();
-    // auto hist_reference = hist_reference_m[varname].GetPtr();
-    // auto hist_unrew = hist_unrew_m[varname].GetPtr();
-    TH1D *hist_rew, *hist_reference, *hist_unrew;
-    if (cut.empty()) {
-      hist_rew = std::get<0>(hist_rew_m[varname]).GetPtr();
-      hist_reference = std::get<0>(hist_reference_m[varname]).GetPtr();
-      hist_unrew = std::get<0>(hist_unrew_m[varname]).GetPtr();
-    } else {
-      hist_rew = std::get<1>(hist_rew_m[varname])[cut].GetPtr();
-      hist_reference = std::get<1>(hist_reference_m[varname])[cut].GetPtr();
-      hist_unrew = std::get<1>(hist_unrew_m[varname])[cut].GetPtr();
+  auto to_npi = [](const NtpMCEventRecord &event) {
+    size_t npi{};
+    auto np = event.event->GetEntriesFast();
+    for (int i{}; i < np; i++) {
+      auto particle = event.event->Particle(i);
+      if (particle->Status() == kIStStableFinalState &&
+          pdg::IsPion(particle->Pdg())) {
+        npi++;
+      }
     }
+    return npi;
+  };
+
+  auto multi_cuts = std::to_array<
+      std::tuple<std::string, std::function<bool(NtpMCEventRecord &)>>>(
+      {{"0pi",
+        [&](const NtpMCEventRecord &event) -> bool {
+          return to_npi(event) == 0;
+        }},
+       {"1pi",
+        [&](const NtpMCEventRecord &event) -> bool {
+          return to_npi(event) == 1;
+        }},
+       {"2pi",
+        [&](const NtpMCEventRecord &event) -> bool {
+          return to_npi(event) == 2;
+        }},
+       {"Mpi", [&](const NtpMCEventRecord &event) -> bool {
+          return to_npi(event) >= 3;
+        }}});
+
+  auto channelcuts = merge_cut_lists(W_cuts, multi_cuts);
+  channelcuts.insert(channelcuts.end(), W_cuts.begin(), W_cuts.end());
+
+  //   ,
+  //  {"LowW_0pi",
+  //   [](const NtpMCEventRecord &event) -> bool {
+  //     double W = event.event->Summary()->Kine().W(true);
+  //     size_t npi{};
+  //     auto np = event.event->GetEntriesFast();
+  //     for (int i{}; i < np; i++) {
+  //       auto particle = event.event->Particle(i);
+  //       if (particle->Status() == kIStStableFinalState &&
+  //           pdg::IsPion(particle->Pdg())) {
+  //         npi++;
+  //       }
+  //     }
+  //     return W < 3 && npi == 0;
+  //   }},
+  //  {"LowW_1pi",
+  //   [](const NtpMCEventRecord &event) -> bool {
+  //     double W = event.event->Summary()->Kine().W(true);
+  //     size_t npi{};
+  //     auto np = event.event->GetEntriesFast();
+  //     for (int i{}; i < np; i++) {
+  //       auto particle = event.event->Particle(i);
+  //       if (particle->Status() == kIStStableFinalState &&
+  //           pdg::IsPion(particle->Pdg())) {
+  //         npi++;
+  //       }
+  //     }
+  //     return W < 3 && npi == 1;
+  //   }},
+  //  {"LowW_2pi",
+  //   [](const NtpMCEventRecord &event) -> bool {
+  //     double W = event.event->Summary()->Kine().W(true);
+  //     size_t npi{};
+  //     auto np = event.event->GetEntriesFast();
+  //     for (int i{}; i < np; i++) {
+  //       auto particle = event.event->Particle(i);
+  //       if (particle->Status() == kIStStableFinalState &&
+  //           pdg::IsPion(particle->Pdg())) {
+  //         npi++;
+  //       }
+  //     }
+  //     return W < 3 && npi == 2;
+  //   }},
+  //  {"LowW_Mpi", [](const NtpMCEventRecord &event) -> bool {
+  //     double W = event.event->Summary()->Kine().W(true);
+  //     size_t npi{};
+  //     auto np = event.event->GetEntriesFast();
+  //     for (int i{}; i < np; i++) {
+  //       auto particle = event.event->Particle(i);
+  //       if (particle->Status() == kIStStableFinalState &&
+  //           pdg::IsPion(particle->Pdg())) {
+  //         npi++;
+  //       }
+  //     }
+  //     return W < 3 && npi >= 3;
+  //   }}}
+
+  auto hists_ref =
+      modelmap |
+      std::views::transform(
+          [&](const std::tuple<std::string, ROOT::RDF::TH1DModel> &obj) {
+            auto [var, model] = obj;
+            auto plot_cut =
+                channelcuts |
+                std::views::transform(
+                    [&](const std::tuple<
+                        std::string, std::function<bool(NtpMCEventRecord &)>>
+                            &obj) {
+                      auto &[cutname, cut] = obj;
+                      auto thismodel = model;
+                      thismodel.fName += cutname;
+                      return ds_ref.Filter(cut, {"gmcrec"})
+                          .Histo1D<double>(thismodel, var);
+                    }) |
+                std::ranges::to<std::vector>();
+            return std::make_tuple(ds_ref.Histo1D<double>(model, var),
+                                   plot_cut);
+          }) |
+      std::ranges::to<std::vector>();
+
+  auto hists_rew =
+      modelmap |
+      std::views::transform(
+          [&](const std::tuple<std::string, ROOT::RDF::TH1DModel> &obj) {
+            auto [var, model] = obj;
+            auto plot_cut =
+                channelcuts |
+                std::views::transform(
+                    [&](const std::tuple<
+                        std::string, std::function<bool(NtpMCEventRecord &)>>
+                            &obj) {
+                      auto &[cutname, cut] = obj;
+                      auto thismodel = model;
+                      thismodel.fName += cutname;
+                      return tree_rew.Filter(cut, {"gmcrec"})
+                          .Histo1D<double, double>(thismodel, var, "weight");
+                    }) |
+                std::ranges::to<std::vector>();
+            return std::make_tuple(
+                tree_rew.Histo1D<double, double>(model, var, "weight"),
+                plot_cut);
+          }) |
+      std::ranges::to<std::vector>();
+
+  auto hists_unrew =
+      modelmap |
+      std::views::transform(
+          [&](const std::tuple<std::string, ROOT::RDF::TH1DModel> &obj) {
+            auto [var, model] = obj;
+            auto plot_cut =
+                channelcuts |
+                std::views::transform(
+                    [&](const std::tuple<
+                        std::string, std::function<bool(NtpMCEventRecord &)>>
+                            &obj) {
+                      auto &[cutname, cut] = obj;
+                      auto thismodel = model;
+                      thismodel.fName += cutname;
+                      return tree_rew.Filter(cut, {"gmcrec"})
+                          .Histo1D<double>(thismodel, var);
+                    }) |
+                std::ranges::to<std::vector>();
+            return std::make_tuple(tree_rew.Histo1D<double>(model, var),
+                                   plot_cut);
+          }) |
+      std::ranges::to<std::vector>();
+
+  std::cout << "Running RDF\n\n" << std::flush;
+  ROOT::RDF::RunGraphs({
+      std::get<0>(hists_ref[0]),
+      std::get<0>(hists_rew[0]),
+      std::get<0>(hists_unrew[0]),
+  });
+
+  auto do_plot = [&](TH1D *hist_rew, TH1D *hist_reference, TH1D *hist_unrew) {
     std::string ytitle = "Count (Count * Weight)";
-    if (do_normalize) {
-      // hist_reference->Scale(normalize_to, "width");
-      // hist_rew->Scale(normalize_from, "width");
-      // hist_unrew->Scale(normalize_from, "width");
-      ytitle = "d#it{#sigma}/d";
-      ytitle += hist_rew->GetXaxis()->GetTitle();
-      ytitle += "(cm^{2}/MeV/nucleon)";
-    }
 
     auto chi2 = hist_reference->Chi2Test(hist_rew, "CHI2/NDF");
 
     auto c1 = std::make_unique<TCanvas>();
-    c1->SetLeftMargin(0.15);
     c1->Draw();
-    // c1->Divide(1, 2);
-    // auto pad1 = new TPad("pad1", "", 0, 0.3, 1, 1);
-    // auto pad2 = new TPad("pad2", "", 0, 0, 1, 0.3);
-    auto pad1 = std::make_unique<TPad>("pad1", "", 0, 0.3, 1, 1);
-    auto pad2 = std::make_unique<TPad>("pad2", "", 0, 0, 1, 0.3);
+
+    constexpr double fair_share = 0.7;
+    auto pad1 = std::make_unique<TPad>("pad1", "", 0, 1 - fair_share, 1, 1);
+    auto pad2 = std::make_unique<TPad>("pad2", "", 0, 0, 1, 1 - fair_share);
+    pad1->SetBottomMargin(0);
+    pad1->SetTopMargin(pad1->GetTopMargin() / 2.);
+    pad2->SetTopMargin(0);
+    pad2->SetBottomMargin(pad2->GetBottomMargin() * 2.);
+
     // c1->cd(1);
     pad1->cd();
     auto max = std::max({hist_reference->GetMaximum(), hist_rew->GetMaximum(),
                          hist_unrew->GetMaximum()});
     gStyle->SetOptStat(0);
     auto legend = std::make_unique<TLegend>(0.7, 0.7, 0.9, 0.9);
-
+    double ytitleoffset = 1.2;
     hist_rew->SetLineColor(kBlue);
     hist_rew->SetMaximum(max * 1.1);
     hist_rew->GetYaxis()->SetTitle(ytitle.c_str());
+    hist_rew->GetYaxis()->SetTitleOffset(ytitleoffset);
     hist_rew->Draw("hist E");
     legend->AddEntry(hist_rew, "reweighted", "l");
     hist_unrew->SetLineColor(kGreen);
@@ -442,12 +600,14 @@ int main(int argc, char **argv) {
     hist_unrew->SetLineStyle(kDashed);
     // hist_unrew->SetLineStyle(kDotted);
     hist_unrew->GetYaxis()->SetTitle(ytitle.c_str());
+    hist_unrew->GetYaxis()->SetTitleOffset(ytitleoffset);
     hist_unrew->Draw("hist E same");
     legend->AddEntry(hist_unrew, "unreweighted", "l");
     hist_reference->SetMaximum(max * 1.1);
     hist_reference->SetLineColor(kRed);
     // hist_reference->SetLineStyle(kDotted);
     hist_reference->GetYaxis()->SetTitle(ytitle.c_str());
+    hist_reference->GetYaxis()->SetTitleOffset(ytitleoffset);
     hist_reference->SetLineStyle(kDashed);
     hist_reference->Draw("hist E SAME");
     legend->AddEntry(hist_reference, "reference", "l");
@@ -458,35 +618,91 @@ int main(int argc, char **argv) {
     auto hist_diff_rew_ref =
         std::unique_ptr<TH1D>{static_cast<TH1D *>(hist_rew->Clone())};
     hist_diff_rew_ref->Add(hist_reference, -1);
-    auto hist_diff_unrew_ref =
-        std::unique_ptr<TH1D>{static_cast<TH1D *>(hist_unrew->Clone())};
-    hist_diff_unrew_ref->Add(hist_reference, -1);
+    // hist_diff_rew_ref: Rew - Ref
+
+    // auto hist_diff_unrew_ref =
+    //     std::unique_ptr<TH1D>{static_cast<TH1D *>(hist_unrew->Clone())};
+    // hist_diff_unrew_ref->Add(hist_reference, -1);
     // (hist_rew - hist_reference) / (hist_unrew - hist_reference);
-    hist_diff_rew_ref->Divide(hist_diff_unrew_ref.get());
+    hist_diff_rew_ref->Divide(hist_reference);
     // hist_diff_rew_ref->SetMaximum();
-    hist_diff_rew_ref->GetYaxis()->SetTitle("rew - ref / unrew - ref");
-    hist_diff_rew_ref->Draw("hist");
+    // hist_diff_rew_ref->Set
+    // for (int bin_id = 1; bin_id < hist_diff_rew_ref->GetNbinsX(); bin_id++) {
+    //   double sigma_rew = hist_rew->GetBinError(bin_id);
+    //   double sigma_unrew = hist_unrew->GetBinError(bin_id);
+    //   double sigma_ref = hist_reference->GetBinError(bin_id);
+    //   double rew = hist_rew->GetBinContent(bin_id);
+    //   double unrew = hist_unrew->GetBinContent(bin_id);
+    //   double ref = hist_reference->GetBinContent(bin_id);
+    //   using std::sqrt, std::pow;
+    //   double new_err = sqrt(
+    //       (pow(1 / (ref - unrew), 2) * pow(sigma_rew, 2)) +
+    //       (pow((rew - ref) / pow(ref - unrew, 2), 2) * pow(sigma_unrew, 2)) +
+    //       (pow(-(rew - unrew) / pow(ref - unrew, 2), 2) * pow(sigma_ref,
+    //       2)));
+    //   if (rew == 0 || unrew == 0 || ref == 0) {
+    //     new_err = 0;
+    //   }
+    //   hist_diff_rew_ref->SetBinError(bin_id, new_err);
+    // }
+    auto text_size = hist_diff_rew_ref->GetYaxis()->GetLabelSize();
+    auto title_offset = hist_reference->GetYaxis()->GetTitleOffset();
+
+    auto text_size_scaled = text_size * fair_share / (1 - fair_share);
+    auto title_offset_scaled = title_offset / (fair_share / (1 - fair_share));
+    hist_diff_rew_ref->GetXaxis()->SetLabelSize(text_size_scaled);
+    hist_diff_rew_ref->GetXaxis()->SetTitleSize(text_size_scaled);
+    hist_diff_rew_ref->GetYaxis()->SetLabelSize(text_size_scaled);
+    hist_diff_rew_ref->GetYaxis()->SetTitleSize(text_size_scaled);
+
+    hist_diff_rew_ref->GetYaxis()->SetTitleOffset(title_offset_scaled);
+    hist_diff_rew_ref->GetYaxis()->SetTitle("rew - ref / ref");
+    hist_diff_rew_ref->GetYaxis()->CenterTitle(true);
+
+    // hist_diff_rew_ref->SetMaximum(hist_diff_rew_ref->GetMaximum() + 0.5);
+    // hist_diff_rew_ref->SetMinimum(hist_diff_rew_ref->GetMinimum() - 0.5);
+
+    hist_diff_rew_ref->Draw("histE1");
     c1->cd();
     pad1->Draw();
     pad2->Draw();
     c1->Draw();
-    std::string filename =
-        varname + "_" + (do_normalize ? "normalized" : "unnormalized") + cut;
+    // std::string filename =
+    //     varname + "_" + (do_normalize ? "normalized" : "unnormalized") + cut;
+    std::string filename = hist_rew->GetName();
     c1->SaveAs((filename + ".pdf").c_str());
     c1->SaveAs((filename + ".eps").c_str());
   };
+
+  for (auto &&[var, ent_ref, ent_rew, ent_unrew] : std::views::zip(
+           modelmap | std::views::keys, hists_ref, hists_rew, hists_unrew)) {
+    auto [hist_ref, cut_plot_ref] = ent_ref;
+    auto [hist_rew, cut_plot_rew] = ent_rew;
+    auto [hist_unrew, cut_plot_unrew] = ent_unrew;
+    std::cout << "Plotting " << var << '\n';
+    do_plot(hist_rew.GetPtr(), hist_ref.GetPtr(), hist_unrew.GetPtr());
+    for (auto &&[cutname, hist_ref, hist_rew, hist_unrew] :
+         std::views::zip(channelcuts | std::views::keys, cut_plot_ref,
+                         cut_plot_rew, cut_plot_unrew)) {
+      std::cout << "Plotting " << var << " with cut: " << cutname << '\n';
+      do_plot(hist_rew.GetPtr(), hist_ref.GetPtr(), hist_unrew.GetPtr());
+    }
+  }
+
   // tree_rew.Snapshot("out", "out.root", {"weight", "Q2"});
 
-  // do_plot("muonp", true);
-  // do_plot("muonp", false);
-  // do_plot("muon_theta", true);
-  // do_plot("muon_theta", false);
-  // do_plot("Q2", true);
-  // do_plot("Q2", false);
-  for (auto &&var : varnames) {
-    // do_plot(var, false);
-    do_plot(var, false);
-  }
+  // // do_plot("muonp", true);
+  // // do_plot("muonp", false);
+  // // do_plot("muon_theta", true);
+  // // do_plot("muon_theta", false);
+  // // do_plot("Q2", true);
+  // // do_plot("Q2", false);
+  // for (auto &&var : varnames) {
+  //   // do_plot(var, false);
+  //   do_plot(var, false);
+  //   do_plot(var, false, "LowW");
+  //   do_plot(var, false, "HiW");
+  // }
 
   return 0;
 }

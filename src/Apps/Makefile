@@ -56,7 +56,7 @@ $(GENIE_REWEIGHT_BIN_PATH)/grwproftestHad: gRwProfTestHadronization.o $(call fin
 
 
 %.o : %.cxx
-	$(CXX) $(CXXFLAGS) -MMD -MP -c $(CPP_INCLUDES) $< -o $@
+	$(CXX) $(CXXFLAGS) -MMD -MP -c $(CPP_INCLUDES) $< -o $@ -std=c++23
 
 # CLEANING-UP
 
