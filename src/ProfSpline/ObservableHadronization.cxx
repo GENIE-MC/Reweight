@@ -34,8 +34,8 @@ KinematicVariables ObservableHadronization::CalcKinematicVariables(
   }
 
   auto had_system_boost = had_system.BoostVector();
+  auto had_system_dir = had_system.Vect().Unit();
 
-  double max_p_pion{};
   double sum_of_transverse_momentum{};
   for (int i{}; i < np; i++) {
     auto particle = event.Particle(i);
@@ -46,14 +46,11 @@ KinematicVariables ObservableHadronization::CalcKinematicVariables(
       // max_p_pion = std::max(max_p_pion, p);
       auto p_in_had_rest_frame = *(particle->P4());
       p_in_had_rest_frame.Boost(-had_system_boost);
-      max_p_pion = std::max(max_p_pion, p_in_had_rest_frame.P());
-      sum_of_transverse_momentum += p_in_had_rest_frame.Pt();
+      // sum_of_transverse_momentum += p_in_had_rest_frame.Pt();
+      sum_of_transverse_momentum +=
+          p_in_had_rest_frame.Vect().Cross(had_system_dir).Mag();
     }
   }
-  if (max_p_pion == 0) {
-    max_p_pion = 1e-6;
-  }
-  // ret.push_back(max_p_pion);
   ret.push_back(sum_of_transverse_momentum);
 
   return ret;
