@@ -33,26 +33,39 @@ KinematicVariables ObservableHadronization::CalcKinematicVariables(
     }
   }
 
-  auto had_system_boost = had_system.BoostVector();
-  auto had_system_dir = had_system.Vect().Unit();
+  // auto had_system_boost = had_system.BoostVector();
+  // auto had_system_dir = had_system.Vect().Unit();
 
-  double sum_of_transverse_momentum{};
-  for (int i{}; i < np; i++) {
-    auto particle = event.Particle(i);
-    if (particle->Status() == kIStStableFinalState &&
-        (particle->Pdg() == 211 || particle->Pdg() == -211 ||
-         particle->Pdg() == 111)) {
-      // auto p = particle->P4()->P();
-      // max_p_pion = std::max(max_p_pion, p);
-      auto p_in_had_rest_frame = *(particle->P4());
-      p_in_had_rest_frame.Boost(-had_system_boost);
-      // sum_of_transverse_momentum += p_in_had_rest_frame.Pt();
-      sum_of_transverse_momentum +=
-          p_in_had_rest_frame.Vect().Cross(had_system_dir).Mag();
+  // double sum_of_transverse_momentum{};
+  // for (int i{}; i < np; i++) {
+  //   auto particle = event.Particle(i);
+  //   if (particle->Status() == kIStStableFinalState &&
+  //       (particle->Pdg() == 211 || particle->Pdg() == -211 ||
+  //        particle->Pdg() == 111)) {
+  //     // auto p = particle->P4()->P();
+  //     // max_p_pion = std::max(max_p_pion, p);
+  //     auto p_in_had_rest_frame = *(particle->P4());
+  //     p_in_had_rest_frame.Boost(-had_system_boost);
+  //     // sum_of_transverse_momentum += p_in_had_rest_frame.Pt();
+  //     sum_of_transverse_momentum +=
+  //         p_in_had_rest_frame.Vect().Cross(had_system_dir).Mag();
+  //   }
+  // }
+  // ret.push_back(sum_of_transverse_momentum);
+
+  double visE{};
+  auto nentries = event.GetEntriesFast();
+  for (int i = 0; i < nentries; i++) {
+    auto part = event.Particle(i);
+    if (part->Status() == genie::kIStStableFinalState && part->Charge() != 0) {
+      // remove mass part for p/n
+      visE += part->E();
+      if (pdg::IsNeutron(part->Pdg()) || pdg::IsProton(part->Pdg())) {
+        visE -= part->Mass();
+      }
     }
   }
-  ret.push_back(sum_of_transverse_momentum);
-
+  ret.push_back(visE);
   return ret;
 }
 
