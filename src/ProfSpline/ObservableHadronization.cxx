@@ -7,14 +7,13 @@
 #include "ObservableHadronization.h"
 #include "TLorentzVector.h"
 
-namespace genie {
-namespace rew {
+namespace genie::rew {
 
-ObservableHadronization::ObservableHadronization()
-    : RwgKineSpace("genie::rew::ObservableHadronization") {}
+// ObservableHadronization::ObservableHadronization()
+//     : RwgKineSpace("genie::rew::ObservableHadronization") {}
 
-ObservableHadronization::ObservableHadronization(std::string config)
-    : RwgKineSpace("genie::rew::ObservableHadronization", config) {}
+// ObservableHadronization::ObservableHadronization(std::string config)
+//     : RwgKineSpace("genie::rew::ObservableHadronization", config) {}
 
 KinematicVariables ObservableHadronization::CalcKinematicVariables(
     const EventRecord &event) const {
@@ -23,49 +22,6 @@ KinematicVariables ObservableHadronization::CalcKinematicVariables(
 
   double W = event.Summary()->Kine().W(true);
   ret.push_back(W);
-
-  auto np = event.GetEntriesFast();
-  TLorentzVector had_system{};
-  for (int i{}; i < np; i++) {
-    auto particle = event.Particle(i);
-    if (particle->Status() == kIStStableFinalState) {
-      had_system += *particle->P4();
-    }
-  }
-
-  // auto had_system_boost = had_system.BoostVector();
-  // auto had_system_dir = had_system.Vect().Unit();
-
-  // double sum_of_transverse_momentum{};
-  // for (int i{}; i < np; i++) {
-  //   auto particle = event.Particle(i);
-  //   if (particle->Status() == kIStStableFinalState &&
-  //       (particle->Pdg() == 211 || particle->Pdg() == -211 ||
-  //        particle->Pdg() == 111)) {
-  //     // auto p = particle->P4()->P();
-  //     // max_p_pion = std::max(max_p_pion, p);
-  //     auto p_in_had_rest_frame = *(particle->P4());
-  //     p_in_had_rest_frame.Boost(-had_system_boost);
-  //     // sum_of_transverse_momentum += p_in_had_rest_frame.Pt();
-  //     sum_of_transverse_momentum +=
-  //         p_in_had_rest_frame.Vect().Cross(had_system_dir).Mag();
-  //   }
-  // }
-  // ret.push_back(sum_of_transverse_momentum);
-
-  double visE{};
-  auto nentries = event.GetEntriesFast();
-  for (int i = 0; i < nentries; i++) {
-    auto part = event.Particle(i);
-    if (part->Status() == genie::kIStStableFinalState && part->Charge() != 0) {
-      // remove mass part for p/n
-      visE += part->E();
-      if (pdg::IsNeutron(part->Pdg()) || pdg::IsProton(part->Pdg())) {
-        visE -= part->Mass();
-      }
-    }
-  }
-  ret.push_back(visE);
   return ret;
 }
 
@@ -105,12 +61,6 @@ ChannelIDs ObservableHadronization::ChannelID(const EventRecord &event) const {
   bool cc = event.Summary()->ProcInfo().IsWeakCC();
   ret.push_back(cc);
 
-  // int probe = event.Probe()->Pdg();
-  // ret.push_back(probe);
-
-  // int nucleus = event.TargetNucleus()->Pdg();
-  // ret.push_back(nucleus);
-
   return ret;
 }
 
@@ -134,5 +84,83 @@ bool ObservableHadronization::IsHandled(const EventRecord &event) const {
 
 void ObservableHadronization::LoadConfig(void) {}
 
-} // namespace rew
-} // namespace genie
+ObservableHadronizationLowW::ObservableHadronizationLowW()
+    : ObservableHadronization{"genie::rew::ObservableHadronizationLowW"} {}
+
+ObservableHadronizationLowW::ObservableHadronizationLowW(std::string config)
+    : ObservableHadronization{"genie::rew::ObservableHadronizationLowW",
+                              config} {}
+
+KinematicVariables ObservableHadronizationLowW::CalcKinematicVariables(
+    const EventRecord &event) const {
+  auto ret = ObservableHadronization::CalcKinematicVariables(event);
+  double visE{};
+  auto nentries = event.GetEntriesFast();
+  for (int i = 0; i < nentries; i++) {
+    auto part = event.Particle(i);
+    if (part->Status() == genie::kIStStableFinalState && part->Charge() != 0) {
+      // remove mass part for p/n
+      visE += part->E();
+      if (pdg::IsNeutron(part->Pdg()) || pdg::IsProton(part->Pdg())) {
+        visE -= part->Mass();
+      }
+    }
+  }
+  ret.push_back(visE);
+  return ret;
+}
+
+bool ObservableHadronizationLowW::IsHandled(const EventRecord &event) const {
+  if (!ObservableHadronization::IsHandled(event)) {
+    return false;
+  }
+
+  return event.Summary()->Kine().W(true) < 3;
+}
+
+ObservableHadronizationHighW::ObservableHadronizationHighW()
+    : ObservableHadronization{"genie::rew::ObservableHadronizationHighW"} {}
+
+ObservableHadronizationHighW::ObservableHadronizationHighW(std::string config)
+    : ObservableHadronization{"genie::rew::ObservableHadronizationHighW",
+                              config} {}
+
+KinematicVariables ObservableHadronizationHighW::CalcKinematicVariables(
+    const EventRecord &event) const {
+  auto ret = ObservableHadronization::CalcKinematicVariables(event);
+  auto np = event.GetEntriesFast();
+  TLorentzVector had_system{};
+  for (int i{}; i < np; i++) {
+    auto particle = event.Particle(i);
+    if (particle->Status() == kIStStableFinalState) {
+      had_system += *particle->P4();
+    }
+  }
+  auto had_system_boost = had_system.BoostVector();
+  auto had_system_dir = had_system.Vect().Unit();
+
+  double sum_of_transverse_momentum{};
+  for (int i{}; i < np; i++) {
+    auto particle = event.Particle(i);
+    if (particle->Status() == kIStStableFinalState &&
+        (particle->Pdg() == 211 || particle->Pdg() == -211 ||
+         particle->Pdg() == 111)) {
+      auto p_in_had_rest_frame = *(particle->P4());
+      p_in_had_rest_frame.Boost(-had_system_boost);
+      sum_of_transverse_momentum +=
+          p_in_had_rest_frame.Vect().Cross(had_system_dir).Mag();
+    }
+  }
+  ret.push_back(sum_of_transverse_momentum);
+  return ret;
+}
+
+bool ObservableHadronizationHighW::IsHandled(const EventRecord &event) const {
+  if (!ObservableHadronization::IsHandled(event)) {
+    return false;
+  }
+
+  return event.Summary()->Kine().W(true) >= 3;
+}
+
+} // namespace genie::rew

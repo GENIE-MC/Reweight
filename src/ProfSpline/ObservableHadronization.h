@@ -2,15 +2,11 @@
 #define OBSERVABLEHADRONIZATION_H
 #include "ProfSpline/RwgKineSpace.h"
 
-
-namespace genie {
-namespace rew {
+namespace genie::rew {
 class ObservableHadronization : public RwgKineSpace {
 public:
-  ObservableHadronization();
-  ObservableHadronization(std::string config);
+  using RwgKineSpace::RwgKineSpace;
 
-public:
   virtual KinematicVariables
   CalcKinematicVariables(const EventRecord &event) const override;
 
@@ -22,9 +18,28 @@ public:
 
 private:
   virtual void LoadConfig(void) override;
-  std::string channelid{};
 };
-} // namespace rew
-} // namespace genie
+
+class ObservableHadronizationLowW final : public ObservableHadronization {
+public:
+  ObservableHadronizationLowW();
+  ObservableHadronizationLowW(std::string config);
+  virtual KinematicVariables
+  CalcKinematicVariables(const EventRecord &event) const override;
+  virtual ~ObservableHadronizationLowW() = default;
+  virtual bool IsHandled(const EventRecord &event) const override;
+};
+
+class ObservableHadronizationHighW final : public ObservableHadronization {
+public:
+  ObservableHadronizationHighW();
+  ObservableHadronizationHighW(std::string config);
+  virtual KinematicVariables
+  CalcKinematicVariables(const EventRecord &event) const override;
+  virtual ~ObservableHadronizationHighW() = default;
+  virtual bool IsHandled(const EventRecord &event) const override;
+};
+
+} // namespace genie::rew
 
 #endif

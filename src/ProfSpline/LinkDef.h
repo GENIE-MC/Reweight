@@ -13,7 +13,9 @@
 #pragma link C++ class genie::rew::ObservableMuonMomentum;
 #pragma link C++ class genie::rew::ObservablePMuEnu;
 #pragma link C++ class genie::rew::ObservablePMuEnuW;
-#pragma link C++ class genie::rew::ObservableHadronization;
+// #pragma link C++ class genie::rew::ObservableHadronization;
+#pragma link C++ class genie::rew::ObservableHadronizationLowW;
+#pragma link C++ class genie::rew::ObservableHadronizationHighW;
 
 #pragma link C++ class genie::rew::KinematicVariables;
 #pragma link C++ class genie::rew::ChannelIDs;
