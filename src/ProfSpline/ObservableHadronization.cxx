@@ -137,21 +137,25 @@ KinematicVariables ObservableHadronizationHighW::CalcKinematicVariables(
     }
   }
   auto had_system_boost = had_system.BoostVector();
-  auto had_system_dir = had_system.Vect().Unit();
+  // auto had_system_dir = had_system.Vect().Unit();
 
-  double sum_of_transverse_momentum{};
+  // double sum_of_transverse_momentum{};
+  double p_leading_pion{};
   for (int i{}; i < np; i++) {
     auto particle = event.Particle(i);
     if (particle->Status() == kIStStableFinalState &&
         (particle->Pdg() == 211 || particle->Pdg() == -211 ||
          particle->Pdg() == 111)) {
-      auto p_in_had_rest_frame = *(particle->P4());
-      p_in_had_rest_frame.Boost(-had_system_boost);
-      sum_of_transverse_momentum +=
-          p_in_had_rest_frame.Vect().Cross(had_system_dir).Mag();
+      auto p = *(particle->P4());
+      p.Boost(-had_system_boost);
+      p_leading_pion = std::max(p_leading_pion, p.P());
+      // auto p_in_had_rest_frame = *(particle->P4());
+      // p_in_had_rest_frame.Boost(-had_system_boost);
+      // sum_of_transverse_momentum +=
+      //     p_in_had_rest_frame.Vect().Cross(had_system_dir).Mag();
     }
   }
-  ret.push_back(sum_of_transverse_momentum);
+  ret.push_back(p_leading_pion);
   return ret;
 }
 
