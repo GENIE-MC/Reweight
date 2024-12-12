@@ -132,7 +132,8 @@ KinematicVariables ObservableHadronizationHighW::CalcKinematicVariables(
   TLorentzVector had_system{};
   for (int i{}; i < np; i++) {
     auto particle = event.Particle(i);
-    if (particle->Status() == kIStStableFinalState) {
+    if (particle->Status() == kIStStableFinalState &&
+        pdg::IsHadron(particle->Pdg())) {
       had_system += *particle->P4();
     }
   }
@@ -149,10 +150,6 @@ KinematicVariables ObservableHadronizationHighW::CalcKinematicVariables(
       auto p = *(particle->P4());
       p.Boost(-had_system_boost);
       p_leading_pion = std::max(p_leading_pion, p.P());
-      // auto p_in_had_rest_frame = *(particle->P4());
-      // p_in_had_rest_frame.Boost(-had_system_boost);
-      // sum_of_transverse_momentum +=
-      //     p_in_had_rest_frame.Vect().Cross(had_system_dir).Mag();
     }
   }
   ret.push_back(p_leading_pion);
