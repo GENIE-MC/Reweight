@@ -21,7 +21,8 @@ LIBRARIES  := $(LIBRARIES) $(CERN_LIBRARIES) $(GENIE_LIBS) $(GENIE_REWEIGHT_LIBS
 
 TGT_BASE =  grwght1p   \
             grwghtnp   \
-						grwproftest
+						grwproftest \
+						grwproftestHad
 
 TGT = $(addprefix $(GENIE_REWEIGHT_BIN_PATH)/,$(TGT_BASE))
 
@@ -49,9 +50,13 @@ $(GENIE_REWEIGHT_BIN_PATH)/grwproftest: gRwProfTest.o $(call find_libs,grwghtnp)
 	@echo "** Building grwghtnp"
 	$(LD) $(LDFLAGS) gRwProfTest.o $(LIBRARIES) -o $(GENIE_REWEIGHT_BIN_PATH)/grwproftest
 
+$(GENIE_REWEIGHT_BIN_PATH)/grwproftestHad: gRwProfTestHadronization.o $(call find_libs,grwghtnp)
+	@echo "** Building gRwProfTestHadronization"
+	$(LD) $(LDFLAGS) gRwProfTestHadronization.o $(LIBRARIES) -o $(GENIE_REWEIGHT_BIN_PATH)/grwproftestHad
+
 
 %.o : %.cxx
-	$(CXX) $(CXXFLAGS) -MMD -MP -c $(CPP_INCLUDES) $< -o $@
+	$(CXX) $(CXXFLAGS) -MMD -MP -c $(CPP_INCLUDES) $< -o $@ -std=c++23
 
 # CLEANING-UP
 

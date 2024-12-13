@@ -1,6 +1,5 @@
 bin/
 lib/
-puml/
 build-env.log
 src/make/Make.config
 src/make/Make.config_no_paths
