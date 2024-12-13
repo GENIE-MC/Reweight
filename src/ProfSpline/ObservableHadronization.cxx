@@ -145,8 +145,7 @@ KinematicVariables ObservableHadronizationHighW::CalcKinematicVariables(
   for (int i{}; i < np; i++) {
     auto particle = event.Particle(i);
     if (particle->Status() == kIStStableFinalState &&
-        (particle->Pdg() == 211 || particle->Pdg() == -211 ||
-         particle->Pdg() == 111)) {
+        pdg::IsPion(particle->Pdg())) {
       auto p = *(particle->P4());
       p.Boost(-had_system_boost);
       p_leading_pion = std::max(p_leading_pion, p.P());
