@@ -121,6 +121,23 @@ std::map<GSyst_t, std::string> GSyst::BuildGSystToStringMap() {
   temp_map[ kXSecTwkDial_CoulombCCQE ] = "CoulombCCQE";
   temp_map[ kXSecTwkDial_NormCCCOHpi ] = "NormCCCOH";
   temp_map[ kXSecTwkDial_NormNCCOHpi ] = "NormNCCOH";
+  temp_map[ kXSecTwkDial_ZExpELFF ] = "ZExpELFFCCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AP1 ] = "ZExpELFFAP1CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AP2 ] = "ZExpELFFAP2CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AP3 ] = "ZExpELFFAP3CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AP4 ] = "ZExpELFFAP4CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AN1 ] = "ZExpELFFAN1CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AN2 ] = "ZExpELFFAN2CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AN3 ] = "ZExpELFFAN3CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AN4 ] = "ZExpELFFAN4CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BP1 ] = "ZExpELFFBP1CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BP2 ] = "ZExpELFFBP2CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BP3 ] = "ZExpELFFBP3CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BP4 ] = "ZExpELFFBP4CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BN1 ] = "ZExpELFFBN1CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BN2 ] = "ZExpELFFBN2CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BN3 ] = "ZExpELFFBN3CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BN4 ] = "ZExpELFFBN4CCQE";
 
   return temp_map;
 }
