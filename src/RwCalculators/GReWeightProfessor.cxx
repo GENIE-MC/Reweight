@@ -3,7 +3,6 @@
 #include "Framework/GHEP/GHepParticle.h"
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/Utils/XmlParserUtils.h"
-#include "ProfSpline/KinematicVariables.h"
 #include "RwFramework/GSyst.h"
 #include <cstddef>
 #include <cstdlib>
@@ -45,13 +44,21 @@ void GReWeightProfessor::Reconfigure(void) {}
 double GReWeightProfessor::CalcWeight(const genie::EventRecord &event) {
   // return observable_splines->GetRatio(event, systematics_values, orig_value);
   double weight{1.};
+#ifdef __GENIE_PROFESSOR2_ENABLED__
   for (auto &&calc : observables) {
     auto ratio = calc.GetRatio(event, systematics_values, orig_value);
     weight *= ratio;
   }
+#else
+  LOG("ReW", pFATAL)
+    << "Calling GReWeightProfessor without enabling Professor2";
+  gAbortingInErr = true;
+  std::exit(1);
+#endif
   return weight;
 }
 
+#ifdef __GENIE_PROFESSOR2_ENABLED__
 std::map<std::tuple<std::string /*observable id*/,
                     ChannelIDs /*Channel selection ID*/>,
          std::vector<std::string> /*the vars lines from prof2*/>
@@ -101,6 +108,7 @@ GReWeightProfessor::ReadProf2Spline(std::string filepath) {
   }
   return ret;
 }
+#endif
 
 GReWeightProfessor::GReWeightProfessor(std::string name)
     : GReWeightModel(name) {}
@@ -119,7 +127,9 @@ void GReWeightProfessor::ReadComparisonXML(std::string filepath,
         << "Cannot get root element of xml file " << filepath;
     exit(1);
   }
+#ifdef __GENIE_PROFESSOR2_ENABLED__
   auto splines = ReadProf2Spline(spline_path);
+
   // get node "binning"
   auto node = utils::xml::FindNode(doc, "binning");
   for (auto observable_node = node->children; observable_node;
@@ -190,6 +200,12 @@ void GReWeightProfessor::ReadComparisonXML(std::string filepath,
       }
     }
   }
+#else
+  LOG("ReW", pFATAL)
+    << "Calling GReWeightProfessor without enabling Professor2";
+  gAbortingInErr = true;
+  std::exit(1);
+#endif
 }
 
 } // namespace rew
