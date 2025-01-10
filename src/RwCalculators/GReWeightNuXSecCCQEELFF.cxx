@@ -1,13 +1,11 @@
 //____________________________________________________________________________
 /*
-   Copyright (c) 2003-2018, The GENIE Collaboration
+   Copyright (c) 2003-2024, The GENIE Collaboration
    For the full text of the license visit http://copyright.genie-mc.org
 
-Authors: Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
-University of Liverpool & STFC Rutherford Appleton Lab
+   Liang Liu <liangliu \at fnal.gov>
+   Fermi National Accelerator Laboratory
 
-Jim Dobson <J.Dobson07 \at imperial.ac.uk>
-Imperial College London
 */
 //____________________________________________________________________________
 
@@ -95,14 +93,14 @@ bool GReWeightNuXSecCCQEELFF::IsHandled(GSyst_t syst) const
     case ( kXSecTwkDial_ZExpELFF_BP1 ) :
     case ( kXSecTwkDial_ZExpELFF_BP2 ) :
     case ( kXSecTwkDial_ZExpELFF_BP3 ) :
-    case ( kXSecTwkDial_ZExpELFF_BP4 ) : 
+    case ( kXSecTwkDial_ZExpELFF_BP4 ) :
       if(fMode==kModeZExp && fModelIsZExp){
         handle = true;
       }else {
         handle = false;
       }
       break;
-    case ( kXSecTwkDial_ZExpELFF ) : 
+    case ( kXSecTwkDial_ZExpELFF ) :
       if(fMode==kModeZExp && fModelIsZExp){
         handle = true;
       }else {
@@ -141,69 +139,69 @@ void GReWeightNuXSecCCQEELFF::SetSystematic(GSyst_t syst, double twk_dial)
       fIsAllPara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AP1 ) :
-      fZExpParaTwkDial.fZ_APn[0] = twk_dial; 
+      fZExpParaTwkDial.fZ_APn[0] = twk_dial;
       fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AP2 ) :
-      fZExpParaTwkDial.fZ_APn[1] = twk_dial; 
+      fZExpParaTwkDial.fZ_APn[1] = twk_dial;
       fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AP3 ) :
-      fZExpParaTwkDial.fZ_APn[2] = twk_dial; 
+      fZExpParaTwkDial.fZ_APn[2] = twk_dial;
       fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AP4 ) :
-      fZExpParaTwkDial.fZ_APn[3] = twk_dial; 
+      fZExpParaTwkDial.fZ_APn[3] = twk_dial;
       fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AN1 ) :
-      fZExpParaTwkDial.fZ_ANn[0] = twk_dial; 
+      fZExpParaTwkDial.fZ_ANn[0] = twk_dial;
       fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AN2 ) :
-      fZExpParaTwkDial.fZ_ANn[1] = twk_dial; 
+      fZExpParaTwkDial.fZ_ANn[1] = twk_dial;
       fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AN3 ) :
-      fZExpParaTwkDial.fZ_ANn[2] = twk_dial; 
+      fZExpParaTwkDial.fZ_ANn[2] = twk_dial;
       fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_AN4 ) :
-      fZExpParaTwkDial.fZ_ANn[3] = twk_dial; 
+      fZExpParaTwkDial.fZ_ANn[3] = twk_dial;
       fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BP1 ) :
-      fZExpParaTwkDial.fZ_BPn[0] = twk_dial; 
+      fZExpParaTwkDial.fZ_BPn[0] = twk_dial;
       fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BP2 ) :
-      fZExpParaTwkDial.fZ_BPn[1] = twk_dial; 
+      fZExpParaTwkDial.fZ_BPn[1] = twk_dial;
       fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BP3 ) :
-      fZExpParaTwkDial.fZ_BPn[2] = twk_dial; 
+      fZExpParaTwkDial.fZ_BPn[2] = twk_dial;
       fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BP4 ) :
-      fZExpParaTwkDial.fZ_BPn[3] = twk_dial; 
+      fZExpParaTwkDial.fZ_BPn[3] = twk_dial;
       fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BN1 ) :
-      fZExpParaTwkDial.fZ_BNn[0] = twk_dial; 
+      fZExpParaTwkDial.fZ_BNn[0] = twk_dial;
       fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BN2 ) :
-      fZExpParaTwkDial.fZ_BNn[1] = twk_dial; 
+      fZExpParaTwkDial.fZ_BNn[1] = twk_dial;
       fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BN3 ) :
-      fZExpParaTwkDial.fZ_BNn[2] = twk_dial; 
+      fZExpParaTwkDial.fZ_BNn[2] = twk_dial;
       fIsSinglePara = true;
       break;
     case ( kXSecTwkDial_ZExpELFF_BN4 ) :
-      fZExpParaTwkDial.fZ_BNn[3] = twk_dial; 
+      fZExpParaTwkDial.fZ_BNn[3] = twk_dial;
       fIsSinglePara = true;
-      break; 
+      break;
     default:
       break;
   }
@@ -374,7 +372,9 @@ void GReWeightNuXSecCCQEELFF::Init(void)
   int n_row = rgcovmat->GetInt(Algorithm::BuildParamMatRowSizeKey("ZExpELFF@CovarianceMatrix"));
   int n_col = rgcovmat->GetInt(Algorithm::BuildParamMatColSizeKey("ZExpELFF@CovarianceMatrix"));
   if(n_row != n_col){
-    exit(1);
+    LOG( "GReWeightNuXSecCCQEELFF", pFATAL ) << "Non-square covariance matrix"
+      << "encountered in GReWeightNuXSecCCQEELFF::Init()";
+    std::exit(1);
   }
   error_mat.ResizeTo(n_row, n_row);
   errors.resize(n_row);
@@ -554,8 +554,8 @@ double GReWeightNuXSecCCQEELFF::CalcWeightZExp(const genie::EventRecord & event)
 
 void GReWeightNuXSecCCQEELFF::XSecPartialDerivative(const EventRecord & event){
   // Get the uncertainties from the error matrix
-  // ap1, ap2, ap3, ap4, 
-  // bp1, bp2, bp3, bp4, 
+  // ap1, ap2, ap3, ap4,
+  // bp1, bp2, bp3, bp4,
   // an1, an2, an3, an4,
   // bn1, bn2, bn3, bn4
 
@@ -633,7 +633,7 @@ void GReWeightNuXSecCCQEELFF::XSecPartialDerivative(const EventRecord & event){
 
 //_______________________________________________________________________________________
 //  Uncertainty propagation
-//  
+//
 //  \sigma_{XSec}^2 = A_f[i] *A_f[j] *M_ij
 double GReWeightNuXSecCCQEELFF::GetOneSigma(const EventRecord & event){
   XSecPartialDerivative(event);

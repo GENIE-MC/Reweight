@@ -81,7 +81,7 @@ namespace genie {
         std::string fManualModelName; ///< If using a tweaked model that isn't the same as default, name
         std::string fManualModelType; ///< If using a tweaked model that isn't the same as default, type
 
-        int    fMode;         ///< 0: ZExp; TODO: currently there is only one model implemented. 
+        int    fMode;         ///< 0: ZExp; TODO: currently there is only one model implemented.
         bool   fRewNue;       ///< reweight nu_e CC?
         bool   fRewNuebar;    ///< reweight nu_e_bar CC?
         bool   fRewNumu;      ///< reweight nu_mu CC?
@@ -119,11 +119,11 @@ namespace genie {
         std::vector<double> A_f;
 
         // List of the uncertainties of parameters from Kaushik
-        // ap1, ap2, ap3, ap4, 
-        // bp1, bp2, bp3, bp4, 
+        // ap1, ap2, ap3, ap4,
+        // bp1, bp2, bp3, bp4,
         // an1, an2, an3, an4,
         // bn1, bn2, bn3, bn4
-        std::vector<double> errors; 
+        std::vector<double> errors;
         TMatrixDSym error_mat;
     };
 
