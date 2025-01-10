@@ -40,7 +40,7 @@ public:
 
   void ReadComparisonXML(std::string filepath, std::string spline_path);
 
- private:
+private:
 #ifdef __GENIE_PROFESSOR2_ENABLED__
   std::vector<ObservableSplines> observables{};
 #endif
