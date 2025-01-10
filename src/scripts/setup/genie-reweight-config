@@ -4,6 +4,9 @@
 # genie-reweight-config a la ROOT's root-config
 #
 
+### GENIE config options:
+. $GENIE/src/make/Make.config_no_paths
+
 ### GENIE/Reweight libraries path:
 libdir=$GENIE_REWEIGHT/lib
 
@@ -22,11 +25,16 @@ fi
 srcdir=$GENIE_REWEIGHT/src
 
 ### GENIE/Reweight libraries:
-libs="-L$libdir -lGRwFwk -lGRwIO -lGRwClc -lGPrSp"
+libs="-L$libdir -lGRwFwk -lGRwIO -lGRwClc"
+
+# (optional)
+if test "$GOPT_ENABLE_PROFESSOR2" == "YES"; then
+ libs="$libs -lGPrSp"
+fi
 
 ### Usage
 usage="\
-Usage: genie-reweight-config [--libs] [--libdir] [--topsrcdir]" 
+Usage: genie-reweight-config [--libs] [--libdir] [--topsrcdir]"
 
 if test $# -eq 0; then
    echo "${usage}" 1>&2
