@@ -20,8 +20,11 @@ GENIE_REWEIGHT_LIBS  = $(shell $(GENIE_REWEIGHT)/src/scripts/setup/genie-reweigh
 LIBRARIES  := $(LIBRARIES) $(CERN_LIBRARIES) $(GENIE_LIBS) $(GENIE_REWEIGHT_LIBS)
 
 TGT_BASE =  grwght1p   \
-            grwghtnp   \
-						grwproftest
+            grwghtnp
+
+ifeq ($(strip $(GOPT_ENABLE_PROFESSOR2)),YES)
+TGT_BASE += grwproftest
+endif
 
 TGT = $(addprefix $(GENIE_REWEIGHT_BIN_PATH)/,$(TGT_BASE))
 
