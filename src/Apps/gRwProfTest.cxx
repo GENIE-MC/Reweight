@@ -30,7 +30,13 @@
 #include "RwCalculators/GReWeightXSecEmpiricalMEC.h"
 #include "RwCalculators/GReWeightXSecMEC.h"
 
+#ifdef __GENIE_PROFESSOR2_ENABLED__
 #include "RwCalculators/GReWeightProfessor.h"
+#include <ROOT/RDF/InterfaceUtils.hxx>
+#include <ROOT/RDF/RInterface.hxx>
+#include <ROOT/RDataFrame.hxx>
+#endif
+
 #include "TAttLine.h"
 #include "TF1.h"
 #include "TLorentzVector.h"
@@ -38,9 +44,6 @@
 #include "TROOT.h"
 #include "TSpline.h"
 
-#include <ROOT/RDF/InterfaceUtils.hxx>
-#include <ROOT/RDF/RInterface.hxx>
-#include <ROOT/RDataFrame.hxx>
 #include <unordered_map>
 #include <vector>
 
@@ -92,6 +95,7 @@ std::pair<double, double> get_xsec(TH1 *h_rate, TGraph *spline) {
   return {event_rate, event_rate / fluxint};
 }
 
+#ifdef __GENIE_PROFESSOR2_ENABLED__
 ROOT::RDF::RResultPtr<TH1D> normalize_filter(ROOT::RDF::RNode df) {
   return df
       .Filter(
@@ -127,6 +131,7 @@ double get_genie_normalize(ROOT::RDF::RNode df, std::string filename, int Z) {
   xsec *= 1. / ((double)Z) * 1e-38;
   return xsec / tot;
 }
+#endif
 
 template <typename T> auto common_def(T &&df) {
   return df
@@ -232,6 +237,7 @@ int main(int argc, char **argv) {
   auto ipol_path = basedir + "ipol_test.dat";
   auto binningxml = basedir + "binning.xml";
 
+#ifdef __GENIE_PROFESSOR2_ENABLED__
   ROOT::RDataFrame input_from_tree(
       "gtree",
       input_from_file); // read the tree from the file
@@ -470,6 +476,13 @@ int main(int argc, char **argv) {
     do_plot(var, true, "1pi");
     do_plot(var, true, "Mpi");
   }
+
+#else
+  LOG("ReW", pFATAL)
+    << "Calling GReWeightProfessor without enabling Professor2";
+  gAbortingInErr = true;
+  std::exit(1);
+#endif
 
   return 0;
 }
