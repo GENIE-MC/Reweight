@@ -31,6 +31,10 @@
 #include "RwCalculators/GReWeightXSecMEC.h"
 
 #include "RwCalculators/GReWeightProfessor.h"
+#include <ROOT/RDF/InterfaceUtils.hxx>
+#include <ROOT/RDF/RInterface.hxx>
+#include <ROOT/RDataFrame.hxx>
+
 #include "TAttLine.h"
 #include "TF1.h"
 #include "TLorentzVector.h"
@@ -38,9 +42,6 @@
 #include "TROOT.h"
 #include "TSpline.h"
 
-#include <ROOT/RDF/InterfaceUtils.hxx>
-#include <ROOT/RDF/RInterface.hxx>
-#include <ROOT/RDataFrame.hxx>
 #include <unordered_map>
 #include <vector>
 

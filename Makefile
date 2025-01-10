@@ -87,9 +87,14 @@ reweight-calculators: FORCE
 prof-spline: FORCE
 	@echo " "
 	@echo "** Building GENIE/Reweight ProfSpline utilities..."
+ifeq ($(strip $(GOPT_ENABLE_PROFESSOR2)),YES)
 	cd ${GENIE_REWEIGHT}/src && \
 	cd ProfSpline && make && cd .. && \
 	cd ${GENIE_REWEIGHT}
+else
+	@echo " "
+	@echo "** Professor2 was not enabled, Skipping ProfSpline"
+endif
 
 general-apps : reweight-framework reweight-io reweight-calculators prof-spline FORCE
 	@echo " "
