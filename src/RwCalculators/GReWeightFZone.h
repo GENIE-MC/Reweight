@@ -8,12 +8,12 @@
 \author   Jim Dobson <J.Dobson07 \at imperial.ac.uk>
           Imperial College London
 
-          Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
-          University of Liverpool & STFC Rutherford Appleton Lab
+          Costas Andreopoulos <c.andreopoulos \at cern.ch>
+          University of Liverpool
 
 \created  Sep 20, 2009
 
-\cpright  Copyright (c) 2003-2018, The GENIE Collaboration
+\cpright  Copyright (c) 2003-2024, The GENIE Collaboration
           For the full text of the license visit http://copyright.genie-mc.org
 */
 //____________________________________________________________________________
@@ -40,7 +40,7 @@ namespace rew   {
   ~GReWeightFZone();
 
    // implement the GReWeightI interface
-   bool   AppliesTo      (ScatteringType_t type, bool is_cc) const;
+   bool   AppliesTo      (const EventRecord & event) const;
    bool   IsHandled      (GSyst_t syst) const;
    void   SetSystematic  (GSyst_t syst, double val);
    void   Reset          (void);

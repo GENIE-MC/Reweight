@@ -1,10 +1,10 @@
 //____________________________________________________________________________
 /*
- Copyright (c) 2003-2019, The GENIE Collaboration
+ Copyright (c) 2003-2024, The GENIE Collaboration
  For the full text of the license visit http://copyright.genie-mc.org
 
- Authors: Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
-          University of Liverpool & STFC Rutherford Appleton Lab
+ Authors: Costas Andreopoulos <c.andreopoulos \at cern.ch>
+          University of Liverpool
 
           Steven Gardiner <gardiner \at fnal.gov>
           Fermi National Accelerator Laboratory
@@ -121,6 +121,23 @@ std::map<GSyst_t, std::string> GSyst::BuildGSystToStringMap() {
   temp_map[ kXSecTwkDial_CoulombCCQE ] = "CoulombCCQE";
   temp_map[ kXSecTwkDial_NormCCCOHpi ] = "NormCCCOH";
   temp_map[ kXSecTwkDial_NormNCCOHpi ] = "NormNCCOH";
+  temp_map[ kXSecTwkDial_ZExpELFF ] = "ZExpELFFCCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AP1 ] = "ZExpELFFAP1CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AP2 ] = "ZExpELFFAP2CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AP3 ] = "ZExpELFFAP3CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AP4 ] = "ZExpELFFAP4CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AN1 ] = "ZExpELFFAN1CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AN2 ] = "ZExpELFFAN2CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AN3 ] = "ZExpELFFAN3CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_AN4 ] = "ZExpELFFAN4CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BP1 ] = "ZExpELFFBP1CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BP2 ] = "ZExpELFFBP2CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BP3 ] = "ZExpELFFBP3CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BP4 ] = "ZExpELFFBP4CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BN1 ] = "ZExpELFFBN1CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BN2 ] = "ZExpELFFBN2CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BN3 ] = "ZExpELFFBN3CCQE";
+  temp_map[ kXSecTwkDial_ZExpELFF_BN4 ] = "ZExpELFFBN4CCQE";
 
   return temp_map;
 }

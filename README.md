@@ -48,44 +48,62 @@ For more information, visit http://www.genie-mc.org
                            NmddhyyyssssyyyhdmmNNNmhhhyyyyhhddmN                                                
 </pre>
 
-## Authors
+## Current authors:
 
-<pre>
-Luis Alvarez-Ruso [8], Costas Andreopoulos (*) [4,6], Christopher Barry [4], Francis Bench [4], Steve Dennis [4], 
- Steve Dytman [5], Hugh Gallagher [7], Steven Gardiner[3], Walter Giele [3], Robert Hatcher [3], Libo Jiang [5], 
-      Rhiannon Jones [4], Igor Kakorin [2], Konstantin Kuzmin [2], Anselmo Meregaglia [1], Donna Naples [5], 
-       Vadim Naumov [2], Gabriel Perdue [3], Marco Roda [4], Vladyslav Syrotenko [7], Julia Tena Vidal [4], 
-                                    Jeremy Wolcott [7], and Julia Yarba [3]
+- Luis Alvarez-Ruso (*IFIC*)
+- Costas Andreopoulos (+) (*Liverpool*)
+- Adi Ashkenazi (*Tel Aviv*)
+- Joshua Barrow (*Tel Aviv; MIT*)
+- Steve Dytman (*Pittsburgh*)
+- Hugh Gallagher (*Tufts*)
+- Alfonso Andres Garcia Soto (*Harvard and IFIC*)
+- Steven Gardiner (*Fermilab*)
+- Matan Goldenberg (*Tel Aviv*)
+- Robert Hatcher (*Fermilab*)
+- Or Hen (*MIT*)
+- Igor Kakorin (*JINR*)
+- Konstantin Kuzmin (*ITEP and JINR*)
+- Weijun Li (*Oxford*)
+- Liang Liu (*Fermilab*)
+- Xianguo Lu (*Warwick*)
+- Anselmo Meregaglia (*Bordeaux, CNRS/IN2P3*)
+- Vadim Naumov (*JINR*)
+- Afroditi Papadopoulou (*Argonne*)
+- Gabriel Perdue (*Fermilab*)
+- Komninos-John Plows (*Oxford*)
+- Marco Roda (*Liverpool*)
+- Beth Slater (*Liverpool*)
+- Alon Sportes (*Tel Aviv*)
+- Noah Steinberg (*Fermilab*)
+- Vladyslav Syrotenko (*Tufts*)
+- Júlia Tena Vidal (*Tel Aviv*)
+- Jeremy Wolcott (*Tufts*)
+- Qiyu Yan (*UCAS and Warwick*)
 
-                                           (The GENIE Collaboration)
+---
+(+) Corresponding Author:
 
-(1) CENBG, Université de Bordeaux, CNRS/IN2P3, 33175 Gradignan, France
-(2) Joint Institute for Nuclear Research (JINR), Dubna, Moscow region, 141980, Russia
-(3) Fermi National Accelerator Laboratory, Batavia, Illinois 60510, USA
-(4) University of Liverpool, Dept. of Physics, Liverpool L69 7ZE, UK 
-(5) University of Pittsburgh, Dept. of Physics and Astronomy, Pittsburgh PA 15260, USA
-(6) STFC Rutherford Appleton Laboratory, Particle Physics Dept., Oxfordshire OX11 0QX, UK
-(7) Tufts University, Dept. of Physics and Astronomy, Medford MA 02155, USA
-(8) University of Valencia, Valencia, Spain
+**Prof. Costas Andreopoulos < c.andreopoulos \at cern.ch >**
 
---------------------
-(*) Corresponding Author:
+University of Liverpool, Department of Physics, Oliver Lodge Lab 316,  Liverpool L69 7ZE, UK  
 
- Dr. Costas Andreopoulos < constantinos.andreopoulos \at cern.ch >
-    
- University of Liverpool          |  U.K. Research & Innovation (UKRI)
- Faculty of Science & Engineering |  Science & Technology Facilities Council (STFC)
- School of Physical Sciences      |  Rutherford Appleton Laboratory 
- Department of Physics            |  Particle Physics Department
- Oliver Lodge Lab 316             |  Harwell Oxford Campus, R1 2.89
- Liverpool L69 7ZE, UK            |  Oxfordshire OX11 0QX, UK          
- tel: +44-(0)1517-943201          |  tel: +44-(0)1235-445091 
-</pre>
  
+## Past authors and other key contributors
+
+Past authors: 
+- Christopher Barry (*Liverpool*)
+- Steve Dennis (*Liverpool*)
+- Walter Giele (*Fermilab*)
+- Timothy Hobbs (*Fermilab*)
+- Libo Jiang (*Pittsburgh*)
+- Rhiannon Jones (*Liverpool*)
+- Donna Naples (*Pittsburgh*)
+- Julia Yarba (*Fermilab*) 
+
 
 ## Copyright
 
-Copyright (c) 2003-2018, The GENIE Collaboration. For information, visit http://copyright.genie-mc.org 
+Copyright (c) 2003-2024, The GENIE Collaboration. For information, visit http://copyright.genie-mc.org
 
 
 ## Physics & User manual
@@ -130,11 +148,7 @@ If you use GENIE, please **always** cite the following reference:
 }
 </pre>
 
-If you used any of the new model configurations and tunes provided in the GENIE v3* series, please **add the following reference**:
-<pre>
-</pre>
-
-Finally, if you used any of the standard GENIE applications, built-in flux and geometry drivers, or if you used any of its event reweightng and error propagation tools, please **add the following reference**:
+If you used any of the standard GENIE applications, built-in flux and geometry drivers, or if you used any of its event reweightng and error propagation tools, please **add the following reference**:
 <pre>
 @article{Andreopoulos:2015wxa,
       author         = "Andreopoulos, Costas and Barry, Christopher and Dytman,
@@ -148,6 +162,80 @@ Finally, if you used any of the standard GENIE applications, built-in flux and g
       primaryClass   = "hep-ph",
       reportNumber   = "FERMILAB-FN-1004-CD",
       SLACcitation   = "%%CITATION = ARXIV:1510.05494;%%"
+}
+</pre>
+
+Finally, if you used any of the new model configurations and tunes provided in the GENIE v3* series, please consider adding any of the following references is relevant:
+
+<pre>
+@article{GENIE:2021npt,
+    author = "Alvarez-Ruso, Luis and others",
+    collaboration = "GENIE",
+    title = "{Recent highlights from GENIE v3}",
+    eprint = "2106.09381",
+    archivePrefix = "arXiv",
+    primaryClass = "hep-ph",
+    reportNumber = "FERMILAB-PUB-21-266-SCD-T",
+    doi = "10.1140/epjs/s11734-021-00295-7",
+    journal = "Eur. Phys. J. ST",
+    volume = "230",
+    number = "24",
+    pages = "4449--4467",
+    year = "2021"
+}
+</pre>
+
+<pre>
+@article{GENIE:2021zuu,
+    author = "Tena-Vidal, J\'ulia and others",
+    collaboration = "GENIE",
+    title = "{Neutrino-nucleon cross-section model tuning in GENIE v3}",
+    eprint = "2104.09179",
+    archivePrefix = "arXiv",
+    primaryClass = "hep-ph",
+    reportNumber = "FERMILAB-PUB-20-531-SCD-T",
+    doi = "10.1103/PhysRevD.104.072009",
+    journal = "Phys. Rev. D",
+    volume = "104",
+    number = "7",
+    pages = "072009",
+    year = "2021"
+}
+</pre>
+
+<pre>
+@article{GENIE:2021wox,
+    author = "Tena-Vidal, J\'ulia and others",
+    collaboration = "GENIE",
+    title = "{Hadronization model tuning in genie v3}",
+    eprint = "2106.05884",
+    archivePrefix = "arXiv",
+    primaryClass = "hep-ph",
+    reportNumber = "FERMILAB-PUB-21-024-QIS-SCD-T",
+    doi = "10.1103/PhysRevD.105.012009",
+    journal = "Phys. Rev. D",
+    volume = "105",
+    number = "1",
+    pages = "012009",
+    year = "2022"
+}
+</pre>
+
+<pre>
+@article{GENIE:2022qrc,
+    author = "Tena-Vidal, Julia and others",
+    collaboration = "GENIE",
+    title = "{Neutrino-nucleus CC0$\pi$ cross-section tuning in GENIE v3}",
+    eprint = "2206.11050",
+    archivePrefix = "arXiv",
+    primaryClass = "hep-ph",
+    reportNumber = "FERMILAB-PUB-22-296-ND-QIS-SCD",
+    doi = "10.1103/PhysRevD.106.112001",
+    journal = "Phys. Rev. D",
+    volume = "106",
+    number = "11",
+    pages = "112001",
+    year = "2022"
 }
 </pre>
 
