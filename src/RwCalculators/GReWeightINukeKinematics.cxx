@@ -43,7 +43,6 @@ bool GReWeightINukeKinematics::IsHandled(GSyst_t syst) const
 {
   switch (syst) {
     case ( kINukeKinematicsTwkDial_NP_N ):
-    default:
     case ( kINukeKinematicsTwkDial_PP_N ):
       return true;
   }
