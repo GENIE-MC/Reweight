@@ -113,11 +113,12 @@ typedef enum EGSyst {
 
   //
   // Intranuclear rescattering systematics.
-  // There are 2 sets of parameters:
+  // There are 3 sets of parameters:
   // - parameters that control the total rescattering probability, P(total)
   // - parameters that control the fraction of each process (`fate'), given a total rescat. prob., P(fate|total)
   // These parameters are considered separately for pions and nucleons.
-  //
+  // - parameters that control the kinematics of the scattering process
+  // 
 
   kINukeTwkDial_MFP_pi,      ///< tweak mean free path for pions
   kINukeTwkDial_MFP_N,       ///< tweak mean free path for nucleons
@@ -132,6 +133,9 @@ typedef enum EGSyst {
   kINukeTwkDial_FrInel_N,    ///< tweak inelastic       probability for nucleons, for given total rescattering probability
   kINukeTwkDial_FrAbs_N,     ///< tweak absorption      probability for nucleons, for given total rescattering probability
   kINukeTwkDial_FrPiProd_N,  ///< tweak pion production probability for nucleons, for given total rescattering probability
+
+  kINukeKinematicsTwkDial_NP_N, ///< tweak scattering angle of NP scatters for nucleons
+  kINukeKinematicsTwkDial_PP_N, ///< tweak scattering angle of PP and NN scatters for nucleons
 
   //
   // Nuclear model
