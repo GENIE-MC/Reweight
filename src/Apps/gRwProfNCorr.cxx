@@ -179,6 +179,26 @@ void GetCommandLineArgs(int argc, char **argv) {
 
     LOG("grwghtnp", pINFO) << "Run key set to " << gOptRunKey;
   }
+
+  // binning_xml
+  if (parser.OptionExists('b')) {
+    LOG("grwghtnp", pINFO) << "Reading binning XML file";
+    binningxml = parser.ArgAsString('b');
+  } else {
+    LOG("grwghtnp", pFATAL) << "Unspecified binning XML file - Exiting";
+    PrintSyntax();
+    exit(1);
+  }
+
+  // ipol_path
+  if (parser.OptionExists('p')) {
+    LOG("grwghtnp", pINFO) << "Reading interpolation path";
+    ipol_path = parser.ArgAsString('p');
+  } else {
+    LOG("grwghtnp", pFATAL) << "Unspecified interpolation path - Exiting";
+    PrintSyntax();
+    exit(1);
+  }
 }
 
 TMatrixD cov_to_corr(const TMatrixD &cov) {
