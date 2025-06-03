@@ -54,6 +54,9 @@ $(GENIE_REWEIGHT_BIN_PATH)/grwproftestHad: gRwProfTestHadronization.o $(call fin
 	@echo "** Building gRwProfTestHadronization"
 	$(LD) $(LDFLAGS) gRwProfTestHadronization.o $(LIBRARIES) -o $(GENIE_REWEIGHT_BIN_PATH)/grwproftestHad
 
+$(GENIE_REWEIGHT_BIN_PATH)/grwprofn: gRwProfNCorr.o $(call find_libs,grwghtnp)
+	@echo "** Building gRwProfNCorr"
+	$(LD) $(LDFLAGS) gRwProfNCorr.o $(LIBRARIES) -o $(GENIE_REWEIGHT_BIN_PATH)/grwprofn
 
 %.o : %.cxx
 	$(CXX) $(CXXFLAGS) -MMD -MP -c $(CPP_INCLUDES) $< -o $@ -std=c++23
