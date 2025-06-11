@@ -71,7 +71,7 @@ void GReWeightINukeKinematicsParams::ReBounce::SetUniverse(int u) {
 }
 
 double GReWeightINukeKinematicsParams::ReBounce::CalcWeight(float tlab, float costhcm) {
-  // std::cerr << "UNIVERSE: " << fUniverse << " VALID: " << ((int)!!fRewt) << " dw: " << ((!fRewt) ? 0. : fRewt->Evaluate(tlab, costhcm)) << std::endl;
+  // std::cout << "UNIVERSE: " << fUniverse << " VALID: " << ((int)!!fRewt) << " dw: " << ((!fRewt) ? 0. : fRewt->Evaluate(tlab, costhcm)) << std::endl;
   if (!fRewt) return 1;
 
   return 1 + fRewt->Evaluate(tlab, costhcm);
@@ -86,19 +86,19 @@ void ReadhNFile(
   // open
   std::ifstream hN_stream(filename.c_str(), std::ios::in);
   if(!hN_stream.good()) {
-      LOG("RWINukeKin", pERROR)
+      LOG("ReW", pERROR)
           << "Error reading INTRANUKE/hN data from: " << filename;
       return;
   }
   if(cols<2) {
-    LOG("RWINukeKin", pERROR)
+    LOG("ReW", pERROR)
       << "Error reading INTRANUKE/hN data from: " << filename;
-    LOG("RWINukeKin", pERROR)
+    LOG("ReW", pERROR)
       << "Too few columns: " << cols;
     return;
   }
 
-  LOG("RWINukeKin", pINFO)
+  LOG("ReW", pINFO)
      << "Reading INTRANUKE/hN data from: " << filename;
 
   // skip initial comments
@@ -119,7 +119,7 @@ void ReadhNFile(
        hN_stream >> trash;
      }
 
-     LOG("RWINukeKin", pDEBUG)
+     LOG("ReW", pDEBUG)
        << "Adding data point: (KE = " << ke << " MeV, angle = "
        << angle << ", sigma = " << wgt << ")";
      costh_array[ip] = TMath::Cos(angle*kPi/180.);

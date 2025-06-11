@@ -134,7 +134,7 @@ double GReWeightINukeKinematics::CalcWeight(const EventRecord &event) {
 
      // Determine the interaction type for current hadron in nucleus, if any
      int fsi_code = p->RescatterCode();
-     LOG("RWINukeKin", pDEBUG)
+     LOG("ReW", pDEBUG)
         << "Attempting to reweight hadron at position = " << ip
         << " with PDG code = " << pdgc
         << " and FSI code = "  << fsi_code
