@@ -44,6 +44,9 @@ bool GReWeightINukeKinematics::IsHandled(GSyst_t syst) const
   switch (syst) {
     case ( kINukeKinematicsTwkDial_NP_N ):
     case ( kINukeKinematicsTwkDial_PP_N ):
+    case ( kINukeKinematicsFixPiPro     ):
+    case ( kINukeKinematicsPiProBias    ):
+    case ( kINukeKinematicsPiProBiaswFix):
       return true;
     default:
       return false;
@@ -155,6 +158,16 @@ double GReWeightINukeKinematics::CalcWeight(const EventRecord &event) {
        double weight = fRwParams.CalcWeight(np_pp, tlab_v, costhcm_v);
 
        // std::cerr << "TLab: " << tlab_v << " costhcm: " << costhcm_v << " np/pp " << np_pp << " weight: " << weight << std::endl;
+
+       event_weight *= weight;
+     }
+     // pion production
+     else if (fsi_code == (int)kIHAFtPiProd) {
+       const GHepParticle &f1 = *event.Particle(p->FirstDaughter());
+       const GHepParticle &f2 = *event.Particle(p->FirstDaughter()+1);
+       const GHepParticle &f3 = *event.Particle(p->LastDaughter());
+
+       double weight = fRwParams.CalcPionWeight(*p->P4(), *f1.P4(), *f2.P4(), *f3.P4());
 
        event_weight *= weight;
      }

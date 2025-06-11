@@ -2,6 +2,7 @@
 #define _G_REWEIGHT_INTRANUKEKINEMATICS_PARAMS_H_
 
 #include <map>
+#include <TLorentzVector.h>
 
 // GENIE/Reweight includes
 #include "RwFramework/GSyst.h"
@@ -20,6 +21,8 @@ namespace rew   {
    void    SetTwkDial         (GSyst_t s, double val);  ///<
    void    SetTargetA         (int target_A); ///< Set the mass number of the hit nucleus
    double  CalcWeight         (int np_pp, float tlab, float costhcm); 
+   double  CalcPionWeight     (TLorentzVector p, TLorentzVector f1, TLorentzVector f2, TLorentzVector f3);
+
 
    struct ReBounce {
      void SetUniverse(int u);
@@ -39,6 +42,8 @@ namespace rew   {
  private:
     ReBounce fNPwgt;
     ReBounce fPPwgt;
+    bool fFixPiPro;
+    double fBiasPiPro;
 
  }; //GReWeightINukeKinematicsParams
 

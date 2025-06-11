@@ -136,6 +136,9 @@ typedef enum EGSyst {
 
   kINukeKinematicsTwkDial_NP_N, ///< tweak scattering angle of NP scatters for nucleons
   kINukeKinematicsTwkDial_PP_N, ///< tweak scattering angle of PP and NN scatters for nucleons
+  kINukeKinematicsFixPiPro,     ///< tweak to fix pion production kinematics
+  kINukeKinematicsPiProBias,   ///< tweak to introduce bias to pion production momenta
+  kINukeKinematicsPiProBiaswFix,   ///< tweak to introduce bias to pion production momenta, including lorentz weight fixing
 
   //
   // Nuclear model

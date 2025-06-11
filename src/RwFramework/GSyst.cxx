@@ -97,6 +97,9 @@ std::map<GSyst_t, std::string> GSyst::BuildGSystToStringMap() {
   temp_map[ kINukeTwkDial_FrPiProd_N ]      = "FrPiProd_N";
   temp_map[ kINukeKinematicsTwkDial_NP_N ]  = "FrKin_NP_N";
   temp_map[ kINukeKinematicsTwkDial_PP_N ]  = "FrKin_PP_N";
+  temp_map[ kINukeKinematicsFixPiPro ]      = "FrKin_PiProFix_N";
+  temp_map[ kINukeKinematicsPiProBiaswFix ] = "FrKin_PiProBiaswFix_N";
+  temp_map[ kINukeKinematicsPiProBias ]     = "FrKin_PiProBias_N";
   temp_map[ kSystNucl_CCQEPauliSupViaKF ]   = "CCQEPauliSupViaKF";
   temp_map[ kSystNucl_CCQEMomDistroFGtoSF ] = "CCQEMomDistroFGtoSF";
   temp_map[ kRDcyTwkDial_BR1gamma ]         = "RDecBR1gamma";
