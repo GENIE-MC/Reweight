@@ -121,12 +121,28 @@ typedef enum EGSyst {
 
   kINukeTwkDial_MFP_pi,      ///< tweak mean free path for pions
   kINukeTwkDial_MFP_N,       ///< tweak mean free path for nucleons
+  kINukeTwkDial_MFPLoE_N,       ///< tweak mean free path for nucleons, 0 <= KE < 150 MeV
+  kINukeTwkDial_MFPM1E_N,       ///< tweak mean free path for nucleons, 150 <= KE < 300 MeV
+  kINukeTwkDial_MFPM2E_N,       ///< tweak mean free path for nucleons, 300 <= KE < 600 MeV
+  kINukeTwkDial_MFPHiE_N,       ///< tweak mean free path for nucleons, 600 <= KE MeV
   kINukeTwkDial_FrCEx_pi,    ///< tweak charge exchange probability for pions, for given total rescattering probability
   // sd - hA no longer has elastic fate
   kINVALID_INukeTwkDial_FrElas_pi,   ///< tweak elastic         probability for pions, for given total rescattering probability
   kINukeTwkDial_FrInel_pi,   ///< tweak inelastic       probability for pions, for given total rescattering probability
   kINukeTwkDial_FrAbs_pi,    ///< tweak absorption      probability for pions, for given total rescattering probability
   kINukeTwkDial_FrPiProd_pi, ///< tweak pion production probability for pions, for given total rescattering probability
+
+  kINukeTwkDial_G4_N,     ///< tweak intranuclear scattering to G4 values
+  kINukeTwkDial_INCL_N,     ///< tweak intranuclear scattering to INCL values
+  kINukeTwkDial_G4LoE_N,     ///< tweak intranuclear scattering to G4 values, 0 <= KE < 150 MeV
+  kINukeTwkDial_INCLLoE_N,     ///< tweak intranuclear scattering to INCL values, 0 <= KE < 150 MeV
+  kINukeTwkDial_G4M1E_N,     ///< tweak intranuclear scattering to G4 values, 150 <= KE < 300 MeV
+  kINukeTwkDial_INCLM1E_N,     ///< tweak intranuclear scattering to INCL values, 300 <= KE < 300 MeV
+  kINukeTwkDial_G4M2E_N,     ///< tweak intranuclear scattering to G4 values, 300 <= KE < 600 MeV
+  kINukeTwkDial_INCLM2E_N,     ///< tweak intranuclear scattering to INCL values, 300 <= KE < 600 MeV
+  kINukeTwkDial_G4HiE_N,     ///< tweak intranuclear scattering to G4 values, 600 <= KE
+  kINukeTwkDial_INCLHiE_N,     ///< tweak intranuclear scattering to INCL values, 600 <= KE
+
   kINukeTwkDial_FrCEx_N,     ///< tweak charge exchange probability for nucleons, for given total rescattering probability
   kINVALID_INukeTwkDial_FrElas_N,    ///< tweak elastic         probability for nucleons, for given total rescattering probability
   kINukeTwkDial_FrInel_N,    ///< tweak inelastic       probability for nucleons, for given total rescattering probability
@@ -306,6 +322,16 @@ public:
      case ( kINukeTwkDial_FrInel_N  ) :
      case ( kINukeTwkDial_FrAbs_N   ) :
      case ( kINukeTwkDial_FrPiProd_N) :
+     case ( kINukeTwkDial_G4_N) :
+     case ( kINukeTwkDial_INCL_N) :
+     case ( kINukeTwkDial_G4LoE_N) :
+     case ( kINukeTwkDial_INCLLoE_N) :
+     case ( kINukeTwkDial_G4M1E_N) :
+     case ( kINukeTwkDial_INCLM1E_N) :
+     case ( kINukeTwkDial_G4M2E_N) :
+     case ( kINukeTwkDial_INCLM2E_N) :
+     case ( kINukeTwkDial_G4HiE_N) :
+     case ( kINukeTwkDial_INCLHiE_N) :
         return true;
         break;
      default:
@@ -356,6 +382,10 @@ public:
  {
    switch(syst) {
      case ( kINukeTwkDial_MFP_N  ) :
+     case ( kINukeTwkDial_MFPLoE_N  ) :
+     case ( kINukeTwkDial_MFPM1E_N  ) :
+     case ( kINukeTwkDial_MFPM2E_N  ) :
+     case ( kINukeTwkDial_MFPHiE_N  ) :
        return true;
        break;
 
@@ -371,6 +401,10 @@ public:
    switch(syst) {
      case ( kINukeTwkDial_MFP_pi ) :
      case ( kINukeTwkDial_MFP_N  ) :
+     case ( kINukeTwkDial_MFPLoE_N  ) :
+     case ( kINukeTwkDial_MFPM1E_N  ) :
+     case ( kINukeTwkDial_MFPM2E_N  ) :
+     case ( kINukeTwkDial_MFPHiE_N  ) :
        return true;
        break;
 
