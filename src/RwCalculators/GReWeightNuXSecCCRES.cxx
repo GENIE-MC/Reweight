@@ -276,7 +276,7 @@ double GReWeightNuXSecCCRES::CalcWeightMaMv(const genie::EventRecord & event)
 
   interaction->KinePtr()->UseSelectedKinematics();
 
-  const KinePhaseSpace_t phase_space = kPSWQ2fE;
+  const KinePhaseSpace_t phase_space = event.DiffXSecVars();
 
   double old_xsec   = event.DiffXSec();
   if (!fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo) {
@@ -312,7 +312,7 @@ double GReWeightNuXSecCCRES::CalcWeightMaMvShape(const genie::EventRecord & even
 
   interaction->KinePtr()->UseSelectedKinematics();
 
-  const KinePhaseSpace_t phase_space = kPSWQ2fE;
+  const KinePhaseSpace_t phase_space = event.DiffXSecVars();
 
   double old_xsec   = event.DiffXSec();
   if (!fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo) {

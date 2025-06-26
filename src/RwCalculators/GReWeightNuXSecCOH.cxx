@@ -191,7 +191,7 @@ double GReWeightNuXSecCOH::CalcWeight(const genie::EventRecord & event)
 
   interaction->KinePtr()->UseSelectedKinematics();
 
-  const KinePhaseSpace_t phase_space = kPSxyfE;
+  const KinePhaseSpace_t phase_space = event.DiffXSecVars();
 
   double old_xsec   = event.DiffXSec();
   if (!fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo) {
