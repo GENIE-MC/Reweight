@@ -1,6 +1,6 @@
 //____________________________________________________________________________
 /*
- Copyright (c) 2003-2024, The GENIE Collaboration
+ Copyright (c) 2003-2025, The GENIE Collaboration
  For the full text of the license visit http://copyright.genie-mc.org
 
  Authors: Costas Andreopoulos <c.andreopoulos \at cern.ch>
@@ -276,7 +276,7 @@ double GReWeightNuXSecCCRES::CalcWeightMaMv(const genie::EventRecord & event)
 
   interaction->KinePtr()->UseSelectedKinematics();
 
-  const KinePhaseSpace_t phase_space = kPSWQ2fE;
+  const KinePhaseSpace_t phase_space = event.DiffXSecVars();
 
   double old_xsec   = event.DiffXSec();
   if (!fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo) {
@@ -312,7 +312,7 @@ double GReWeightNuXSecCCRES::CalcWeightMaMvShape(const genie::EventRecord & even
 
   interaction->KinePtr()->UseSelectedKinematics();
 
-  const KinePhaseSpace_t phase_space = kPSWQ2fE;
+  const KinePhaseSpace_t phase_space = event.DiffXSecVars();
 
   double old_xsec   = event.DiffXSec();
   if (!fUseOldWeightFromFile || fNWeightChecksDone < fNWeightChecksToDo) {
