@@ -81,17 +81,25 @@ GReWeightProfessor::ReadProf2Spline(std::string filepath) {
       } else if (name == "Dimension") {
         std::stringstream ss{var};
       }
-    } else if (line.find("#") != std::string::npos) {
-      // "/${orbname}/${orbname}__<channel_string>#..."
-      auto path = line.substr(0, line.find("#"));
-      auto name = path.substr(path.find_last_of("/") + 1);
-      auto orbname = path.substr(1, path.find_last_of("/") - 1);
+    } else if (auto loc_pound = line.find('#');
+               loc_pound != std::string::npos) {
+      // "/${orbname}/${orbname}__<channel_string>#<id>: ..."
+      auto path = line.substr(0, loc_pound);
+      auto loc_colon = path.find(':');
+      auto id_str = path.substr(loc_pound + 1, loc_colon - loc_pound - 1);
+      auto id = std::stoul(id_str);
+      auto name = path.substr(path.find_last_of('/') + 1);
+      auto orbname = path.substr(1, path.find_last_of('/') - 1);
       auto sep_loc = name.find("__");
       auto channelstr = name.substr(sep_loc + 2);
       ChannelIDs channel(channelstr, "_");
       std::string errline{}; // not used now
-      // auto &varline = var_lines.emplace_back();
-      auto &varline = ret[std::make_tuple(orbname, channel)].emplace_back();
+      auto lines_vec = ret[std::make_tuple(orbname, channel)];
+      if (lines_vec.size() <= id) {
+        lines_vec.resize(id + 1);
+      }
+      // auto &varline = ret[std::make_tuple(orbname, channel)].emplace_back();
+      auto &varline = lines_vec[id];
       std::getline(spline_file, varline);
       std::getline(spline_file, errline);
     } else {

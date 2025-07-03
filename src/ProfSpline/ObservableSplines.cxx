@@ -65,6 +65,11 @@ void ObservableSplines::InitializeIpols(const std::vector<std::string> &lines) {
   LOG("ObservableSplines", pNOTICE)
       << "Initializing " << lines.size() << " bins";
   for (const auto &line : lines) {
+    if (line.empty()) {
+      LOG("ObservableSplines", pERROR)
+          << "Empty line in spline definition, this could lead to errors";
+      exit(1);
+    }
     bins.emplace_back(line);
   }
 }
