@@ -115,7 +115,7 @@ bool ObservableHadronizationLowW::IsHandled(const EventRecord &event) const {
     return false;
   }
 
-  return event.Summary()->Kine().W(true) < 3;
+  return event.NEntries(92) == 0;
 }
 
 ObservableHadronizationHighW::ObservableHadronizationHighW()
@@ -160,7 +160,8 @@ bool ObservableHadronizationHighW::IsHandled(const EventRecord &event) const {
     return false;
   }
 
-  return event.Summary()->Kine().W(true) >= 3;
+  // return event.Summary()->Kine().W(true) >= 3;
+  return event.NEntries(92) != 0;
 }
 
 } // namespace genie::rew
