@@ -244,6 +244,8 @@ void GReWeightINukeKinematicsParams::SetTwkDial(GSyst_t syst, double val)
     if (val != 0.) fFixPiPro = true;
   }
   else if (syst == kINukeKinematicsPiProBias) {
+    if (val < 0) LOG("ReW", pERROR) << "It is unphysical to bias pion production with a negative 'B' value. Therefore, only positive sigma values are physical.";
+
     GSystUncertainty * fracerr = GSystUncertainty::Instance();
     fBiasPiPro = val*fracerr->OneSigmaErr(kINukeKinematicsPiProBias);
   }
