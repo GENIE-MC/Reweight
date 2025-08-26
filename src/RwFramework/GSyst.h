@@ -132,7 +132,7 @@ typedef enum EGSyst {
   kINukeTwkDial_FrInel_N,    ///< tweak inelastic       probability for nucleons, for given total rescattering probability
   kINukeTwkDial_FrAbs_N,     ///< tweak absorption      probability for nucleons, for given total rescattering probability
   kINukeTwkDial_FrPiProd_N,  ///< tweak pion production probability for nucleons, for given total rescattering probability
-
+  kINukehA2025_cex,
   //
   // Nuclear model
   //
