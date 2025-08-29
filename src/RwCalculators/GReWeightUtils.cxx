@@ -1,13 +1,13 @@
 //____________________________________________________________________________
 /*
- Copyright (c) 2003-2018, The GENIE Collaboration
+ Copyright (c) 2003-2025, The GENIE Collaboration
  For the full text of the license visit http://copyright.genie-mc.org
 
  Author:  Jim Dobson <J.Dobson07 \at imperial.ac.uk>
           Imperial College London
 
-          Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
-          University of Liverpool & STFC Rutherford Appleton Lab
+          Costas Andreopoulos <c.andreopoulos \at cern.ch>
+          University of Liverpool
 */
 //____________________________________________________________________________
 

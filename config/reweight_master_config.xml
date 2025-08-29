@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<genie_config>
+
+   <config alg="genie::rew::ObservableMuonMomentum"> ObservableMuonMomentum.xml </config>
+   <config alg="genie::rew::ObservablePMuEnu"> ObservableMuonMomentum.xml </config>
+
+</genie_config>

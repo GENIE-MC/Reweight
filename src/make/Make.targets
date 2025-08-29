@@ -1,7 +1,7 @@
 #
 # Make.targets for GENIE/Reweight
 #
-# Author: Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
+# Author: Costas Andreopoulos <c.andreopoulos \at cern.ch>
 #
 
 #
@@ -45,7 +45,7 @@ ifeq ($(ROOT_MAJOR),6)
         # to make pcm relocatable we have to set it to strip these off
         # lots of possible include paths to try to catch all cases of in situ,
         # installed and re-packages into UPS
-	ROOT_INCLUDE_PATH=$(GENIE_REWEIGHT_LIB_PATH):$(GENIE_REWEIGHT)/src:$(GENIE_LIB_PATH):$(GENIE)/src:$(GENIE_REWEIGHT)/src/$(PACKAGE) \
+	ROOT_INCLUDE_PATH=$(EXTERNAL_REWEIGHT_PATH):$(GENIE_REWEIGHT_LIB_PATH):$(GENIE_REWEIGHT)/src:$(GENIE_LIB_PATH):$(GENIE)/src:$(GENIE_REWEIGHT)/src/$(PACKAGE) \
           rootcling -f $(DICTIONARY).cc \
                     -I$(PACKAGE) -IGENIE \
                     -IGENIE/$(PACKAGE) \

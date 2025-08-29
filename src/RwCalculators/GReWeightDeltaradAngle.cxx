@@ -1,6 +1,6 @@
 //____________________________________________________________________________
 /*
- Copyright (c) 2003-2018, The GENIE Collaboration
+ Copyright (c) 2003-2025, The GENIE Collaboration
  For the full text of the license visit http://copyright.genie-mc.org
 
  Gray Yarbrough <gyarbrou \at vols.utk.edu>
@@ -56,8 +56,9 @@ bool GReWeightDeltaradAngle::IsHandled(GSyst_t syst) const
   return false;
 }
 //_______________________________________________________________________________________
-bool GReWeightDeltaradAngle::AppliesTo(ScatteringType_t type, bool /*is_cc*/) const
+bool GReWeightDeltaradAngle::AppliesTo(const EventRecord & event) const
 {
+  auto type = event.Summary()->ProcInfo().ScatteringTypeId();
   if ( type == kScResonant) return true;
   return false;
 }

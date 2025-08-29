@@ -5,15 +5,15 @@
 
 \brief    An enumeration of systematic parameters
 
-\author   Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
-          University of Liverpool & STFC Rutherford Appleton Lab
+\author   Costas Andreopoulos <c.andreopoulos \at cern.ch>
+          University of Liverpool
 
           Steven Gardiner <gardiner \at fnal.gov>
           Fermi National Accelerator Laboratory
 
 \created  Aug 1, 2009
 
-\cpright  Copyright (c) 2003-2018, The GENIE Collaboration
+\cpright  Copyright (c) 2003-2025, The GENIE Collaboration
           For the full text of the license visit http://copyright.genie-mc.org
 */
 //____________________________________________________________________________
@@ -220,12 +220,33 @@ typedef enum EGSyst {
   kXSecTwkDial_NormNCCOHpi,
 
   //
+  // Alternative approach to CCQE form factors (z-expansion) vector form factor
+  //
+  kXSecTwkDial_ZExpELFF,
+  kXSecTwkDial_ZExpELFF_AP1,
+  kXSecTwkDial_ZExpELFF_AP2,
+  kXSecTwkDial_ZExpELFF_AP3,
+  kXSecTwkDial_ZExpELFF_AP4,
+  kXSecTwkDial_ZExpELFF_AN1,
+  kXSecTwkDial_ZExpELFF_AN2,
+  kXSecTwkDial_ZExpELFF_AN3,
+  kXSecTwkDial_ZExpELFF_AN4,
+  kXSecTwkDial_ZExpELFF_BP1,
+  kXSecTwkDial_ZExpELFF_BP2,
+  kXSecTwkDial_ZExpELFF_BP3,
+  kXSecTwkDial_ZExpELFF_BP4,
+  kXSecTwkDial_ZExpELFF_BN1,
+  kXSecTwkDial_ZExpELFF_BN2,
+  kXSecTwkDial_ZExpELFF_BN3,
+  kXSecTwkDial_ZExpELFF_BN4,
+
+  //
   // Misc
   //
 
-  kNTwkDials /// < Not a real dial, just keep as last entry for looping purposes
+  kNTwkDials, /// < Not a real dial, just keep as last entry for looping purposes
 
-
+  kProfRew    /// Systematics to be handled by the Professor reweighting framework
 } GSyst_t;
 
 

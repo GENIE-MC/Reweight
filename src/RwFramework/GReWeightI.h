@@ -5,12 +5,12 @@
 
 \brief    GENIE event reweighting engine ABC 
 
-\author   Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
-          University of Liverpool & STFC Rutherford Appleton Lab
+\author   Costas Andreopoulos <c.andreopoulos \at cern.ch>
+          University of Liverpool
 
 \created  Aug 1, 2009
 
-\cpright  Copyright (c) 2003-2018, The GENIE Collaboration
+\cpright  Copyright (c) 2003-2025, The GENIE Collaboration
           For the full text of the license visit http://copyright.genie-mc.org
 */
 //____________________________________________________________________________
@@ -20,6 +20,7 @@
 
 // GENIE/Generator includes
 #include "Framework/Interaction/ScatteringType.h"
+#include "Framework/EventGen/EventRecord.h"
 
 // GENIE/Reweight includes
 #include "RwFramework/GSyst.h"
@@ -44,7 +45,7 @@ namespace rew   {
   //
   
   //! does the current weight calculator handle this type of event?
-  virtual bool AppliesTo (ScatteringType_t type, bool is_cc) const = 0; 
+  virtual bool AppliesTo (const EventRecord & event) const = 0; 
 
   //! does the current weight calculator handle the input nuisance param?
   virtual bool IsHandled (GSyst_t syst) const = 0;

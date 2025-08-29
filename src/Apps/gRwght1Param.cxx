@@ -69,11 +69,11 @@
          Imperial College London
 
          Costas Andreopoulos, Jelena Ilic, Nick Grant
-         University of Liverpool & STFC Rutherford Appleton Lab
+         University of Liverpool
 
 \created June 10, 2010
 
-\cpright Copyright (c) 2003-2018, The GENIE Collaboration
+\cpright Copyright (c) 2003-2025, The GENIE Collaboration
          For the full text of the license visit http://copyright.genie-mc.org
 */
 //____________________________________________________________________________
@@ -109,6 +109,7 @@
 #include "RwFramework/GReWeight.h"
 #include "RwCalculators/GReWeightNuXSecNCEL.h"
 #include "RwCalculators/GReWeightNuXSecCCQE.h"
+#include "RwCalculators/GReWeightNuXSecCCQEELFF.h"
 #include "RwCalculators/GReWeightNuXSecCCRES.h"
 #include "RwCalculators/GReWeightNuXSecCOH.h"
 #include "RwCalculators/GReWeightNonResonanceBkg.h"
@@ -245,6 +246,7 @@ int main(int argc, char ** argv)
   GReWeight rw;
   rw.AdoptWghtCalc( "xsec_ncel",       new GReWeightNuXSecNCEL      );
   rw.AdoptWghtCalc( "xsec_ccqe",       new GReWeightNuXSecCCQE      );
+  rw.AdoptWghtCalc( "xsec_ccqe_elff",  new GReWeightNuXSecCCQEELFF      );
   rw.AdoptWghtCalc( "xsec_ccqe_axial", new GReWeightNuXSecCCQEaxial );
   //rwh - xsec_ccqe_vec is problematic for various tunes
   rw.AdoptWghtCalc( "xsec_ccqe_vec",   new GReWeightNuXSecCCQEvec   );
@@ -267,7 +269,6 @@ int main(int argc, char ** argv)
   // a few more to possibly exercise
   // rhatcher:  are there things to "fine-tune" below for these?
   rw.AdoptWghtCalc( "xsec_nc",         new GReWeightNuXSecNC        );
-  rw.AdoptWghtCalc( "res_dk",          new GReWeightResonanceDecay  );
   rw.AdoptWghtCalc( "xsec_empmec",     new GReWeightXSecEmpiricalMEC);
   rw.AdoptWghtCalc( "xsec_mec",        new GReWeightXSecMEC );
   rw.AdoptWghtCalc( "delta_rad",       new GReWeightDeltaradAngle);

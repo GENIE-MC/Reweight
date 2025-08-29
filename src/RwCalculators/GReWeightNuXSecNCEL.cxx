@@ -1,10 +1,10 @@
 //____________________________________________________________________________
 /*
- Copyright (c) 2003-2018, The GENIE Collaboration
+ Copyright (c) 2003-2025, The GENIE Collaboration
  For the full text of the license visit http://copyright.genie-mc.org
 
- Authors: Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
-          University of Liverpool & STFC Rutherford Appleton Lab
+ Authors: Costas Andreopoulos <c.andreopoulos \at cern.ch>
+          University of Liverpool
 */
 //____________________________________________________________________________
 
@@ -74,8 +74,10 @@ bool GReWeightNuXSecNCEL::IsHandled(GSyst_t syst) const
    return handle;
 }
 //_______________________________________________________________________________________
-bool GReWeightNuXSecNCEL::AppliesTo(ScatteringType_t type, bool is_cc) const
+bool GReWeightNuXSecNCEL::AppliesTo(const EventRecord & event) const
 {
+  auto type = event.Summary()->ProcInfo().ScatteringTypeId();
+  bool is_cc = event.Summary()->ProcInfo().IsWeakCC();
   if (type==kScQuasiElastic && !is_cc) {
     return true;
   }
