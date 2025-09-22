@@ -103,6 +103,10 @@ bool GReWeightINuke::IsHandled(GSyst_t syst) const
    switch(syst) {
      case ( kINukeTwkDial_MFP_pi      ) :
      case ( kINukeTwkDial_MFP_N       ) :
+     case ( kINukeTwkDial_MFPLoE_N       ) :
+     case ( kINukeTwkDial_MFPM1E_N       ) :
+     case ( kINukeTwkDial_MFPM2E_N       ) :
+     case ( kINukeTwkDial_MFPHiE_N       ) :
      case ( kINukeTwkDial_FrCEx_pi    ) :
        //     case ( kINukeTwkDial_FrElas_pi   ) :
      case ( kINukeTwkDial_FrInel_pi   ) :
@@ -113,6 +117,18 @@ bool GReWeightINuke::IsHandled(GSyst_t syst) const
      case ( kINukeTwkDial_FrInel_N    ) :
      case ( kINukeTwkDial_FrAbs_N     ) :
      case ( kINukeTwkDial_FrPiProd_N  ) :
+
+     case ( kINukeTwkDial_G4_N        ) :
+     case ( kINukeTwkDial_INCL_N      ) :
+
+     case ( kINukeTwkDial_G4LoE_N        ) :
+     case ( kINukeTwkDial_INCLLoE_N      ) :
+     case ( kINukeTwkDial_G4M1E_N        ) :
+     case ( kINukeTwkDial_INCLM1E_N      ) :
+     case ( kINukeTwkDial_G4M2E_N        ) :
+     case ( kINukeTwkDial_INCLM2E_N      ) :
+     case ( kINukeTwkDial_G4HiE_N        ) :
+     case ( kINukeTwkDial_INCLHiE_N      ) :
           handle = true;
           break;
 
@@ -281,7 +297,7 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
      double mfp_scale_factor = 1.;
      if(calc_w_mfp)
      {
-        mfp_scale_factor = fINukeRwParams.MeanFreePathParams(pdgc)->ScaleFactor();
+        mfp_scale_factor = fINukeRwParams.MeanFreePathParams(pdgc)->ScaleFactor(p4);
         w_mfp = utils::rew::MeanFreePathWeight( pdgc, x4, p4, A, Z,
           mfp_scale_factor, interacted, *fFSIModel );
      } // calculate mfp weight?
