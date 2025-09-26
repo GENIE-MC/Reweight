@@ -66,7 +66,7 @@ GReWeightModel("IntraNuke")
   bool fsi_enabled = gpl->GetBool( "HadronTransp-Enable" );
 
   if ( !fsi_enabled ) {
-    LOG( "ReW", pERROR ) << "FSIs are not enabled for the current tune."
+    LOG( "ReW", pFATAL ) << "FSIs are not enabled for the current tune."
       << " Refusing to reweight FSIs.";
     std::exit( 1 );
   }
@@ -79,7 +79,7 @@ GReWeightModel("IntraNuke")
   fFSIModel = dynamic_cast< HAIntranuke2018* >( alg );
 
   if ( !fFSIModel ) {
-    LOG( "ReW", pERROR ) << "Reweighting events produced with the FSI model "
+    LOG( "ReW", pFATAL ) << "Reweighting events produced with the FSI model "
       << fsi_alg << " is not currently supported.";
     std::exit( 1 );
   }
