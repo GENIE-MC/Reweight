@@ -123,6 +123,9 @@
 #include "RwCalculators/GReWeightNuXSecCCQEvec.h"
 #include "RwCalculators/GReWeightNuXSecNCRES.h"
 #include "RwCalculators/GReWeightNuXSecDIS.h"
+#include "RwCalculators/GReWeighthA2025.h"
+
+
 
 #include "RwCalculators/GReWeightINukeParams.h"
 #include "RwCalculators/GReWeightNuXSecNC.h"
@@ -192,6 +195,15 @@ int main(int argc, char ** argv)
   const float twk_dial_min  = gOptMinTwk;
   const float twk_dial_max  = gOptMaxTwk;
   const float twk_dial_step = (twk_dial_max - twk_dial_min) / (n_points-1);
+  
+ LOG("grwght1scan", pNOTICE)
+    << "\nSummary of tweak dial parameters:"
+    << "\n - n_points      = " << n_points
+    << "\n - twk_dial_min  = " << twk_dial_min
+    << "\n - twk_dial_max  = " << twk_dial_max
+    << "\n - twk_dial_step = " << twk_dial_step
+    << "\n";
+
 
   // Work-out the range of events to process
   Long64_t nfirst = 0;
@@ -248,7 +260,8 @@ int main(int argc, char ** argv)
   rw.AdoptWghtCalc( "hadro_fzone",     new GReWeightFZone           );
   rw.AdoptWghtCalc( "hadro_intranuke", new GReWeightINuke           );
   rw.AdoptWghtCalc( "hadro_agky",      new GReWeightAGKY            );
-
+  rw.AdoptWghtCalc( "hA_2025_cex_weight",     new GReWeighthA2025      );
+  
   // GReWeightDISNuclMod::CalcWeight() not implemented - don't try to use it ..
   // will return 1 if tweak dial = 0, hard fail otherwise
   rw.AdoptWghtCalc( "nuclear_dis",     new GReWeightDISNuclMod      );

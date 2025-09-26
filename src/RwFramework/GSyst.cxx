@@ -138,6 +138,9 @@ std::map<GSyst_t, std::string> GSyst::BuildGSystToStringMap() {
   temp_map[ kXSecTwkDial_ZExpELFF_BN2 ] = "ZExpELFFBN2CCQE";
   temp_map[ kXSecTwkDial_ZExpELFF_BN3 ] = "ZExpELFFBN3CCQE";
   temp_map[ kXSecTwkDial_ZExpELFF_BN4 ] = "ZExpELFFBN4CCQE";
+  temp_map[ kINukehA2025_cex ] = "rw_hA2025_cex";
+
+
 
   return temp_map;
 }
