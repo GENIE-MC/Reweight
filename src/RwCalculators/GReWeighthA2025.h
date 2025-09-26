@@ -16,13 +16,11 @@
           Physics changes are considered separately for pions and nucleons.
           Unitarity is explicitly conserved.
 
-\author   Jim Dobson <J.Dobson07 \at imperial.ac.uk>
-          Imperial College London
+\author   Mohamed Ismail <msi10@pitt.edu> 
+			Univeirsty of Pittsburgh
 
-          Costas Andreopoulos <costas.andreopoulos \at stfc.ac.uk>
-          University of Liverpool & STFC Rutherford Appleton Lab
 
-\created  Sep 10, 2009
+\created  Sep 2025
 
 \cpright  Copyright (c) 2003-2018, The GENIE Collaboration
           For the full text of the license visit http://copyright.genie-mc.org
