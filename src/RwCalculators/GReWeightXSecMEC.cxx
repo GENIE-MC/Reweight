@@ -340,6 +340,12 @@ bool GReWeightXSecMEC::IsHandled(GSyst_t syst) const
   // whether we can handle these first.
   if ( syst == kXSecTwkDial_DecayAngMEC ) return true;
   if ( syst == kXSecTwkDial_DecayAng2MEC ) return true;
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre ) return true;
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre2 ) return true;
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre3 ) return true;
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre4 ) return true;
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre5 ) return true;
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre6 ) return true;
   if ( syst == kXSecTwkDial_FracPN_CCMEC ) return true;
   if ( syst == kXSecTwkDial_FracDelta_CCMEC ) return true;
   if ( syst == kXSecTwkDial_XSecShape_CCMEC ) return true;
@@ -375,6 +381,30 @@ void GReWeightXSecMEC::SetSystematic(GSyst_t syst, double twk_dial)
   if ( syst == kXSecTwkDial_DecayAng2MEC ) {
     fDecayAng2TwkDial = twk_dial;
  //   std::cout << "fDecayAng2TwkDial " << fDecayAng2TwkDial << std::endl;
+    return;
+  }
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre ) { 
+    fDecayAngLegendreTwkDial = twk_dial;
+    return;
+  }
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre2 ) { 
+    fDecayAngLegendre2TwkDial = twk_dial;
+    return;
+  }
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre3 ) { 
+    fDecayAngLegendre3TwkDial = twk_dial;
+    return;
+  }
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre4 ) {  
+    fDecayAngLegendre4TwkDial = twk_dial;
+    return;
+  }
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre5 ) {  
+    fDecayAngLegendre5TwkDial = twk_dial;
+    return;
+  }
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre6 ) {  
+    fDecayAngLegendre6TwkDial = twk_dial;
     return;
   }
   else if ( syst == kXSecTwkDial_FracPN_CCMEC ) {
@@ -426,6 +456,12 @@ void GReWeightXSecMEC::Reset(void)
  
   fDecayAngTwkDial = 0.;
   fDecayAng2TwkDial = 0.;
+  fDecayAngLegendreTwkDial = 0.;
+  fDecayAngLegendre2TwkDial = 0.;
+  fDecayAngLegendre3TwkDial = 0.;
+  fDecayAngLegendre4TwkDial = 0.;
+  fDecayAngLegendre5TwkDial = 0.;
+  fDecayAngLegendre6TwkDial = 0.;
   fCCXSecShapeTwkDial = 0.;
   fCCXSecShapeEmpiricalTwkDial = 0.;
   fCCXSecShapeMartiniTwkDial = 0.;
@@ -473,6 +509,8 @@ double GReWeightXSecMEC::CalcWeight(const genie::EventRecord& event)
     std::cout << "Weight norm:                " << weight << std::endl;
   weight *= this->CalcWeightAngularDist( event );
     std::cout << "Weight ang:                 " << weight << std::endl;
+  weight *= this->CalcWeightAngularDistLegendre( event );
+    std::cout << "Weight ang Legendre:                 " << weight << std::endl;
   weight *= this->CalcWeightPNDelta( event );
     std::cout << "Weight pndel: " << weight << std::endl;
   weight *= this->CalcWeightXSecShape( event );
@@ -491,6 +529,12 @@ void GReWeightXSecMEC::Init(void) {
   // Set the tweak dials to their default values
   fDecayAngTwkDial = 0.;
   fDecayAng2TwkDial = 0.;
+  fDecayAngLegendreTwkDial = 0.;
+  fDecayAngLegendre2TwkDial = 0.;
+  fDecayAngLegendre3TwkDial = 0.;
+  fDecayAngLegendre4TwkDial = 0.;
+  fDecayAngLegendre5TwkDial = 0.;
+  fDecayAngLegendre6TwkDial = 0.;
   fFracPN_CCTwkDial = 0.;
   fFracDelta_CCTwkDial = 0.;
   fCCXSecShapeTwkDial = 0.;
@@ -601,17 +645,19 @@ double GReWeightXSecMEC::CalcWeightNorm(const genie::EventRecord& event)
 //_______________________________________________________________________________________
 double GReWeightXSecMEC::CalcWeightAngularDist(const genie::EventRecord& event)
 {
+///*
   // Only tweak dial values on the interval [0, 1] make sense for the angular
   // distribution. Enforce this here regardless of what the user requested.
-  // double twk_dial = std::max( std::min(1., fDecayAngTwkDial), 0. );
+  //double twk_dial = std::max( std::min(1., fDecayAngTwkDial), 0. );
   // Changed it to [-1, 1]. - L. Bathe-Peters
   double twk_dial = std::max( std::min(1., fDecayAngTwkDial), -1. );
+  //double twk_dial = fDecayAngTwkDial;
   double twk_dial2 = fDecayAng2TwkDial;
 
   // If the tweak dials are set to zero (or are really small) then just return a
   // weight of unity
-  // bool tweaked = ( std::abs(twk_dial) > controls::kASmallNum );
-  bool tweaked = ( ( std::abs(twk_dial) > controls::kASmallNum ) || ( std::abs(twk_dial2) > controls::kASmallNum ) );
+   bool tweaked = ( std::abs(twk_dial) > controls::kASmallNum );
+  //bool tweaked = ( ( std::abs(twk_dial) > controls::kASmallNum ) || ( std::abs(twk_dial2) > controls::kASmallNum ) );
   if ( !tweaked ) return 1.;
 
   // Get the daughters of the recoiled two-nucleon cluster
@@ -710,14 +756,189 @@ double GReWeightXSecMEC::CalcWeightAngularDist(const genie::EventRecord& event)
   // interpolates between purely isotropic (0) and purely the alternate
   // distribution (1).
   // TODO: come up with something better for the alternate distribution
-  // double weight = 3.*twk_dial*std::pow(std::cos(theta_N1), 2) + (1. - twk_dial);
+  //double weight = 3.*twk_dial*std::pow(std::cos(theta_N1), 2) + (1. - twk_dial);
 
   // Implemented an alternate distribution with twk_dial1 taking values in [-1,1] and 
   // a second tweak dial twk_dial2 in order to change the frequency of the harmonic 
   // function. 
   double weight = 3.*twk_dial*std::pow(std::cos(twk_dial2*theta_N1), 2) + (1. - twk_dial);
 
+  // Compute the Legendre polynomial P_l(theta_N1) using GSL
+  //double P_l = gsl_sf_legendre_Pl(twk_dial2, theta_N1);
+  //double P_l = gsl_sf_legendre_Pl(twk_dial, std::cos(theta_N1));
+
+  //double weight = P_l + 0.5;
+
+  // Since the arguments of P_l(x) with l /geq 0 and |x| \leg 1, but theta_N1 \in [0, \Pi],
+  // the angle is divided by \Pi/2 and subtracted by 1 such that the argument of P_l(x) is 
+  // within [-1,1]. The factor 3 is to enhance the effect of the reweighting as P_l(x) < 1.
+//  double P_l = gsl_sf_legendre_Pl(twk_dial, theta_N1 / constants::kPi - 1. );
+//  std::cout << "Legendre polynomial P_l( " << twk_dial << " , " << std::cos(theta_N1) << ") = " << P_l << std::endl;
+  //std::cout << "Legendre polynomial P_l( " << twk_dial << " , " << theta_N1 << ") = " << gsl_sf_legendre_Pl(twk_dial, theta_N1) << std::endl;
+  //std::cout << "Legendre polynomial P_l( " << twk_dial << " , " << 2. * theta_N1 / constants::kPi - 1. << ") = " << gsl_sf_legendre_Pl(twk_dial, 2. * theta_N1 / constants::kPi - 1.) << std::endl;
+
+  //double weight = 3./2. * ( gsl_sf_legendre_Pl(twk_dial, 2. * theta_N1 / constants::kPi - 1. ) + 1. );
+
+  //double weight = 3. * ( gsl_sf_legendre_Pl(twk_dial, std::cos(theta_N1) ) + 1. );
+
   return weight;
+//*/
+}
+//_______________________________________________________________________________________
+double GReWeightXSecMEC::CalcWeightAngularDistLegendre(const genie::EventRecord& event)
+{
+///*
+  // Only accept tweak dial values on the interval [1, -1] for now. 
+  // Enforce this here regardless of what the user requested.
+//  double twk_dial = std::max( std::min(1., fDecayAngLegendreTwkDial), -1. );
+  double twk_dial = std::max( std::min(12., fDecayAngLegendreTwkDial), -12. );
+  //double twk_dial = std::max( std::min(1., fDecayAngTwkDial), -1. );
+
+  //double twk_dial2 = std::max( std::min(1., fDecayAngLegendre2TwkDial), -1. );
+  //double twk_dial = fDecayAngLegendreTwkDial;
+
+  double twk_dial2 = fDecayAngLegendre2TwkDial;
+  double twk_dial3 = fDecayAngLegendre3TwkDial;
+  double twk_dial4 = fDecayAngLegendre4TwkDial;
+  double twk_dial5 = fDecayAngLegendre5TwkDial;
+  double twk_dial6 = fDecayAngLegendre6TwkDial;
+
+  // If the tweak dials are set to zero (or are really small) then just return a
+  // weight of unity
+  //bool tweaked = ( std::abs(twk_dial) > controls::kASmallNum );
+  //bool tweaked = ( ( std::abs(twk_dial) > controls::kASmallNum ) || ( std::abs(twk_dial2) > controls::kASmallNum ) );
+  //if ( !tweaked ) return 1.;
+
+  // Get the daughters of the recoiled two-nucleon cluster
+  // TODO: Consider using something less fragile here. Right now, this relies
+  // on the observation that MECGenerator.cxx always places the recoiling
+  // nucleon cluster at position 5 in the GENIE event record.
+  const int recoil_nucleon_cluster_pos = 5;
+  GHepParticle* nucleon_cluster = event.Particle( recoil_nucleon_cluster_pos );
+  assert( nucleon_cluster );
+
+  // Make sure that the retrieved particle is really a two-nucleon cluster. If
+  // it isn't, just complain and return a unit weight.
+  int cluster_pdg = nucleon_cluster->Pdg();
+  if ( !pdg::Is2NucleonCluster(cluster_pdg) ) {
+    LOG("ReW", pERROR) << "Invalid two-nucleon cluster PDG code " << cluster_pdg
+      << " encountered in GReWeightXSecMEC::CalcWeightAngularDistLegendre()";
+    return 1.;
+  }
+
+  // The two-nucleon cluster should have exactly two daughters (the two
+  // final-state nucleons). If it doesn't complain and return a unit weight.
+  int first = nucleon_cluster->FirstDaughter();
+  int last = nucleon_cluster->LastDaughter();
+  if ( !nucleon_cluster->HasDaughters() || (last - first) != 1 ) {
+    LOG("ReW", pERROR) << "Invalid number of daughters for a two-nucleon"
+      << " cluster encountered in GReWeightXSecMEC::CalcWeightAngularDistLegendre()";
+    return 1.;
+  }
+
+  // Get the two final-state nucleons
+  GHepParticle* N1 = event.Particle( first );
+  GHepParticle* N2 = event.Particle( last );
+
+  // If one of them isn't really a nucleon, complain and return a unit weight
+  if ( !pdg::IsNucleon(N1->Pdg()) || !pdg::IsNucleon(N2->Pdg()) ) {
+    LOG("ReW", pERROR) << "Non-nucleon daughter of a two-nucleon"
+      << " cluster encountered in GReWeightXSecMEC::CalcWeightAngularDistLegendre()";
+    return 1.;
+  }
+
+  // Get the 4-momenta of the two outgoing nucleons
+  TLorentzVector p4N1 = *N1->P4();
+  TLorentzVector p4N2 = *N2->P4();
+
+  // Boost the 4-momenta of the two nucleons from the lab frame to their
+  // CM frame (which is also the rest frame of the recoiling nucleon cluster)
+  TLorentzVector p4Cluster = p4N1 + p4N2;
+  TVector3 boostToCM = -p4Cluster.BoostVector();
+
+  p4N1.Boost( boostToCM );
+  p4N2.Boost( boostToCM );
+
+  // Also get the 4-momenta of the initial and final leptons. These will be
+  // used to compute the 4-momentum transfer
+  TLorentzVector p4Probe = *event.Probe()->P4();
+  TLorentzVector p4Lep = *event.FinalStatePrimaryLepton()->P4();
+
+  TLorentzVector q4 = p4Probe - p4Lep;
+
+  // Boost the 4-momentum transfer into the two-nucleon CM frame
+  q4.Boost( boostToCM );
+
+  // Use the 3-momentum transfer in the two-nucleon CM frame as the reference
+  // z-axis for the altered angular distribution
+  TVector3 q3 = q4.Vect().Unit();
+
+  // Determine a rotation axis and angle that will cause the 3-momentum to
+  // point along the +z direction
+  TVector3 zvec(0., 0., 1.);
+  TVector3 rot = ( q3.Cross(zvec) ).Unit();
+  double angle = zvec.Angle( q3 );
+
+  // Handle the edge case where q3 is along -z, so the
+  // cross product above vanishes
+  if ( q3.Perp() == 0. && q3.Z() < 0. ) {
+    rot = TVector3(0., 1., 0.);
+    angle = constants::kPi;
+  }
+
+  // If the rotation vector is non-null (within numerical precision) then
+  // rotate the CM frame 3-momentum of nucleon #1 into a frame where q3 points along +z
+  TVector3 p3N1 = p4N1.Vect();
+  if ( rot.Mag() >= controls::kASmallNum ) {
+    p3N1.Rotate(angle, rot);
+  }
+
+  // We now have what we need. Compute the emission angles for nucleon #1 relative to the
+  // 3-momentum transfer in the rest frame of the recoiling nucleon cluster.
+  double theta_N1 = p3N1.Theta();
+  //double phi_N1 = p3N1.Phi();
+
+  // Default model (used by all current GENIE MEC implementations) is to decay
+  // the recoiling nucleon cluster isotropically. The alternate model is to
+  // decay it according to (3/2)*cos^2(theta) in the CM frame, with the
+  // 3-momentum transfer along the +z direction. The tweak dial linearly
+  // interpolates between purely isotropic (0) and purely the alternate
+  // distribution (1).
+
+  // Since the arguments of P_l(x) with l /geq 0 and |x| \leg 1, but theta_N1 \in [0, \Pi],
+  // the angle is divided by \Pi/2 and subtracted by 1 such that the argument of P_l(x) is
+  // within [-1,1]. The factor 3 is to enhance the effect of the reweighting as P_l(x) < 1.
+
+  //std::cout << "Legendre polynomial P_l( " << twk_dial << " , " << theta_N1 << ") = " << gsl_sf_legendre_Pl(twk_dial, theta_N1) << std::endl;
+  //std::cout << "Legendre polynomial P_l( " << twk_dial << " , " << 2. * theta_N1 / constants::kPi - 1. << ") = " << gsl_sf_legendre_Pl(twk_dial, 2. * theta_N1 / constants::kPi - 1.) << std::endl;
+
+  std::cout << "theta_N1 = " << theta_N1 << std::endl;
+  //std::cout << "Legendre polynomial P_l( " << twk_dial << " , " << std::cos(theta_N1) << ") = " << gsl_sf_legendre_Pl(twk_dial, std::cos(theta_N1)) << std::endl;
+  std::cout << "Legendre polynomial P_l( " << 1 << " , " << std::cos(theta_N1) << ") = " << gsl_sf_legendre_Pl(1, std::cos(theta_N1)) << std::endl;
+
+  //double weight = 3.*twk_dial*std::pow(std::cos(theta_N1), 2) + (1. - twk_dial);
+  //double weight = 3.*twk_dial2*std::pow(std::cos(theta_N1), 2) + (1. - twk_dial2);
+  //double weight = 3.*twk_dial*std::pow(std::cos(twk_dial2*theta_N1), 2) + (1. - twk_dial);
+  //double weight = 1./2. * ( gsl_sf_legendre_Pl(twk_dial, std::cos(theta_N1) ) + 1. );
+  //double weight = 1./2. * ( gsl_sf_legendre_Pl(1, std::cos(theta_N1) ) + 1. ) + 0. * twk_dial2;
+
+  //double twk_dial2 = 1.;
+  //double twk_dial3 = 0.;
+  //double twk_dial4 = 0.;
+  //double twk_dial5 = 0.;
+  //double twk_dial6 = 0.;
+
+  std::cout << "Check twk_dial[0] = " << twk_dial << std::endl;
+  std::cout << "Check twk_dial[1] = " << twk_dial2 << std::endl;
+  std::cout << "Check twk_dial[2] = " << twk_dial3 << std::endl;
+  std::cout << "Check twk_dial[3] = " << twk_dial4 << std::endl;
+  std::cout << "Check twk_dial[4] = " << twk_dial5 << std::endl;
+  std::cout << "Check twk_dial[5] = " << twk_dial6 << std::endl;
+
+  double weight = CalcWeightDecayAngMECLegendre(theta_N1, twk_dial, twk_dial2, twk_dial3, twk_dial4, twk_dial5, twk_dial6);
+
+  return weight;
+//*/
 }
 //_______________________________________________________________________________________
 double GReWeightXSecMEC::CalcWeightPNDelta(const genie::EventRecord& event)
@@ -1524,6 +1745,38 @@ double GReWeightXSecMEC::CalcWeight2p2hEnergyDependence(const genie::EventRecord
       // weight = fEnergyDependenceTwkDial + ( 1 - fEnergyDependenceTwkDial ) / r ;
       weight = 1 - fEnergyDependenceTwkDial + fEnergyDependenceTwkDial * r ;
     }
+  }
+
+  return weight;
+}
+//_______________________________________________________________________________________
+double GReWeightXSecMEC::CalcWeightDecayAngMECLegendre(double theta_rad, double twk_dial, double twk_dial2, double twk_dial3, double twk_dial4, double twk_dial5, double twk_dial6)
+{
+  double costheta = std::cos(theta_rad);
+  double weight = 1.;
+
+  std::vector<double> twk_dials = {twk_dial, twk_dial2, twk_dial3, twk_dial4, twk_dial5, twk_dial6};
+
+  for( size_t i = 0; i < twk_dials.size(); ++i ){
+    int l = i + 1; // l in P_l(costheta) determines the Legendre-Polynomial
+    double P_l = gsl_sf_legendre_Pl( l, costheta );
+
+    std::cout << "Pl( l, costheta ) = Pl( " << l << ", " << costheta << " ) = " << P_l  << std::endl;
+
+    //double w_l = 0.5 * ( P_l + 1.0 );
+
+    double w_l =  P_l + 1.0;
+
+    std::cout << "w_" << l << " = 0.5 * ( P_" << l << " + 1.0 ) = " << w_l << std::endl;
+
+    weight += twk_dials[i] * ( w_l - 1.0 );
+
+    //weight += twk_dials[i] * ( P_l - 1.0 );
+
+    //weight += twk_dials[i] * P_l ; // this will not give a weight of 1 in the end
+
+    std::cout << "weight += twk_dials[" << i << "] * ( w_" << l << " - 1.0 ) [ of step " << i << " ] = " << twk_dials[i] << " * ( " << w_l << " - 1.0 ) = " << weight << std::endl; 
+
   }
 
   return weight;
