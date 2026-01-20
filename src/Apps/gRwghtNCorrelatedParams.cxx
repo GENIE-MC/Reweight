@@ -75,6 +75,7 @@
 #include <TMatrixD.h>
 #include <TTree.h>
 #include <TRandom.h>
+#include <TRandom3.h>
 
 // GENIE/Generator includes
 #include "Framework/Conventions/Constants.h"
@@ -136,12 +137,16 @@ Long64_t gOptNEvt2;
 int      gOptRunKey= 0;
 int      gOptNSyst = 0;
 int      gOptNTwk  = 0;
+double   gOptMinTwk;      ///< Minimum value of tweaked dial
+double   gOptMaxTwk;      ///< Maximum value of tweaked dial
 long int gOptRanSeed;     ///< random number seed
 
 //___________________________________________________________________
 int main(int argc, char ** argv)
 {
   GetCommandLineArgs (argc, argv);
+
+  std::cout << "------------------------------------------------------------" << std::endl;
 
   utils::app_init::MesgThresholds(RunOpt::Instance()->MesgThresholdFiles());
   utils::app_init::RandGen(gOptRanSeed);
@@ -173,7 +178,7 @@ int main(int argc, char ** argv)
     gAbortingInErr = true;
     exit(1);
   }
-
+std::cout << "------------------------------------------------------------" << std::endl;
   //
   // Preparation for finding correlated vectors
   //
@@ -191,7 +196,7 @@ int main(int argc, char ** argv)
   // Gets Cor, which is needed in decompositions
   // Assumed errors from covariance are stored in one sigma errors for parameters
   GetCorrelationMatrix(gOptInpCovariance,cmat);
-  TMatrixD lTri = CholeskyDecomposition(*cmat);
+  //TMatrixD lTri = CholeskyDecomposition(*cmat);
 
   //LOG("grwghtnp", pNOTICE) << "Correlation matrix:";
   //cmat->Print();
@@ -207,7 +212,10 @@ int main(int argc, char ** argv)
   GetEventRange(nev_in_file, nfirst, nlast);
   int nev = int(nlast - nfirst + 1);
 
-  LOG("grwghtnp", pNOTICE) << "Will process " << nev << " events";
+  LOG("grwghtnp", pNOTICE) << "Will process -------" << nev << " events";
+
+std::cout << "--------------------------------------------------------------------------------------------------------------" << std::endl;
+
 
   //
   // Create a GReWeight object and add to it a set of
@@ -235,9 +243,14 @@ int main(int argc, char ** argv)
   GSystSet & syst = rw.Systematics();
 
   // Declare the weights, twkvals
-  const int n_params = (const int) gOptNSyst;
-  const int n_tweaks = (const int) gOptNTwk;
+  //const int n_params = (const int) gOptNSyst;
+  //const int n_tweaks = (const int) gOptNTwk;
+  const int n_params = ( int) gOptNSyst;
+  const int n_tweaks = ( int) gOptNTwk;
+  std::cout << "gOptNSyst" << gOptNSyst << std::endl;
+  std::cout << "gOptNTwk" << gOptNTwk << std::endl;
   TVectorD twkvals(n_params);
+  TRandom3 randGen(0); // seed from machine clock
 
   // Initialize
   for (int ipr = 0; ipr < n_params; ipr++) { twkvals(ipr) = 0.; }
@@ -274,9 +287,127 @@ int main(int argc, char ** argv)
 
     // Construct multiple branches to streamline loading later
     // Load tweaks into reweighting
-    twkvals = CholeskyGenerateCorrelatedParamVariations(lTri);
+    //twkvals = CholeskyGenerateCorrelatedParamVariations(lTri);
+    //twkvals[0] = 1.0; // Always sets same twk_dial value
+    //twkvals[1] =  1.0;
+// CERN plots dial values setting start
+    if( itk == 0) {
+      twkvals[0] = 0.;
+      twkvals[1] = 0.;
+      twkvals[2] = 0.;
+      twkvals[3] = 0.;
+      twkvals[4] = 0.;
+      twkvals[5] = 0.;
+    }
+//    else if ( itk == 1 ) {
+//      twkvals[0] = 1.;
+//      twkvals[1] = -1.;
+//      twkvals[2] = 1.;
+//      twkvals[3] = -1.;
+//      twkvals[4] = 1.;
+//      twkvals[5] = -1.;
+//    }
+    else {
+//      for (int i = 0; i < n_params; ++i) {
+      for (int i = 0; i < n_params-2; ++i) {
+          twkvals[i] = randGen.Uniform(-5.0, 5.0);
+          std::cout << "twkvals[" << i << "] = " << twkvals[i] << std::endl;
+      }
+      twkvals[n_params -1] = 0.;
+      twkvals[n_params ] = 0.;
+    }
+// CERN plots dial values settings end
+
+/*
+// Determine dial values for maximal variations:
+    if( itk == 0) {
+      twkvals[0] = 0.;
+      twkvals[1] = 0.;
+      twkvals[2] = 0.;
+      twkvals[3] = 0.;
+      twkvals[4] = 0.;
+      twkvals[5] = 0.;
+    }
+    else if ( itk == 1 ) {
+      twkvals[5] = 2.0;
+      twkvals[1] = 0.;
+      twkvals[0] = 0.;
+      twkvals[2] = 0.;
+      twkvals[3] = 0.;
+      twkvals[4] = 0.;
+    }
+    else if( itk == 2) {
+      twkvals[5] = 4.;
+      twkvals[1] = 0.;
+      twkvals[0] = 0.;
+      twkvals[2] = 0.;
+      twkvals[3] = 0.;
+      twkvals[4] = 0.;
+    }
+    else if ( itk == 3 ) {
+      twkvals[5] = 6.0;
+      twkvals[1] = 0.;
+      twkvals[0] = 0.;
+      twkvals[2] = 0.;
+      twkvals[3] = 0.;
+      twkvals[4] = 0.;
+    }
+    else if( itk == 4) {
+      twkvals[5] = 8.0;
+      twkvals[1] = 0.;
+      twkvals[0] = 0.;
+      twkvals[2] = 0.;
+      twkvals[3] = 0.;
+      twkvals[4] = 0.;
+    }
+    else if ( itk == 5 ) {
+      twkvals[5] = 10.0;
+      twkvals[1] = 0.;
+      twkvals[0] = 0.;
+      twkvals[2] = 0.;
+      twkvals[3] = 0.;
+      twkvals[4] = 0.;
+    }
+    else if( itk == 6) {
+      twkvals[5] = 12.0;
+      twkvals[1] = 0.;
+      twkvals[0] = 0.;
+      twkvals[2] = 0.;
+      twkvals[3] = 0.;
+      twkvals[4] = 0.;
+    }
+*/
+
+/*
+    twkvals[0] = 2.0 * ((double)rand() / RAND_MAX) - 1.0;
+    twkvals[1] = 2.0 * ((double)rand() / RAND_MAX) - 1.0;
+    twkvals[2] = 2.0 * ((double)rand() / RAND_MAX) - 1.0;
+    twkvals[3] = 2.0 * ((double)rand() / RAND_MAX) - 1.0;
+    twkvals[4] = 2.0 * ((double)rand() / RAND_MAX) - 1.0;
+    twkvals[5] = 2.0 * ((double)rand() / RAND_MAX) - 1.0;
+    std::cout << "twkvals[0] = " << twkvals[0] << std::endl;
+    std::cout << "twkvals[1] = " << twkvals[1] << std::endl;
+    std::cout << "twkvals[2] = " << twkvals[2] << std::endl;
+    std::cout << "twkvals[3] = " << twkvals[3] << std::endl;
+    std::cout << "twkvals[4] = " << twkvals[4] << std::endl;
+    std::cout << "twkvals[5] = " << twkvals[5] << std::endl;
+*/
+
     // scale the size of the vector to avg length 1
     //twkvals *= 1./(TMath::Sqrt((double)gOptNSyst));
+
+  // The tweaking dial takes N values between [-1,1]
+
+    // ===== Uniform tweaks instead of Cholesky sampling =====
+    //const float twk_dial_min  = gOptMinTwk;
+    //const float twk_dial_max  = gOptMaxTwk;
+    //const float twk_dial_step = (twk_dial_max - twk_dial_min) / (gOptNTwk - 1);
+
+    //float dial_value = twk_dial_min + itk * twk_dial_step;
+    //for (int ipr = 0; ipr < n_params; ipr++) {
+    //    twkvals(ipr) = dial_value;
+    //}
+
     ip = 0;
     for (it = gOptVSyst.begin();it != gOptVSyst.end(); it++, ip++) {
       twk_dial_brnch_name.str("");
@@ -890,6 +1021,10 @@ void AdoptWeightCalcs (vector<GSyst_t> lsyst, GReWeight & rw)
     case kXSecTwkDial_NormCCMEC:
     case kXSecTwkDial_NormNCMEC:
     case kXSecTwkDial_NormEMMEC:
+    case kXSecTwkDial_DecayAngMEC:
+    case kXSecTwkDial_DecayAng2MEC:
+    case kXSecTwkDial_DecayAngMECLegendre:
+    case kXSecTwkDial_DecayAngMECLegendre2:
       if ( ! rw.WghtCalc("xsec_mec") ) {
         LOG("grwghtnp", pNOTICE) << "Adopting xsec_mec weight calc";
         rw.AdoptWghtCalc( "xsec_mec", new GReWeightXSecMEC );
@@ -911,16 +1046,18 @@ void AdoptWeightCalcs (vector<GSyst_t> lsyst, GReWeight & rw)
    case kXSecTwkDial_ZExpELFF_BP2:
    case kXSecTwkDial_ZExpELFF_BP3:
    case kXSecTwkDial_ZExpELFF_BP4:
-      if(! rw.WghtCalc("xsec_ccqe_elff")){
-        LOG("grwghtnp", pNOTICE) << "Adopting xsec_ccqe zexp vector form factor";
-        rw.AdoptWghtCalc( "xsec_ccqe_elff", new GReWeightNuXSecCCQEELFF );
-      }
-      break;
-    default: // no fine-tuning needed
-    break;
-    }
+     if(! rw.WghtCalc("xsec_ccqe_elff")){
+       LOG("grwghtnp", pNOTICE) << "Adopting xsec_ccqe zexp vector form factor";
+       rw.AdoptWghtCalc( "xsec_ccqe_elff", new GReWeightNuXSecCCQEELFF );
+     }
+     break;
+   default: // no fine-tuning needed
+     break;
+   }
   }
 }
+
+
 //_________________________________________________________________________________
 void PrintSyntax(void)
 {
