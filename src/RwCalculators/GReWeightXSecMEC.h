@@ -23,6 +23,7 @@
 
 #include <map>
 #include <string>
+#include <gsl/gsl_sf_legendre.h> // Include the GSL header for Legendre polynomials
 
 // GENIE includes
 #include "Framework/Interaction/InteractionType.h"
@@ -54,6 +55,7 @@ namespace rew   {
    void Init(void);
    double CalcWeightNorm(const EventRecord& event);
    double CalcWeightAngularDist(const EventRecord& event);
+   double CalcWeightAngularDistLegendre(const EventRecord& event);
    double CalcWeightPNDelta(const EventRecord& event);
    double CalcWeightXSecShape(const EventRecord& event);
    double CalcWeightXSecShape_Empirical(const EventRecord& event);
@@ -66,6 +68,9 @@ namespace rew   {
 
    /// Helper function for CalcWeightEnergyDependence
    double CalcWeight2p2hEnergyDependence(const EventRecord& event);
+
+   /// Helper function for CalcWeightDecayAngMECLegendre
+   double CalcWeightDecayAngMECLegendre(double theta_rad, double twk_dial, double twk_dial2, double twk_dial3, double twk_dial4, double twk_dial5, double twk_dial6);
 
    /// Simple struct containing tweak dial information for the
    /// normalization of one MEC interaction type (CC, NC, EM)
@@ -92,6 +97,15 @@ namespace rew   {
    /// Another tweak dial value for adjusting the nucleon cluster decay
    /// angular distribution
    double fDecayAng2TwkDial;
+
+   /// Tweak dial value for adjusting the nucleon cluster decay angular
+   /// distribution for DecayAngMECLegendre parameter
+   double fDecayAngLegendreTwkDial;
+   double fDecayAngLegendre2TwkDial;
+   double fDecayAngLegendre3TwkDial;
+   double fDecayAngLegendre4TwkDial;
+   double fDecayAngLegendre5TwkDial;
+   double fDecayAngLegendre6TwkDial;
 
    /// Tweak dial value for adjusting the fraction of CC events that
    /// involve an initial pn pair

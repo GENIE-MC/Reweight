@@ -195,6 +195,14 @@ typedef enum EGSyst {
   kXSecTwkDial_DecayAngMEC,
   kXSecTwkDial_DecayAng2MEC,
 
+  // MEC nucleon cluster decay angular distribution following Legendre Polynomials
+  kXSecTwkDial_DecayAngMECLegendre,
+  kXSecTwkDial_DecayAngMECLegendre2,
+  kXSecTwkDial_DecayAngMECLegendre3,
+  kXSecTwkDial_DecayAngMECLegendre4,
+  kXSecTwkDial_DecayAngMECLegendre5,
+  kXSecTwkDial_DecayAngMECLegendre6,
+
   // Fraction of CCMEC initial nucleon clusters that are p+n
   kXSecTwkDial_FracPN_CCMEC,
 
