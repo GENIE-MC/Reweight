@@ -612,8 +612,8 @@ void GReWeightXSecMEC::Init(void) {
   // Get another alternate CCMEC cross section model (Martini) for reshaping the
   // default (SuSAv2 or Valencia).
   // TODO: Change this line once the Martini model is available in GENIE.
-  AlgId alt_id4( "genie::EmpiricalMECPXSec2015", "Reweight" );
-  // AlgId alt_id4( "genie::MartiniMECPXSec2024", "Default" );
+  //AlgId alt_id4( "genie::EmpiricalMECPXSec2015", "Reweight" );
+  AlgId alt_id4( "genie::MartiniEricsonChanfrayMarteauMECPXSec2024", "Default" );
   fXSecAlgCCAlt_Martini = dynamic_cast< XSecAlgorithmI* >( algf->AdoptAlgorithm(alt_id4) );
   assert( fXSecAlgCCAlt_Martini );
   fXSecAlgCCAlt_Martini->AdoptSubstructure();
