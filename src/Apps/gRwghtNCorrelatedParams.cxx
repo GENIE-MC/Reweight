@@ -196,7 +196,7 @@ std::cout << "------------------------------------------------------------" << s
   // Gets Cor, which is needed in decompositions
   // Assumed errors from covariance are stored in one sigma errors for parameters
   GetCorrelationMatrix(gOptInpCovariance,cmat);
-  //TMatrixD lTri = CholeskyDecomposition(*cmat);
+  TMatrixD lTri = CholeskyDecomposition(*cmat);
 
   //LOG("grwghtnp", pNOTICE) << "Correlation matrix:";
   //cmat->Print();
@@ -287,9 +287,10 @@ std::cout << "------------------------------------------------------------------
 
     // Construct multiple branches to streamline loading later
     // Load tweaks into reweighting
-    //twkvals = CholeskyGenerateCorrelatedParamVariations(lTri);
+    twkvals = CholeskyGenerateCorrelatedParamVariations(lTri);
     //twkvals[0] = 1.0; // Always sets same twk_dial value
     //twkvals[1] =  1.0;
+/*
 // CERN plots dial values setting start
     if( itk == 0) {
       twkvals[0] = 0.;
@@ -309,6 +310,7 @@ std::cout << "------------------------------------------------------------------
 //    }
     else {
 //      for (int i = 0; i < n_params; ++i) {
+
       for (int i = 0; i < n_params-2; ++i) {
           twkvals[i] = randGen.Uniform(-5.0, 5.0);
           std::cout << "twkvals[" << i << "] = " << twkvals[i] << std::endl;
@@ -317,7 +319,7 @@ std::cout << "------------------------------------------------------------------
       twkvals[n_params ] = 0.; 
     }
 // CERN plots dial values settings end
-
+*/
 /*
 // Determine dial values for maximal variations:
     if( itk == 0) {
