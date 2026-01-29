@@ -1359,10 +1359,6 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
     // input tune, compute the differential and total cross section of GENIE's 
     // Valencia MEC (alternative) model
 
-    // Determine whether 3-momentum transfer is above 1.2 GeV and set it to
-    // this maximum value in case q^3 > 1.2 GeV to account for the cut-off
-    // in the Valencia model at 1.2 GeV
-
     std::cout << "Input (default) CCMEC cross section model name: " << cc_def_alg_name << std::endl;
     std::cout << "Alternative CCMEC cross section model name:     " << cc_alt_alg_name << std::endl;
 
