@@ -108,7 +108,7 @@ void GSystSet::Print(void)
 //_______________________________________________________________________________________
 void GSystSet::Copy(const GSystSet & syst_set)
 {
-  return fSystematics.clear();
+  fSystematics.clear();
 
   map<GSyst_t, GSystInfo*>::const_iterator it = syst_set.fSystematics.begin();
   for( ; it != syst_set.fSystematics.end(); ++it) {
