@@ -1287,6 +1287,12 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
     // Magnitude of the momentum transfer
     double q3 = ( (*p4v) - p4l ).Vect().Mag();
 
+    // Determine whether momentum transfer q3 is above 1.2 GeV and set it to
+    // this maximum value in case q3 > 1.2 GeV to account for the cut-off
+    // in the Valencia model (5 < q0 < 995 MeV and  1 < q3 < 2000 MeV)
+    // https://journals.aps.org/prd/pdf/10.1103/PhysRevD.88.113007
+    if( q3 > 1.2 ) q3 = 1.2;
+
     kine_ptr->SetKV( kKVQ0, q0 );
     kine_ptr->SetKV( kKVQ3, q3 );
   }
@@ -1352,6 +1358,10 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
     // If the SuSAv2 model is the default CCMEC cross section model from the 
     // input tune, compute the differential and total cross section of GENIE's 
     // Valencia MEC (alternative) model
+
+    // Determine whether 3-momentum transfer is above 1.2 GeV and set it to
+    // this maximum value in case q^3 > 1.2 GeV to account for the cut-off
+    // in the Valencia model at 1.2 GeV
 
     std::cout << "Input (default) CCMEC cross section model name: " << cc_def_alg_name << std::endl;
     std::cout << "Alternative CCMEC cross section model name:     " << cc_alt_alg_name << std::endl;
@@ -1646,6 +1656,12 @@ double GReWeightXSecMEC::CalcWeightXSecShape_Martini(const genie::EventRecord& e
     double q0 = Ev - El;
     // Magnitude of the momentum transfer
     double q3 = ( (*p4v) - p4l ).Vect().Mag();
+
+    // Determine whether energy transfer q0 is above 995 MeV and set it to
+    // this maximum value in case q0 > 995 MeV to account for the cut-off
+    // in the Martini model (5 < q0 < 995 MeV and  1 < q3 < 2000 MeV)
+    // https://arxiv.org/pdf/2508.13939
+    if( q0 > 0.995 ) q0 = 0.095;
 
     kine_ptr->SetKV( kKVQ0, q0 );
     kine_ptr->SetKV( kKVQ3, q3 );
