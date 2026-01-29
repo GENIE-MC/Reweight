@@ -1289,7 +1289,7 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
 
     // Determine whether momentum transfer q3 is above 1.2 GeV and set it to
     // this maximum value in case q3 > 1.2 GeV to account for the cut-off
-    // in the Valencia model (5 < q0 < 995 MeV and  1 < q3 < 2000 MeV)
+    // in the Valencia model. Reference:
     // https://journals.aps.org/prd/pdf/10.1103/PhysRevD.88.113007
     if( q3 > 1.2 ) q3 = 1.2;
 
@@ -1656,7 +1656,7 @@ double GReWeightXSecMEC::CalcWeightXSecShape_Martini(const genie::EventRecord& e
     // Determine whether energy transfer q0 is above 995 MeV and set it to
     // this maximum value in case q0 > 995 MeV to account for the cut-off
     // in the Martini model (5 < q0 < 995 MeV and  1 < q3 < 2000 MeV)
-    // https://arxiv.org/pdf/2508.13939
+    // Reference: https://arxiv.org/pdf/2508.13939
     if( q0 > 0.995 ) q0 = 0.095;
 
     kine_ptr->SetKV( kKVQ0, q0 );
