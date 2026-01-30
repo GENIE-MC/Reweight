@@ -39,6 +39,10 @@ namespace rew   {
  {
  public:
    GReWeight();
+   GReWeight(const GReWeight& other) = delete;             // since we OWN pointers, we can't be copied
+   GReWeight& operator= (const GReWeight& other) = delete; // ... or assigned
+   GReWeight(GReWeight&& other) = default;                 // but if the other object is MOVED, that's ok, since only one instance owns the memroy
+   GReWeight& operator= (GReWeight&& other) = default;     // etc.
   ~GReWeight();
 
    void        AdoptWghtCalc (string name, GReWeightI* wcalc);   ///< add concrete weight calculator, transfers ownership
