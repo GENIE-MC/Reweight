@@ -110,6 +110,7 @@
 #include "RwCalculators/GReWeightNuXSecNCEL.h"
 #include "RwCalculators/GReWeightNuXSecCCQE.h"
 #include "RwCalculators/GReWeightNuXSecCCQEELFF.h"
+#include "RwCalculators/GReWeightNuXSecCCQEZAFF.h"
 #include "RwCalculators/GReWeightNuXSecCCRES.h"
 #include "RwCalculators/GReWeightNuXSecCOH.h"
 #include "RwCalculators/GReWeightNonResonanceBkg.h"
@@ -235,6 +236,7 @@ int main(int argc, char ** argv)
   rw.AdoptWghtCalc( "xsec_ncel",       new GReWeightNuXSecNCEL      );
   rw.AdoptWghtCalc( "xsec_ccqe",       new GReWeightNuXSecCCQE      );
   rw.AdoptWghtCalc( "xsec_ccqe_elff",  new GReWeightNuXSecCCQEELFF      );
+  rw.AdoptWghtCalc( "xsec_ccqe_zaff",  new GReWeightNuXSecCCQEZAFF      );
   rw.AdoptWghtCalc( "xsec_ccqe_axial", new GReWeightNuXSecCCQEaxial );
   //rwh - xsec_ccqe_vec is problematic for various tunes
   rw.AdoptWghtCalc( "xsec_ccqe_vec",   new GReWeightNuXSecCCQEvec   );
@@ -261,11 +263,14 @@ int main(int argc, char ** argv)
   rw.AdoptWghtCalc( "delta_rad",       new GReWeightDeltaradAngle);
 
   // Get GSystSet and include the (single) input systematic parameter
+  
 
   GSystSet & syst = rw.Systematics();
   syst.Init(gOptSyst);
 
   // Fine-tune weight calculators
+  
+
 
   if ( gOptSyst == kXSecTwkDial_MaCCQE ) {
      // By default GReWeightNuXSecCCQE is in `NormAndMaShape' mode

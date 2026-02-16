@@ -30,7 +30,7 @@
 #include "Physics/XSectionIntegration/XSecIntegratorI.h"
 
 // GENIE/Reweight includes
-#include "GReWeightNuXSecCCQEELFF.h"
+#include "GReWeightNuXSecCCQEZAFF.h"
 #include "RwCalculators/GReWeightUtils.h"
 #include "RwFramework/GSystSet.h"
 #include "RwFramework/GSystUncertainty.h"
@@ -42,12 +42,12 @@ using namespace genie;
 using namespace genie::rew;
 using std::ostringstream;
 
-static const char* kModelZExp          = "genie::ZExpELFormFactorModel";
+static const char* kModelZExp          = "genie::ZExpAxialFormFactorModel";
 
-const int GReWeightNuXSecCCQEELFF::kModeZExp;
+const int GReWeightNuXSecCCQEZAFF::kModeZExp;
 
 //_______________________________________________________________________________________
-GReWeightNuXSecCCQEELFF::GReWeightNuXSecCCQEELFF() :
+GReWeightNuXSecCCQEZAFF::GReWeightNuXSecCCQEZAFF() :
   GReWeightModel("CCQE"),
   fManualModelName(),
   fManualModelType()
@@ -55,7 +55,7 @@ GReWeightNuXSecCCQEELFF::GReWeightNuXSecCCQEELFF() :
   this->Init();
 }
 //_______________________________________________________________________________________
-GReWeightNuXSecCCQEELFF::GReWeightNuXSecCCQEELFF(std::string model, std::string type) :
+GReWeightNuXSecCCQEZAFF::GReWeightNuXSecCCQEZAFF(std::string model, std::string type) :
   GReWeightModel("CCQE"),
   fManualModelName(model),
   fManualModelType(type)
@@ -63,21 +63,20 @@ GReWeightNuXSecCCQEELFF::GReWeightNuXSecCCQEELFF(std::string model, std::string 
   this->Init();
 }
 //_______________________________________________________________________________________
-GReWeightNuXSecCCQEELFF::~GReWeightNuXSecCCQEELFF()
+GReWeightNuXSecCCQEZAFF::~GReWeightNuXSecCCQEZAFF()
 {
   if ( fXSecModelConfig ) delete fXSecModelConfig;
   if ( fXSecModel ) delete fXSecModel;
   if ( fXSecModelDef ) delete fXSecModelDef;
 }
 //_______________________________________________________________________________________
-bool GReWeightNuXSecCCQEELFF::IsHandled(GSyst_t syst) const
+bool GReWeightNuXSecCCQEZAFF::IsHandled(GSyst_t syst) const
 {
   // read form factor model and compare to mode
   bool handle;
 
   switch(syst) {
-    // add ZExp vector parameters
-    case ( kXSecTwkDial_ZExpELFF ) :
+    case ( kXSecTwkDial_ZExpZAFF ) :
       if(fMode==kModeZExp && fModelIsZExp){
         handle = true;
       }else {
@@ -88,11 +87,10 @@ bool GReWeightNuXSecCCQEELFF::IsHandled(GSyst_t syst) const
       handle = false;
       break;
   }
-
   return handle;
 }
 //_______________________________________________________________________________________
-bool GReWeightNuXSecCCQEELFF::AppliesTo(const EventRecord &event) const
+bool GReWeightNuXSecCCQEZAFF::AppliesTo(const EventRecord &event) const
 {
   auto type = event.Summary()->ProcInfo().ScatteringTypeId();
   bool is_cc = event.Summary()->ProcInfo().IsWeakCC();
@@ -102,7 +100,7 @@ bool GReWeightNuXSecCCQEELFF::AppliesTo(const EventRecord &event) const
   return false;
 }
 //_______________________________________________________________________________________
-void GReWeightNuXSecCCQEELFF::SetSystematic(GSyst_t syst, double twk_dial)
+void GReWeightNuXSecCCQEZAFF::SetSystematic(GSyst_t syst, double twk_dial)
 {
   if(!this->IsHandled(syst))
   {
@@ -111,7 +109,7 @@ void GReWeightNuXSecCCQEELFF::SetSystematic(GSyst_t syst, double twk_dial)
     return;
   }
   switch(syst) {
-    case (kXSecTwkDial_ZExpELFF):
+    case (kXSecTwkDial_ZExpZAFF):
       fZExpTwkDial = twk_dial;
       break;
     default:
@@ -119,7 +117,7 @@ void GReWeightNuXSecCCQEELFF::SetSystematic(GSyst_t syst, double twk_dial)
   }
 }
 //_______________________________________________________________________________________
-void GReWeightNuXSecCCQEELFF::Reset(void)
+void GReWeightNuXSecCCQEZAFF::Reset(void)
 {
   fZExpPara.fQ4limit = fZExpParaDef.fQ4limit;
   fZExpPara.fKmax = fZExpParaDef.fKmax;
@@ -136,19 +134,13 @@ void GReWeightNuXSecCCQEELFF::Reset(void)
   fZExpPara.fGmn0 = fZExpParaDef.fGmn0;
   fZExpParaTwkDial.fGmn0 = 0.;
   for(int i = 0; i < fZExpPara.fKmax; i++){
-    fZExpPara.fZ_ANn[i] = fZExpParaDef.fZ_ANn[i];
-    fZExpPara.fZ_APn[i] = fZExpParaDef.fZ_APn[i];
-    fZExpPara.fZ_BNn[i] = fZExpParaDef.fZ_BNn[i];
-    fZExpPara.fZ_BPn[i] = fZExpParaDef.fZ_BPn[i];
-    fZExpParaTwkDial.fZ_APn[i] = 0.;
-    fZExpParaTwkDial.fZ_BPn[i] = 0.;
-    fZExpParaTwkDial.fZ_ANn[i] = 0.;
-    fZExpParaTwkDial.fZ_BNn[i] = 0.;
+    fZExpPara.fZ_An[i] = fZExpParaDef.fZ_An[i];
+    fZExpParaTwkDial.fZ_An[i] = 0.;
   }
   this->Reconfigure();
 }
 //_______________________________________________________________________________________
-void GReWeightNuXSecCCQEELFF::Reconfigure(void)
+void GReWeightNuXSecCCQEZAFF::Reconfigure(void)
 {
   GSystUncertainty * fracerr = GSystUncertainty::Instance();
   if(fMode==kModeZExp && fModelIsZExp) {
@@ -163,7 +155,7 @@ void GReWeightNuXSecCCQEELFF::Reconfigure(void)
   }
 }
 //_______________________________________________________________________________________
-double GReWeightNuXSecCCQEELFF::CalcWeight(const genie::EventRecord & event)
+double GReWeightNuXSecCCQEZAFF::CalcWeight(const genie::EventRecord & event)
 {
   bool is_qe = event.Summary()->ProcInfo().IsQuasiElastic();
   bool is_cc = event.Summary()->ProcInfo().IsWeakCC();
@@ -188,7 +180,6 @@ double GReWeightNuXSecCCQEELFF::CalcWeight(const genie::EventRecord & event)
   if ( nupdg==kPdgAntiNuE  && !fRewNuebar ) return 1.;
 
   double wght = 1.0;
-
   if ( fMode==kModeZExp && fModelIsZExp ) {
       wght *=  this->CalcWeightZExp( event );
       return wght;
@@ -196,21 +187,24 @@ double GReWeightNuXSecCCQEELFF::CalcWeight(const genie::EventRecord & event)
   return 1.;
 }
 //_______________________________________________________________________________________
-void GReWeightNuXSecCCQEELFF::Init(void)
+void GReWeightNuXSecCCQEZAFF::Init(void)
 {
+
+  // Get the model and parameters of axial form factor from current tune
   AlgConfigPool * conf_pool = AlgConfigPool::Instance();
   Registry * gpl = conf_pool->GlobalParameterList();
+  // get axial form factor tune from current CCQE model
+  RgAlg cc_qel_id = gpl->GetAlg( "XSecModel@genie::EventGenerator/QEL-CC" );
+  RgAlg ff_id = conf_pool->FindRegistry(cc_qel_id)->GetAlg("FormFactorsAlg");
+  RgAlg aff_model_id = conf_pool->FindRegistry(ff_id)->GetAlg("AxialFormFactorModel");
+  // get the covariance matrix
+  Registry * zexp_axial_model = conf_pool->FindRegistry(aff_model_id);
+  int n_row = zexp_axial_model->GetInt(Algorithm::BuildParamMatRowSizeKey("ZExpZAFF@CovarianceMatrix"));
+  int n_col = zexp_axial_model->GetInt(Algorithm::BuildParamMatColSizeKey("ZExpZAFF@CovarianceMatrix"));
 
-  // --- get the model configuration from current tune
-  conf_pool->Print(std::cout);
-  gpl->Print(std::cout);
-  RgAlg elff_id = conf_pool->FindRegistry("CommonParamList/ElasticFF")->GetAlg("ElasticFormFactorsModel");
-  Registry * elff_model = conf_pool->FindRegistry(elff_id);
-  int n_row = elff_model->GetInt(Algorithm::BuildParamMatRowSizeKey("ZExpELFF@CovarianceMatrix"));
-  int n_col = elff_model->GetInt(Algorithm::BuildParamMatColSizeKey("ZExpELFF@CovarianceMatrix"));
   if(n_row != n_col){
-    LOG( "GReWeightNuXSecCCQEELFF", pFATAL ) << "Non-square covariance matrix"
-      << "encountered in GReWeightNuXSecCCQEELFF::Init()";
+    LOG( "GReWeightNuXSecCCQEZAFF", pFATAL ) << "Non-square covariance matrix"
+      << "encountered in GReWeightNuXSecCCQEZAFF::Init()";
     std::exit(1);
   }
   error_mat.ResizeTo(n_row, n_row);
@@ -218,12 +212,13 @@ void GReWeightNuXSecCCQEELFF::Init(void)
   A_f.resize(n_row);
   for(int i = 0; i < n_row; i++){
     for(int j = 0; j < n_row; j++){
-      error_mat[i][j] = elff_model->GetDouble(Algorithm::BuildParamMatKey("ZExpELFF@CovarianceMatrix", i, j));
+      error_mat[i][j] = zexp_axial_model->GetDouble(Algorithm::BuildParamMatKey("ZExpZAFF@CovarianceMatrix", i, j));
     }
   }
+  LOG( "GReWeightNuXSecCCQEZAFF", pINFO ) << "CovarianceMatrix of z expansion:";
   error_mat.Print();
-  RgAlg xsec_alg = gpl->GetAlg("XSecModel@genie::EventGenerator/QEL-CC");
-  AlgId id(xsec_alg);
+
+  AlgId id(cc_qel_id);
 
   AlgId twk_id(id);
   if (fManualModelName.size()) {
@@ -240,14 +235,14 @@ void GReWeightNuXSecCCQEELFF::Init(void)
   fXSecModel = dynamic_cast<XSecAlgorithmI*>(alg_twk);
   fXSecModel->AdoptSubstructure();
 
+
   // Check what kind of form factors we're using in the tweaked cross section
   // model
   fXSecModelConfig = new Registry(fXSecModel->GetConfig());
-  //  fFFModel = fXSecModelConfig->GetAlg("FormFactorsAlg/AxialFormFactorModel").name;
-  fFFModel = fXSecModelConfig->GetAlg("FormFactorsAlg/ElasticFormFactorsModel").name;
+  fFFModel = fXSecModelConfig->GetAlg("FormFactorsAlg/AxialFormFactorModel").name;
   fXSecModelConfig->Print(std::cout);
 
-  fModelIsZExp      = (strcmp(fFFModel.c_str(),kModelZExp  ) == 0);
+  fModelIsZExp      = (strcmp(fFFModel.c_str(), kModelZExp  ) == 0);
 
 
   this->RewNue    (true);
@@ -255,7 +250,7 @@ void GReWeightNuXSecCCQEELFF::Init(void)
   this->RewNumu   (true);
   this->RewNumubar(true);
 
-  this->SetZExpPath("FormFactorsAlg/ElasticFormFactorsModel/");
+  this->SetZExpPath("FormFactorsAlg/AxialFormFactorModel/");
 
   if (fModelIsZExp)
   {
@@ -269,18 +264,9 @@ void GReWeightNuXSecCCQEELFF::Init(void)
     fZExpParaDef.fGen0    = fXSecModelConfig->GetDouble(fZExpPath + "QEL-Gen0");
     fZExpParaDef.fGmn0    = fXSecModelConfig->GetDouble(fZExpPath + "QEL-Gmn0");
 
-    fZExpParaDef.fZ_ANn.resize(fZExpParaDef.fKmax);
-    fZExpParaDef.fZ_APn.resize(fZExpParaDef.fKmax);
-    fZExpParaDef.fZ_BNn.resize(fZExpParaDef.fKmax);
-    fZExpParaDef.fZ_BPn.resize(fZExpParaDef.fKmax);
-    fZExpPara.fZ_ANn.resize(fZExpParaDef.fKmax);
-    fZExpPara.fZ_APn.resize(fZExpParaDef.fKmax);
-    fZExpPara.fZ_BNn.resize(fZExpParaDef.fKmax);
-    fZExpPara.fZ_BPn.resize(fZExpParaDef.fKmax);
-    fZExpParaTwkDial.fZ_ANn.resize(fZExpParaDef.fKmax);
-    fZExpParaTwkDial.fZ_APn.resize(fZExpParaDef.fKmax);
-    fZExpParaTwkDial.fZ_BNn.resize(fZExpParaDef.fKmax);
-    fZExpParaTwkDial.fZ_BPn.resize(fZExpParaDef.fKmax);
+    fZExpParaDef.fZ_An.resize(fZExpParaDef.fKmax);
+    fZExpPara.fZ_An.resize(fZExpParaDef.fKmax);
+    fZExpParaTwkDial.fZ_An.resize(fZExpParaDef.fKmax);
 
     fZExpParaTwkDial.fQ4limit = 0.;
     fZExpParaTwkDial.fKmax    = 0.;
@@ -294,31 +280,16 @@ void GReWeightNuXSecCCQEELFF::Init(void)
     ostringstream alg_key;
     for(int i = 0; i < fZExpParaDef.fKmax; i++){
       alg_key.str("");
-      alg_key << fZExpPath << "QEL-Z_AN-" << i;
-      fZExpParaDef.fZ_ANn[i] = fXSecModelConfig->GetDouble(alg_key.str());
-      alg_key.str("");
-      alg_key << fZExpPath << "QEL-Z_AP-" << i;
-      fZExpParaDef.fZ_APn[i] = fXSecModelConfig->GetDouble(alg_key.str());
-      alg_key.str("");
-      alg_key << fZExpPath << "QEL-Z_BN-" << i;
-      fZExpParaDef.fZ_BNn[i] = fXSecModelConfig->GetDouble(alg_key.str());
-      alg_key.str("");
-      alg_key << fZExpPath << "QEL-Z_BP-" << i;
-      fZExpParaDef.fZ_BPn[i] = fXSecModelConfig->GetDouble(alg_key.str());
-      fZExpParaTwkDial.fZ_ANn[i] = 0.;
-      fZExpParaTwkDial.fZ_APn[i] = 0.;
-      fZExpParaTwkDial.fZ_BNn[i] = 0.;
-      fZExpParaTwkDial.fZ_BPn[i] = 0.;
-      fZExpPara.fZ_ANn[i] = 0.;
-      fZExpPara.fZ_APn[i] = 0.;
-      fZExpPara.fZ_BNn[i] = 0.;
-      fZExpPara.fZ_BPn[i] = 0.;
+      alg_key << fZExpPath << "QEL-Z_A-" << i;
+      fZExpParaDef.fZ_An[i] = fXSecModelConfig->GetDouble(alg_key.str());
+      fZExpParaTwkDial.fZ_An[i] = 0.;
+      fZExpPara.fZ_An[i] = 0.;
     }
     fZExpTwkDial = 0.;
   }
 }
 //_______________________________________________________________________________________
-double GReWeightNuXSecCCQEELFF::CalcWeightZExp(const genie::EventRecord & event)
+double GReWeightNuXSecCCQEZAFF::CalcWeightZExp(const genie::EventRecord & event)
 {
     bool tweaked = false;
     tweaked = tweaked || (TMath::Abs(fZExpTwkDial) > controls::kASmallNum);
@@ -326,7 +297,6 @@ double GReWeightNuXSecCCQEELFF::CalcWeightZExp(const genie::EventRecord & event)
     double oneSigma = GetOneSigma(event);
     double old_xsec = event.DiffXSec();
     double new_weight = (fZExp_Scale * oneSigma + old_xsec) / old_xsec;
- //   LOG("ReW", pNOTICE) << fZExp_Scale << "  " << oneSigma << "  " << old_xsec;
     return new_weight;
 }
 
@@ -336,21 +306,21 @@ double GReWeightNuXSecCCQEELFF::CalcWeightZExp(const genie::EventRecord & event)
 // A_f = \patial XSec() / \patial p_i = (XSec(p_i + \delta * error_i ) - XSec(p_i - \delta * error_i )) / ( 2.0 * \delta * error_i )
 //
 
-void GReWeightNuXSecCCQEELFF::XSecPartialDerivative(const EventRecord & event){
+void GReWeightNuXSecCCQEZAFF::XSecPartialDerivative(const EventRecord & event){
   // Get the uncertainties from the error matrix
   // ap1, ap2, ap3, ap4,
   // bp1, bp2, bp3, bp4,
   // an1, an2, an3, an4,
   // bn1, bn2, bn3, bn4
 
-  for(int i = 0; i < fZExpParaDef.fKmax * 4; i++){
+  for(int i = 0; i < fZExpParaDef.fKmax; i++){
     errors[i] = TMath::Sqrt(error_mat[i][i]);
     A_f[i] = 0.0;
   }
 
   double delta = 0.1;
 
-  for(int index = 0; index < fZExpParaDef.fKmax * 4; index++){
+  for(int index = 0; index < fZExpParaDef.fKmax; index++){
     double xsec_tmp_0 = 0.0;
     double xsec_tmp_1 = 0.0;
 
@@ -358,24 +328,12 @@ void GReWeightNuXSecCCQEELFF::XSecPartialDerivative(const EventRecord & event){
       if(sign == 0) continue;
 
       for(int ipara = 0; ipara < fZExpParaDef.fKmax; ipara++){
-        fZExpPara.fZ_APn[ipara] = fZExpParaDef.fZ_APn[ipara];
-        fZExpPara.fZ_BPn[ipara] = fZExpParaDef.fZ_BPn[ipara];
-        fZExpPara.fZ_ANn[ipara] = fZExpParaDef.fZ_ANn[ipara];
-        fZExpPara.fZ_BNn[ipara] = fZExpParaDef.fZ_BNn[ipara];
+        fZExpPara.fZ_An[ipara] = fZExpParaDef.fZ_An[ipara];
       }
 
-      int icoff = index / fZExpParaDef.fKmax;
-      int jcoff = index % fZExpParaDef.fKmax;
+      fZExpPara.fZ_An[index] = fZExpParaDef.fZ_An[index] + errors[index] * delta * sign; 
 
-      switch (icoff){
-        case 0 : fZExpPara.fZ_APn[jcoff] = fZExpParaDef.fZ_APn[jcoff] + errors[index] * delta * sign; break;
-        case 1 : fZExpPara.fZ_BPn[jcoff] = fZExpParaDef.fZ_BPn[jcoff] + errors[index] * delta * sign; break;
-        case 2 : fZExpPara.fZ_ANn[jcoff] = fZExpParaDef.fZ_ANn[jcoff] + errors[index] * delta * sign; break;
-        case 3 : fZExpPara.fZ_BNn[jcoff] = fZExpParaDef.fZ_BNn[jcoff] + errors[index] * delta * sign; break;
-        default: break;
-      }
-
-      Registry r("GReWeightNuXSecCCQEELFF",false);
+      Registry r("GReWeightNuXSecCCQEZAFF",false);
       //~ Registry r(fXSecModel->GetConfig());
       if (fMode==kModeZExp)
       {
@@ -383,21 +341,9 @@ void GReWeightNuXSecCCQEELFF::XSecPartialDerivative(const EventRecord & event){
         for (int i=0;i<fZExpParaDef.fKmax;i++)
         {
           alg_key.str(""); // algorithm key for each coefficient
-          alg_key << fZExpPath << "QEL-Z_AN-" << i;
-          r.Set(alg_key.str(), fZExpPara.fZ_ANn[i]);
-          LOG("ReW", pINFO) << alg_key.str() << "  " << fZExpParaDef.fZ_ANn[i] - fZExpPara.fZ_ANn[i] << "  " << fZExpPara.fZ_ANn[i];
-          alg_key.str(""); // algorithm key for each coefficient
-          alg_key << fZExpPath << "QEL-Z_AP-" << i;
-          r.Set(alg_key.str(), fZExpPara.fZ_APn[i]);
-          LOG("ReW", pINFO) << alg_key.str() << "  " << fZExpParaDef.fZ_APn[i] - fZExpPara.fZ_APn[i] << "  " << fZExpPara.fZ_APn[i];
-          alg_key.str(""); // algorithm key for each coefficient
-          alg_key << fZExpPath << "QEL-Z_BN-" << i;
-          r.Set(alg_key.str(), fZExpPara.fZ_BNn[i]);
-          LOG("ReW", pINFO) << alg_key.str() << "  " << fZExpParaDef.fZ_BNn[i] - fZExpPara.fZ_BNn[i] << "  " << fZExpPara.fZ_BNn[i];
-          alg_key.str(""); // algorithm key for each coefficient
-          alg_key << fZExpPath << "QEL-Z_BP-" << i;
-          r.Set(alg_key.str(), fZExpPara.fZ_BPn[i]);
-          LOG("ReW", pINFO) << alg_key.str() << "  " << fZExpParaDef.fZ_BPn[i] - fZExpPara.fZ_BPn[i] <<  "  " <<  fZExpPara.fZ_BPn[i];
+          alg_key << fZExpPath << "QEL-Z_A-" << i;
+          r.Set(alg_key.str(), fZExpPara.fZ_An[i]);
+          LOG("ReW", pINFO) << alg_key.str() << "  " << fZExpParaDef.fZ_An[i] - fZExpPara.fZ_An[i] << "  " << fZExpPara.fZ_An[i];
         }
       }
       fXSecModel->Configure(r);
@@ -419,11 +365,11 @@ void GReWeightNuXSecCCQEELFF::XSecPartialDerivative(const EventRecord & event){
 //  Uncertainty propagation
 //
 //  \sigma_{XSec}^2 = A_f[i] *A_f[j] *M_ij
-double GReWeightNuXSecCCQEELFF::GetOneSigma(const EventRecord & event){
+double GReWeightNuXSecCCQEZAFF::GetOneSigma(const EventRecord & event){
   XSecPartialDerivative(event);
   double OneSigma2 = 0;
-  for(int i = 0; i < fZExpParaDef.fKmax * 4; i++){
-    for(int j = 0; j < fZExpParaDef.fKmax * 4; j++){
+  for(int i = 0; i < fZExpParaDef.fKmax; i++){
+    for(int j = 0; j < fZExpParaDef.fKmax; j++){
       OneSigma2+= A_f[i]*A_f[j]*error_mat[i][j];
     }
   }
@@ -433,7 +379,7 @@ double GReWeightNuXSecCCQEELFF::GetOneSigma(const EventRecord & event){
 //_______________________________________________________________________________________
 
 
-double GReWeightNuXSecCCQEELFF::UpdateXSec(const EventRecord & event){
+double GReWeightNuXSecCCQEZAFF::UpdateXSec(const EventRecord & event){
 
   Interaction * interaction = event.Summary();
 

@@ -294,8 +294,8 @@ values for each Reweight tweak dial. All of these have default values of zero.
    <param type="double" name="ZExpELFFBN4CCQE@PlusOneSigma">  41.4534     </param>
    <param type="double" name="ZExpELFFBN4CCQE@MinusOneSigma"> 41.4534     </param>
 
- </param_set>
- <param_set name="CovarianceMatrix">
-   <param type="mat-double" name="ZExpELFF@CovarianceMatrix" importfile="true"> data/covariances/ELZExpFF.dat </param>
+   <param type="double" name="ZExpAFF@PlusOneSigma"> 1.0 </param>
+   <param type="double" name="ZExpAFF@MinusOneSigma"> 1.0 </param>
+
  </param_set>
 </alg_conf>
