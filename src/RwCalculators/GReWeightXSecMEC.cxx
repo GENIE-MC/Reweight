@@ -992,7 +992,7 @@ double GReWeightXSecMEC::CalcWeightAngularDistLegendre(const genie::EventRecord&
   //std::cout << "Legendre polynomial P_l( " << twk_dial << " , " << theta_N1 << ") = " << gsl_sf_legendre_Pl(twk_dial, theta_N1) << std::endl;
   //std::cout << "Legendre polynomial P_l( " << twk_dial << " , " << 2. * theta_N1 / constants::kPi - 1. << ") = " << gsl_sf_legendre_Pl(twk_dial, 2. * theta_N1 / constants::kPi - 1.) << std::endl;
 
-  std::cout << "theta_N1 = " << theta_N1 << std::endl;
+  //std::cout << "theta_N1 = " << theta_N1 << std::endl;
   //std::cout << "Legendre polynomial P_l( " << twk_dial << " , " << std::cos(theta_N1) << ") = " << gsl_sf_legendre_Pl(twk_dial, std::cos(theta_N1)) << std::endl;
   std::cout << "Legendre polynomial P_l( " << 1 << " , " << std::cos(theta_N1) << ") = " << gsl_sf_legendre_Pl(1, std::cos(theta_N1)) << std::endl;
 
@@ -1266,11 +1266,21 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
 
     kine_ptr->SetKV( kKVTl, Tl );
     kine_ptr->SetKV( kKVctl, ctl );
+
   }
+
+  // The 3-momentum transfer is limited to q3 < 1.2 GeV in the Valencia model 
+  // (Reference: https://journals.aps.org/prd/pdf/10.1103/PhysRevD.88.113007).
+  // If the default  model differential cross section is outside this region 
+  // of phase space, the alternative model differential cross section is 0, so   
+  // the resulting weight is 1 - twk_dial. This way, the reweighted
+  // distribution interpolates naturally according to the phase-space
+  // limitations of the alternative model.
 
   // Double-check that the running value of the momentum transfer
   // is set in the input interaction. If it isn't, set it manually
   // using the lepton 4-momentum.
+
   if ( !kine_ptr->KVSet(kKVQ0) ) {
 
     // Final lepton 4-momentum
@@ -1287,14 +1297,9 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
     // Magnitude of the momentum transfer
     double q3 = ( (*p4v) - p4l ).Vect().Mag();
 
-    // Determine whether momentum transfer q3 is above 1.2 GeV and set it to
-    // this maximum value in case q3 > 1.2 GeV to account for the cut-off
-    // in the Valencia model. Reference:
-    // https://journals.aps.org/prd/pdf/10.1103/PhysRevD.88.113007
-    if( q3 > 1.2 ) q3 = 1.2;
-
     kine_ptr->SetKV( kKVQ0, q0 );
     kine_ptr->SetKV( kKVQ3, q3 );
+
   }
 
   // Get the differential and total cross section for the default
@@ -1329,7 +1334,8 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
   // XSecShape_Empirical_CCMEC parameter was added, so that one can 
   // reweight to two models simultaneously and also in order to not
   // having to change the hard-coded part of the code.
-  if ( ( cc_def_alg_name == "genie::SuSAv2MECPXSec" && cc_alt_alg_name == "genie::EmpiricalMECPXSec2015" ) || ( cc_def_alg_name == "genie::NievesSimoVacasMECPXSec2016" && cc_alt2_alg_name == "genie::EmpiricalMECPXSec2015" ) ) {
+  if ( ( cc_def_alg_name == "genie::SuSAv2MECPXSec" && cc_alt_alg_name == "genie::EmpiricalMECPXSec2015" ) 
+    || ( cc_def_alg_name == "genie::NievesSimoVacasMECPXSec2016" && cc_alt2_alg_name == "genie::EmpiricalMECPXSec2015" ) ) {
     interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( hit_nuc_pdg );
   }
 
@@ -1634,6 +1640,15 @@ double GReWeightXSecMEC::CalcWeightXSecShape_Martini(const genie::EventRecord& e
     kine_ptr->SetKV( kKVctl, ctl );
   }
 
+  // The energy and momentum transfer is limited to 5 < q0 < 995 MeV 
+  // and  1 < q3 < 2000 MeV in the Martini model (Reference: 
+  // https://arxiv.org/pdf/2508.13939). If the default
+  // model differential cross section is outside this region of phase
+  // space, the alternative model differential cross section is 0, so 
+  // the resulting weight is 1 - twk_dial. This way, the reweighted
+  // distribution interpolates naturally according to the phase-space
+  // limitations of the alternative model.
+
   // Double-check that the running value of the momentum transfer
   // is set in the input interaction. If it isn't, set it manually
   // using the lepton 4-momentum.
@@ -1652,12 +1667,6 @@ double GReWeightXSecMEC::CalcWeightXSecShape_Martini(const genie::EventRecord& e
     double q0 = Ev - El;
     // Magnitude of the momentum transfer
     double q3 = ( (*p4v) - p4l ).Vect().Mag();
-
-    // Determine whether energy transfer q0 is above 995 MeV and set it to
-    // this maximum value in case q0 > 995 MeV to account for the cut-off
-    // in the Martini model (5 < q0 < 995 MeV and  1 < q3 < 2000 MeV)
-    // Reference: https://arxiv.org/pdf/2508.13939
-    if( q0 > 0.995 ) q0 = 0.095;
 
     kine_ptr->SetKV( kKVQ0, q0 );
     kine_ptr->SetKV( kKVQ3, q3 );
