@@ -147,7 +147,7 @@ void GReWeightNuXSecCCQEZAFF::Reconfigure(void)
     int     sign_twk = 0;
     double  fracerr_zexp = 0.;
     sign_twk = utils::rew::Sign(fZExpTwkDial);
-    fracerr_zexp = fracerr->OneSigmaErr(kXSecTwkDial_ZExpELFF, sign_twk);
+    fracerr_zexp = fracerr->OneSigmaErr(kXSecTwkDial_ZExpZAFF, sign_twk);
     fZExp_Scale = fZExpTwkDial * fracerr_zexp;
   }
   else {
