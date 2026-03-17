@@ -28,7 +28,7 @@ srcdir=$GENIE_REWEIGHT/src
 libs="-L$libdir -lGRwFwk -lGRwIO -lGRwClc"
 
 # (optional)
-if test "$GOPT_ENABLE_PROFESSOR2" == "YES"; then
+if test "$GOPT_ENABLE_PROFESSOR2" = "YES"; then
  libs="$libs -lGPrSp"
 fi
 
