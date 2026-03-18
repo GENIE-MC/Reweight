@@ -1011,7 +1011,7 @@ double GReWeightXSecMEC::CalcWeightPNDelta(const genie::EventRecord& event)
     // case, let's repeat that here.
     delta_frac_def = 0.;
   }
-  else if ( cc_def_alg_name == "genie::NievesSimoVacasMECPXSec2016" ) {
+  else if ( cc_def_alg_name == "genie::NievesSimoVacasMECPXSec2016" || cc_def_alg_name == "genie::MartiniEricsonChanfrayMarteauMECPXSec2024" ) {
     // For the Valencia MEC model, the pn fraction can vary with q0 and q3. We
     // can get the pn fraction for this event's kinematics by computing the
     // differential cross section for each case. A similar thing is done in
@@ -1080,8 +1080,7 @@ double GReWeightXSecMEC::CalcWeightPNDelta(const genie::EventRecord& event)
 
     // We don't need the cloned interaction anymore, so delete it
     delete interaction;
-
-  } 
+  }
   else {
     LOG("ReW", pERROR) << "Unrecognized MEC model " << cc_def_alg_name
       << " encountered in genie::rew::GReWeightXSecMEC::CalcWeightPNDelta()";
