@@ -15,7 +15,7 @@
 namespace genie {
 namespace rew {
 
-bool GReWeightProfessor::AppliesTo(const EventRecord &event) const {
+bool GReWeightProfessor::AppliesTo(const EventRecord &/*event*/) const {
   return true;
 }
 
@@ -25,7 +25,7 @@ bool GReWeightProfessor::IsHandled(GSyst_t syst) const {
 }
 
 //! update the value for the specified nuisance param
-void GReWeightProfessor::SetSystematic(GSyst_t syst, double val) {
+void GReWeightProfessor::SetSystematic(GSyst_t /*syst*/, double /*val*/) {
   // TODO: figure out how to do it
   // We need a map of GSyst_t to the index of the nuisance parameter
   // Again this should match whatever in the comparison package

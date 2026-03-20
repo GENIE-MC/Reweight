@@ -219,7 +219,7 @@ int main(int argc, char ** argv)
 
 
   // Declare the weights and twkdial arrays
-  const int n_events = (const int) nev;
+  const int n_events = static_cast<int>(nev);
   float** weights = new float*[n_events];
   for ( int e = 0; e < n_events; ++e ) {
     weights[e] = new float[n_points];

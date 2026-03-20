@@ -59,10 +59,10 @@ public:
 
   template <class BinningT, class FirstNeighbors, class channelT>
   ObservableSplines(BinningT &&bin_in, FirstNeighbors &&first_neighbour_in,
-                    channelT &&channel_in, int dimension)
+                    channelT &&channel_in, int dim)
       : bin_edges(std::forward<BinningT>(bin_in)),
         first_neighbour(std::forward<FirstNeighbors>(first_neighbour_in)),
-        dimension(dimension),
+        dimension(dim),
         channel(std::forward<channelT>(channel_in)) {}
 
   ObservableSplines() = default;

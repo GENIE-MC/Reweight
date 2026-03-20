@@ -235,8 +235,8 @@ int main(int argc, char ** argv)
   GSystSet & syst = rw.Systematics();
 
   // Declare the weights, twkvals
-  const int n_params = (const int) gOptNSyst;
-  const int n_tweaks = (const int) gOptNTwk;
+  const int n_params = static_cast<int>(gOptNSyst);
+  const int n_tweaks = static_cast<int>(gOptNTwk);
   TVectorD twkvals(n_params);
 
   // Initialize
