@@ -1784,15 +1784,14 @@ double GReWeightXSecMEC::CalcWeight2p2hEnergyDependence(const genie::EventRecord
     // if( E_nu < 1.2 ){
     if( E_nu < 10.0 ){
       // weight = fEnergyDependenceTwkDial + ( 1 - fEnergyDependenceTwkDial ) / r ; // For dial 1 being CV and dial 0 being tweaked
-      weight = 1 - fEnergyDependenceTwkDial + fEnergyDependenceTwkDial / r ; // For dial 0 being CV and dial 1 being tweaked
+      weight = 1 - fEnergyDependenceTwkDial + fEnergyDependenceTwkDial * r ; // For dial 0 being CV and dial 1 being tweaked
     } 
     else{
       // weight = fEnergyDependenceTwkDial + ( 1 - fEnergyDependenceTwkDial ) / r ;
       weight = 1 - fEnergyDependenceTwkDial + fEnergyDependenceTwkDial / r ;
     }
-    // ... or antineutrino
   } 
-  else{
+  else{ // ... or antineutrino
     if( E_nu < 2.995 ){ // if neutrino energy is in range, take ratio at that energy
       // r = 1.14523; // replace hard-coded with table value everywhere, TGraph
       r = ratioGraph_nu->Eval(E_nu);
@@ -1812,11 +1811,11 @@ double GReWeightXSecMEC::CalcWeight2p2hEnergyDependence(const genie::EventRecord
     // if( E_nu < 1.2 ){
     if( E_nu < 10.0 ){
       // weight = fEnergyDependenceTwkDial + ( 1 - fEnergyDependenceTwkDial ) / r ;
-      weight = 1 - fEnergyDependenceTwkDial + fEnergyDependenceTwkDial / r ;
+      weight = 1 - fEnergyDependenceTwkDial + fEnergyDependenceTwkDial * r ;
     }
     else{
       // weight = fEnergyDependenceTwkDial + ( 1 - fEnergyDependenceTwkDial ) / r ;
-      weight = 1 - fEnergyDependenceTwkDial + fEnergyDependenceTwkDial * r ;
+      weight = 1 - fEnergyDependenceTwkDial + fEnergyDependenceTwkDial / r ;
     }
   }
 
