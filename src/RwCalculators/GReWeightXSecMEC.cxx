@@ -452,12 +452,10 @@ void GReWeightXSecMEC::SetSystematic(GSyst_t syst, double twk_dial)
   // Handle the knobs that are independent of interaction type first
   if ( syst == kXSecTwkDial_DecayAngMEC ) {
     fDecayAngTwkDial = twk_dial;
-//    std::cout << "fDecayAngTwkDial " << fDecayAngTwkDial << std::endl;
     return;
   }
   if ( syst == kXSecTwkDial_DecayAng2MEC ) {
     fDecayAng2TwkDial = twk_dial;
- //   std::cout << "fDecayAng2TwkDial " << fDecayAng2TwkDial << std::endl;
     return;
   }
   if ( syst == kXSecTwkDial_DecayAngMECLegendre ) { 
@@ -587,7 +585,7 @@ double GReWeightXSecMEC::CalcWeight(const genie::EventRecord& event)
   weight *= this->CalcWeightAngularDist( event );
     std::cout << "Weight ang:                 " << weight << std::endl;
   weight *= this->CalcWeightAngularDistLegendre( event );
-    std::cout << "Weight ang Legendre:                 " << weight << std::endl;
+    std::cout << "Weight ang Legendre:        " << weight << std::endl;
   weight *= this->CalcWeightPNDelta( event );
     std::cout << "Weight pndel: " << weight << std::endl;
   weight *= this->CalcWeightXSecShape( event );
