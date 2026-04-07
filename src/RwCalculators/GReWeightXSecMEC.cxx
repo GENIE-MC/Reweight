@@ -59,309 +59,6 @@ namespace {
 // Counter for loop over events
 int current_event = 0;
 
-// Neutrino Energies from 0.0 GeV to 3.0 GeV for
-// Energy_Dependence_CCMEC parameter. 
-static double const nu_energies[552] = {
-0.000, 0.245, 0.25, 0.255, 0.26, 0.265, 0.27, 0.275, 
-0.28, 0.285, 0.29, 0.295, 0.3, 0.305, 0.31, 0.315, 
-0.32, 0.325, 0.33, 0.335, 0.34, 0.345, 0.35, 0.355, 
-0.36, 0.365, 0.37, 0.375, 0.38, 0.385, 0.39, 0.395, 
-0.4, 0.405, 0.41, 0.415, 0.42, 0.425, 0.43, 0.435, 
-0.44, 0.445, 0.45, 0.455, 0.46, 0.465, 0.47, 0.475, 
-0.48, 0.485, 0.49, 0.495, 0.5, 0.505, 0.51, 0.515, 
-0.52, 0.525, 0.53, 0.535, 0.54, 0.545, 0.55, 0.555, 
-0.56, 0.565, 0.57, 0.575, 0.58, 0.585, 0.59, 0.595, 
-0.6, 0.605, 0.61, 0.615, 0.62, 0.625, 0.63, 0.635, 
-0.64, 0.645, 0.65, 0.655, 0.66, 0.665, 0.67, 0.675, 
-0.68, 0.685, 0.69, 0.695, 0.7, 0.705, 0.71, 0.715, 
-0.72, 0.725, 0.73, 0.735, 0.74, 0.745, 0.75, 0.755, 
-0.76, 0.765, 0.77, 0.775, 0.78, 0.785, 0.79, 0.795, 
-0.8, 0.805, 0.81, 0.815, 0.82, 0.825, 0.83, 0.835, 
-0.84, 0.845, 0.85, 0.855, 0.86, 0.865, 0.87, 0.875, 
-0.88, 0.885, 0.89, 0.895, 0.9, 0.905, 0.91, 0.915, 
-0.92, 0.925, 0.93, 0.935, 0.94, 0.945, 0.95, 0.955, 
-0.96, 0.965, 0.97, 0.975, 0.98, 0.985, 0.99, 0.995, 
-1, 1.005, 1.01, 1.015, 1.02, 1.025, 1.03, 1.035, 
-1.04, 1.045, 1.05, 1.055, 1.06, 1.065, 1.07, 1.075, 
-1.08, 1.085, 1.09, 1.095, 1.1, 1.105, 1.11, 1.115, 
-1.12, 1.125, 1.13, 1.135, 1.14, 1.145, 1.15, 1.155, 
-1.16, 1.165, 1.17, 1.175, 1.18, 1.185, 1.19, 1.195, 
-1.2, 1.205, 1.21, 1.215, 1.22, 1.225, 1.23, 1.235, 
-1.24, 1.245, 1.25, 1.255, 1.26, 1.265, 1.27, 1.275, 
-1.28, 1.285, 1.29, 1.295, 1.3, 1.305, 1.31, 1.315, 
-1.32, 1.325, 1.33, 1.335, 1.34, 1.345, 1.35, 1.355, 
-1.36, 1.365, 1.37, 1.375, 1.38, 1.385, 1.39, 1.395, 
-1.4, 1.405, 1.41, 1.415, 1.42, 1.425, 1.43, 1.435, 
-1.44, 1.445, 1.45, 1.455, 1.46, 1.465, 1.47, 1.475, 
-1.48, 1.485, 1.49, 1.495, 1.5, 1.505, 1.51, 1.515, 
-1.52, 1.525, 1.53, 1.535, 1.54, 1.545, 1.55, 1.555, 
-1.56, 1.565, 1.57, 1.575, 1.58, 1.585, 1.59, 1.595, 
-1.6, 1.605, 1.61, 1.615, 1.62, 1.625, 1.63, 1.635, 
-1.64, 1.645, 1.65, 1.655, 1.66, 1.665, 1.67, 1.675, 
-1.68, 1.685, 1.69, 1.695, 1.7, 1.705, 1.71, 1.715, 
-1.72, 1.725, 1.73, 1.735, 1.74, 1.745, 1.75, 1.755, 
-1.76, 1.765, 1.77, 1.775, 1.78, 1.785, 1.79, 1.795, 
-1.8, 1.805, 1.81, 1.815, 1.82, 1.825, 1.83, 1.835, 
-1.84, 1.845, 1.85, 1.855, 1.86, 1.865, 1.87, 1.875, 
-1.88, 1.885, 1.89, 1.895, 1.9, 1.905, 1.91, 1.915, 
-1.92, 1.925, 1.93, 1.935, 1.94, 1.945, 1.95, 1.955, 
-1.96, 1.965, 1.97, 1.975, 1.98, 1.985, 1.99, 1.995, 
-2, 2.005, 2.01, 2.015, 2.02, 2.025, 2.03, 2.035, 
-2.04, 2.045, 2.05, 2.055, 2.06, 2.065, 2.07, 2.075, 
-2.08, 2.085, 2.09, 2.095, 2.1, 2.105, 2.11, 2.115, 
-2.12, 2.125, 2.13, 2.135, 2.14, 2.145, 2.15, 2.155, 
-2.16, 2.165, 2.17, 2.175, 2.18, 2.185, 2.19, 2.195, 
-2.2, 2.205, 2.21, 2.215, 2.22, 2.225, 2.23, 2.235, 
-2.24, 2.245, 2.25, 2.255, 2.26, 2.265, 2.27, 2.275, 
-2.28, 2.285, 2.29, 2.295, 2.3, 2.305, 2.31, 2.315, 
-2.32, 2.325, 2.33, 2.335, 2.34, 2.345, 2.35, 2.355, 
-2.36, 2.365, 2.37, 2.375, 2.38, 2.385, 2.39, 2.395, 
-2.4, 2.405, 2.41, 2.415, 2.42, 2.425, 2.43, 2.435, 
-2.44, 2.445, 2.45, 2.455, 2.46, 2.465, 2.47, 2.475, 
-2.48, 2.485, 2.49, 2.495, 2.5, 2.505, 2.51, 2.515, 
-2.52, 2.525, 2.53, 2.535, 2.54, 2.545, 2.55, 2.555, 
-2.56, 2.565, 2.57, 2.575, 2.58, 2.585, 2.59, 2.595, 
-2.6, 2.605, 2.61, 2.615, 2.62, 2.625, 2.63, 2.635, 
-2.64, 2.645, 2.65, 2.655, 2.66, 2.665, 2.67, 2.675, 
-2.68, 2.685, 2.69, 2.695, 2.7, 2.705, 2.71, 2.715, 
-2.72, 2.725, 2.73, 2.735, 2.74, 2.745, 2.75, 2.755, 
-2.76, 2.765, 2.77, 2.775, 2.78, 2.785, 2.79, 2.795, 
-2.8, 2.805, 2.81, 2.815, 2.82, 2.825, 2.83, 2.835, 
-2.84, 2.845, 2.85, 2.855, 2.86, 2.865, 2.87, 2.875, 
-2.88, 2.885, 2.89, 2.895, 2.9, 2.905, 2.91, 2.915, 
-2.92, 2.925, 2.93, 2.935, 2.94, 2.945, 2.95, 2.955, 
-2.96, 2.965, 2.97, 2.975, 2.98, 2.985, 2.99, 2.995
-};
-
-// Cross section ratios of the 2p-2h SuSAv2 to Valencia cross sections
-// after normalising both distributions to be unity at 1.2 GeV.
-/*
-static double const xsec_ratios[552] = {
-0.00000, 11.1108, 9.85901, 8.83019, 7.97319, 7.24971, 6.63189, 6.09899, 
-5.63523, 5.22779, 4.86655, 4.54389, 4.25311, 3.98952, 3.75033, 3.56951, 
-3.40238, 3.24497, 3.09793, 2.95988, 2.8295, 2.70762, 2.59203, 2.48365, 
-2.38133, 2.28551, 2.1955, 2.11153, 2.03262, 1.95923, 1.89012, 1.82568, 
-1.76537, 1.70866, 1.65564, 1.61708, 1.58105, 1.54681, 1.51424, 1.48303, 
-1.45329, 1.42497, 1.39798, 1.37219, 1.34758, 1.32416, 1.3019, 1.28075, 
-1.26067, 1.24159, 1.22347, 1.2063, 1.19004, 1.17464, 1.16008, 1.14888, 
-1.13854, 1.12879, 1.1196, 1.11097, 1.10287, 1.09531, 1.08826, 1.08171, 
-1.07566, 1.07009, 1.065, 1.06037, 1.05617, 1.05238, 1.04896, 1.04589, 
-1.04315, 1.04072, 1.03859, 1.03581, 1.0332, 1.03085, 1.02876, 1.02691, 
-1.02528, 1.02387, 1.02269, 1.02169, 1.02088, 1.02023, 1.01974, 1.01944, 
-1.01929, 1.01928, 1.0194, 1.01964, 1.02004, 1.02056, 1.02119, 1.02085, 
-1.0205, 1.02029, 1.02019, 1.02019, 1.02033, 1.02058, 1.02093, 1.02137, 
-1.02194, 1.0226, 1.02333, 1.02416, 1.0251, 1.0261, 1.02717, 1.02836, 
-1.0296, 1.0309, 1.03232, 1.03235, 1.0322, 1.03218, 1.03223, 1.03235, 
-1.03258, 1.03287, 1.03324, 1.03369, 1.0342, 1.0348, 1.03546, 1.03617, 
-1.03698, 1.03783, 1.03874, 1.03973, 1.04075, 1.04186, 1.04301, 1.04247, 
-1.0417, 1.04096, 1.04033, 1.03974, 1.03922, 1.03877, 1.03836, 1.03805, 
-1.03776, 1.03756, 1.0374, 1.03729, 1.03725, 1.03724, 1.0373, 1.03739, 
-1.03756, 1.03774, 1.038, 1.03695, 1.03569, 1.03446, 1.0333, 1.03218, 
-1.03111, 1.03009, 1.02912, 1.02819, 1.0273, 1.02647, 1.02567, 1.02492, 
-1.0242, 1.02353, 1.02288, 1.02229, 1.02172, 1.0212, 1.0207, 1.01946, 
-1.01806, 1.0167, 1.01537, 1.01408, 1.01282, 1.01159, 1.0104, 1.00923, 
-1.0081, 1.00699, 1.00592, 1.00486, 1.00384, 1.00284, 1.00187, 1.00092, 
-1, 1.0009, 1.00178, 1.00304, 1.00442, 1.00575, 1.00708, 1.00837, 
-1.00965, 1.01091, 1.01214, 1.01337, 1.01456, 1.01575, 1.01689, 1.01803, 
-1.01915, 1.02025, 1.02133, 1.02239, 1.02344, 1.02446, 1.02547, 1.02669, 
-1.02797, 1.02925, 1.03048, 1.03172, 1.03293, 1.03413, 1.03532, 1.03647, 
-1.03763, 1.03876, 1.03988, 1.04099, 1.04207, 1.04314, 1.0442, 1.04524, 
-1.04628, 1.04728, 1.04828, 1.04935, 1.05041, 1.05148, 1.05251, 1.05355, 
-1.05457, 1.05557, 1.05656, 1.05754, 1.05851, 1.05947, 1.06041, 1.06134, 
-1.06227, 1.06316, 1.06406, 1.06495, 1.06582, 1.06669, 1.06754, 1.06834, 
-1.06912, 1.06988, 1.07063, 1.07138, 1.0721, 1.07283, 1.07355, 1.07424, 
-1.07493, 1.07562, 1.07628, 1.07694, 1.0776, 1.07823, 1.07887, 1.07949, 
-1.0801, 1.0807, 1.0813, 1.08184, 1.08236, 1.08288, 1.08338, 1.08387, 
-1.08436, 1.08483, 1.0853, 1.08576, 1.08621, 1.08665, 1.08709, 1.0875, 
-1.08792, 1.08833, 1.08873, 1.08912, 1.08951, 1.08988, 1.09024, 1.09059, 
-1.09091, 1.09123, 1.09155, 1.09185, 1.09215, 1.09244, 1.09273, 1.093, 
-1.09327, 1.09353, 1.09378, 1.09403, 1.09428, 1.0945, 1.09473, 1.09496, 
-1.09517, 1.09537, 1.09558, 1.09577, 1.09597, 1.09616, 1.09634, 1.09651, 
-1.09669, 1.09686, 1.09701, 1.09716, 1.09731, 1.09746, 1.09759, 1.09772, 
-1.09785, 1.09797, 1.09808, 1.09819, 1.0983, 1.09839, 1.09849, 1.0986, 
-1.09871, 1.09882, 1.09893, 1.09903, 1.09912, 1.09922, 1.09931, 1.09939, 
-1.09946, 1.09954, 1.09961, 1.09967, 1.09973, 1.09979, 1.09984, 1.09989, 
-1.09993, 1.09998, 1.10001, 1.10006, 1.10012, 1.10017, 1.10022, 1.10026, 
-1.10031, 1.10035, 1.10038, 1.10041, 1.10044, 1.10047, 1.10049, 1.10051, 
-1.10053, 1.10054, 1.10054, 1.10055, 1.10056, 1.10056, 1.10055, 1.10056, 
-1.10058, 1.10059, 1.10059, 1.1006, 1.10061, 1.1006, 1.1006, 1.1006, 
-1.1006, 1.10058, 1.10057, 1.10056, 1.10055, 1.10053, 1.10051, 1.10049, 
-1.10047, 1.10044, 1.10042, 1.1004, 1.10038, 1.10036, 1.10034, 1.10032, 
-1.1003, 1.10028, 1.10026, 1.10023, 1.1002, 1.10018, 1.10015, 1.10012, 
-1.10009, 1.10005, 1.10002, 1.09999, 1.09995, 1.09992, 1.09988, 1.09985, 
-1.09982, 1.09979, 1.09976, 1.09972, 1.09969, 1.09966, 1.09963, 1.09959, 
-1.09956, 1.09953, 1.09949, 1.09946, 1.09943, 1.0994, 1.09936, 1.09933, 
-1.0993, 1.09927, 1.09923, 1.0992, 1.09917, 1.09914, 1.09911, 1.09909, 
-1.09906, 1.09903, 1.099, 1.09898, 1.09895, 1.09893, 1.0989, 1.09888, 
-1.09885, 1.09883, 1.09881, 1.09879, 1.09876, 1.09874, 1.09872, 1.0987, 
-1.09868, 1.09866, 1.09864, 1.09862, 1.0986, 1.09858, 1.09857, 1.09855, 
-1.09853, 1.09852, 1.0985, 1.09848, 1.09847, 1.09845, 1.09844, 1.09842, 
-1.09841, 1.09839, 1.09838, 1.09837, 1.09836, 1.09834, 1.09833, 1.09832, 
-1.09831, 1.0983, 1.09829, 1.09828, 1.09827, 1.09826, 1.09825, 1.09824, 
-1.09823, 1.09822, 1.09821, 1.0982, 1.09819, 1.09818, 1.09818, 1.09817, 
-1.09816, 1.09816, 1.09815, 1.09814, 1.09814, 1.09813, 1.09813, 1.09812, 
-1.09812, 1.09811, 1.09811, 1.0981, 1.0981, 1.09809, 1.09809, 1.09808, 
-1.09808, 1.09807, 1.09807, 1.09806, 1.09806, 1.09806, 1.09806, 1.09806, 
-1.09805, 1.09805, 1.09805, 1.09805, 1.09804, 1.09804, 1.09804, 1.09804, 
-1.09803, 1.09803, 1.09803, 1.09803, 1.09803, 1.09802, 1.09802, 1.09802, 
-1.09802, 1.09802, 1.09802, 1.09802, 1.09802, 1.09802, 1.09802, 1.09801, 
-1.09801, 1.09801, 1.09801, 1.09801, 1.09801, 1.09801, 1.098, 1.098
-};
-*/
-
-/*
-// Cross section ratios of the 2p-2h SuSAv2 to Valencia cross sections
-// after normalising both distributions to be unity at 10.019 GeV.
-static double const xsec_ratios[552] = {
-0.00000, 5.83079, 5.49906, 5.23727, 5.0254, 4.85042, 4.70346, 4.57829, 
-4.4704, 4.37645, 4.29389, 4.22078, 4.15557, 4.09706, 4.04425, 3.64996, 
-3.33725, 3.09439, 2.90032, 2.74168, 2.60958, 2.49787, 2.40218, 2.31928, 
-2.24677, 2.18282, 2.12598, 2.07515, 2.02941, 1.98804, 1.95043, 1.9161, 
-1.88464, 1.8557, 1.82899, 1.76818, 1.71209, 1.66243, 1.61816, 1.57845, 
-1.54263, 1.51014, 1.48056, 1.4535, 1.42865, 1.40576, 1.3846, 1.36498, 
-1.34674, 1.32975, 1.31386, 1.29899, 1.28504, 1.27192, 1.25956, 1.25008, 
-1.24133, 1.23307, 1.22525, 1.21783, 1.2108, 1.20411, 1.19774, 1.19168, 
-1.1859, 1.18037, 1.17509, 1.17004, 1.1652, 1.16056, 1.15611, 1.15184, 
-1.14773, 1.14378, 1.13998, 1.13836, 1.13703, 1.13574, 1.13448, 1.13327, 
-1.13208, 1.13094, 1.12982, 1.12873, 1.12767, 1.12664, 1.12564, 1.12466, 
-1.12371, 1.12278, 1.12187, 1.12099, 1.12013, 1.11928, 1.11846, 1.11865, 
-1.11899, 1.11931, 1.11963, 1.11994, 1.12025, 1.12055, 1.12085, 1.12114, 
-1.12143, 1.12171, 1.12199, 1.12226, 1.12253, 1.1228, 1.12306, 1.12331, 
-1.12357, 1.12381, 1.12406, 1.12484, 1.1257, 1.12654, 1.12738, 1.12821, 
-1.12903, 1.12984, 1.13064, 1.13143, 1.13222, 1.13299, 1.13376, 1.13451, 
-1.13526, 1.136, 1.13673, 1.13745, 1.13817, 1.13888, 1.13958, 1.13987, 
-1.14008, 1.14028, 1.14049, 1.14069, 1.14089, 1.14109, 1.14129, 1.14149, 
-1.14168, 1.14188, 1.14207, 1.14226, 1.14245, 1.14264, 1.14283, 1.14301, 
-1.14319, 1.14338, 1.14356, 1.14259, 1.14137, 1.14016, 1.13895, 1.13776, 
-1.13657, 1.13538, 1.13421, 1.13304, 1.13188, 1.13072, 1.12957, 1.12843, 
-1.12729, 1.12616, 1.12503, 1.12392, 1.1228, 1.1217, 1.1206, 1.11912, 
-1.11754, 1.11598, 1.11442, 1.11287, 1.11133, 1.10979, 1.10826, 1.10673, 
-1.10521, 1.1037, 1.10219, 1.10069, 1.0992, 1.09771, 1.09623, 1.09475, 
-1.09328, 1.09182, 1.09036, 1.08895, 1.08755, 1.08616, 1.08477, 1.08339, 
-1.08201, 1.08064, 1.07927, 1.0779, 1.07654, 1.07518, 1.07383, 1.07248, 
-1.07114, 1.0698, 1.06846, 1.06713, 1.0658, 1.06448, 1.06316, 1.062, 
-1.0609, 1.05981, 1.05871, 1.05762, 1.05653, 1.05544, 1.05436, 1.05328, 
-1.0522, 1.05112, 1.05005, 1.04898, 1.04791, 1.04684, 1.04578, 1.04472, 
-1.04366, 1.04261, 1.04155, 1.04066, 1.03981, 1.03896, 1.03812, 1.03728, 
-1.03644, 1.0356, 1.03477, 1.03393, 1.0331, 1.03227, 1.03144, 1.03061, 
-1.02978, 1.02896, 1.02813, 1.02731, 1.02649, 1.02567, 1.02485, 1.02416, 
-1.0235, 1.02285, 1.0222, 1.02155, 1.02091, 1.02026, 1.01961, 1.01897, 
-1.01832, 1.01768, 1.01704, 1.0164, 1.01576, 1.01512, 1.01448, 1.01384, 
-1.01321, 1.01257, 1.01194, 1.01143, 1.01098, 1.01052, 1.01007, 1.00961, 
-1.00916, 1.00871, 1.00825, 1.0078, 1.00735, 1.0069, 1.00645, 1.006, 
-1.00555, 1.0051, 1.00466, 1.00421, 1.00376, 1.00332, 1.00287, 1.00257, 
-1.00234, 1.0021, 1.00187, 1.00163, 1.0014, 1.00116, 1.00093, 1.0007, 
-1.00046, 1.00023, 1, 1.00024, 1.00047, 1.0007, 1.00094, 1.00117, 
-1.0014, 1.00163, 1.00187, 1.00202, 1.00214, 1.00225, 1.00237, 1.00249, 
-1.0026, 1.00272, 1.00283, 1.00295, 1.00307, 1.00318, 1.0033, 1.00342, 
-1.00353, 1.00365, 1.00376, 1.00388, 1.00399, 1.00411, 1.00423, 1.0043, 
-1.00434, 1.00439, 1.00443, 1.00448, 1.00453, 1.00457, 1.00462, 1.00466, 
-1.00471, 1.00476, 1.0048, 1.00485, 1.00489, 1.00494, 1.00499, 1.00503, 
-1.00508, 1.00512, 1.00517, 1.00519, 1.0052, 1.00521, 1.00521, 1.00522, 
-1.00523, 1.00524, 1.00524, 1.00525, 1.00526, 1.00527, 1.00527, 1.00528, 
-1.00529, 1.0053, 1.0053, 1.00531, 1.00532, 1.00533, 1.00533, 1.00533, 
-1.00533, 1.00532, 1.00531, 1.00531, 1.0053, 1.0053, 1.00529, 1.00529, 
-1.00528, 1.00527, 1.00527, 1.00526, 1.00526, 1.00525, 1.00525, 1.00524, 
-1.00523, 1.00523, 1.00522, 1.00522, 1.00521, 1.0052, 1.00519, 1.00519, 
-1.00518, 1.00517, 1.00516, 1.00516, 1.00515, 1.00514, 1.00513, 1.00513, 
-1.00512, 1.00511, 1.00511, 1.0051, 1.00509, 1.00508, 1.00508, 1.00507, 
-1.00506, 1.00505, 1.00504, 1.00503, 1.00502, 1.00501, 1.005, 1.00499, 
-1.00499, 1.00498, 1.00497, 1.00496, 1.00495, 1.00494, 1.00493, 1.00492, 
-1.00491, 1.0049, 1.00489, 1.00488, 1.00487, 1.00486, 1.00485, 1.00484, 
-1.00483, 1.00482, 1.0048, 1.00479, 1.00478, 1.00477, 1.00476, 1.00475, 
-1.00474, 1.00472, 1.00471, 1.0047, 1.00469, 1.00468, 1.00467, 1.00466, 
-1.00465, 1.00464, 1.00463, 1.00462, 1.00461, 1.0046, 1.00459, 1.00458, 
-1.00457, 1.00456, 1.00455, 1.00454, 1.00453, 1.00452, 1.00451, 1.0045, 
-1.00449, 1.00448, 1.00447, 1.00447, 1.00446, 1.00445, 1.00444, 1.00444, 
-1.00443, 1.00442, 1.00442, 1.00441, 1.0044, 1.0044, 1.00439, 1.00438, 
-1.00437, 1.00437, 1.00436, 1.00435, 1.00435, 1.00434, 1.00433, 1.00432, 
-1.00432, 1.00431, 1.00431, 1.0043, 1.00429, 1.00429, 1.00428, 1.00427, 
-1.00427, 1.00426, 1.00425, 1.00425, 1.00424, 1.00423, 1.00423, 1.00422, 
-1.00422, 1.00421, 1.0042, 1.0042, 1.00419, 1.00418, 1.00417, 1.00416, 
-1.00416, 1.00415, 1.00414, 1.00413, 1.00412, 1.00412, 1.00411, 1.0041, 
-1.00409, 1.00409, 1.00408, 1.00407, 1.00406, 1.00405, 1.00405, 1.00404, 
-1.00403, 1.00402, 1.00401, 1.004, 1.00399, 1.00398, 1.00397, 1.00396, 
-1.00395, 1.00394, 1.00393, 1.00393, 1.00392, 1.00391, 1.0039, 1.00389
-};
-*/
-
-// Cross section ratios of the 2p-2h SuSAv2 to Martini cross
-// sections (ratio computed by "Martini/SuSAv2 xsecs")
-// after normalising both distributions to be unity at 10.019 GeV.
-static double const xsec_ratios[552] = {
-0.00000, 4.73466, 4.50729, 4.32659, 4.17954, 4.05754, 3.95468, 3.8668,
-3.79084, 3.72452, 3.66613, 3.61433, 3.56805, 3.52646, 3.48888, 3.20893, 
-2.98495, 2.80979, 2.66905, 2.55349, 2.45691, 2.37499, 2.30462, 2.24353, 
-2.18998, 2.14268, 2.10057, 2.06286, 2.02889, 1.99812, 1.97013, 1.94456, 
-1.9211, 1.8995, 1.87956, 1.83295, 1.7895, 1.75066, 1.71576, 1.68421, 
-1.65555, 1.62941, 1.60547, 1.58345, 1.56315, 1.54436, 1.52692, 1.51069, 
-1.49556, 1.4814, 1.46814, 1.45568, 1.44397, 1.43292, 1.4225, 1.41158, 
-1.40116, 1.39129, 1.38193, 1.37304, 1.36458, 1.35654, 1.34886, 1.34154, 
-1.33455, 1.32786, 1.32146, 1.31533, 1.30944, 1.3038, 1.29838, 1.29316, 
-1.28815, 1.28332, 1.27867, 1.2754, 1.27238, 1.26944, 1.26658, 1.2638, 
-1.2611, 1.25847, 1.2559, 1.25341, 1.25098, 1.2486, 1.24629, 1.24404, 
-1.24184, 1.23969, 1.23759, 1.23555, 1.23355, 1.23159, 1.22968, 1.22803, 
-1.22644, 1.22488, 1.22334, 1.22183, 1.22035, 1.21889, 1.21745, 1.21603, 
-1.21464, 1.21327, 1.21193, 1.2106, 1.20929, 1.20801, 1.20674, 1.2055, 
-1.20427, 1.20306, 1.20187, 1.20085, 1.19987, 1.1989, 1.19794, 1.197, 
-1.19606, 1.19513, 1.19422, 1.19331, 1.19242, 1.19153, 1.19066, 1.18979, 
-1.18894, 1.18809, 1.18725, 1.18643, 1.18561, 1.1848, 1.18399, 1.1835, 
-1.18308, 1.18266, 1.18224, 1.18182, 1.18141, 1.18101, 1.1806, 1.1802, 
-1.17981, 1.17941, 1.17902, 1.17864, 1.17825, 1.17787, 1.17749, 1.17712, 
-1.17675, 1.17638, 1.17602, 1.17577, 1.17555, 1.17533, 1.17511, 1.1749, 
-1.17468, 1.17447, 1.17426, 1.17405, 1.17384, 1.17363, 1.17342, 1.17321, 
-1.17301, 1.17281, 1.1726, 1.1724, 1.1722, 1.172, 1.1718, 1.17145, 
-1.17107, 1.17069, 1.1703, 1.16992, 1.16954, 1.16916, 1.16878, 1.1684, 
-1.16802, 1.16765, 1.16727, 1.16689, 1.16652, 1.16615, 1.16577, 1.1654, 
-1.16503, 1.16465, 1.16428, 1.16367, 1.16299, 1.1623, 1.16162, 1.16093, 
-1.16024, 1.15955, 1.15886, 1.15817, 1.15748, 1.15679, 1.15609, 1.1554, 
-1.1547, 1.15401, 1.15331, 1.15261, 1.15191, 1.1512, 1.1505, 1.14969, 
-1.14883, 1.14798, 1.14712, 1.14626, 1.1454, 1.14453, 1.14367, 1.14279, 
-1.14192, 1.14104, 1.14016, 1.13928, 1.13839, 1.1375, 1.13661, 1.13572, 
-1.13482, 1.13392, 1.13302, 1.13217, 1.13135, 1.13052, 1.12969, 1.12886, 
-1.12803, 1.12719, 1.12635, 1.12551, 1.12467, 1.12383, 1.12298, 1.12213, 
-1.12127, 1.12042, 1.11956, 1.1187, 1.11784, 1.11697, 1.1161, 1.11543, 
-1.11484, 1.11424, 1.11364, 1.11304, 1.11245, 1.11185, 1.11125, 1.11065, 
-1.11005, 1.10944, 1.10884, 1.10824, 1.10764, 1.10703, 1.10643, 1.10583, 
-1.10522, 1.10461, 1.10401, 1.10357, 1.10319, 1.10282, 1.10245, 1.10208, 
-1.1017, 1.10133, 1.10096, 1.10059, 1.10022, 1.09985, 1.09948, 1.09911, 
-1.09874, 1.09837, 1.098, 1.09763, 1.09726, 1.09689, 1.09652, 1.09625, 
-1.09602, 1.0958, 1.09557, 1.09534, 1.09512, 1.09489, 1.09467, 1.09444, 
-1.09422, 1.094, 1.09377, 1.09355, 1.09333, 1.0931, 1.09288, 1.09266, 
-1.09244, 1.09222, 1.09199, 1.0918, 1.09163, 1.09145, 1.09127, 1.0911, 
-1.09092, 1.09075, 1.09057, 1.0904, 1.09022, 1.09005, 1.08988, 1.0897, 
-1.08953, 1.08936, 1.08918, 1.08901, 1.08884, 1.08867, 1.08849, 1.0883, 
-1.0881, 1.0879, 1.0877, 1.0875, 1.0873, 1.0871, 1.0869, 1.0867, 
-1.0865, 1.0863, 1.08611, 1.08591, 1.08571, 1.08551, 1.08531, 1.08511, 
-1.08492, 1.08472, 1.08452, 1.08431, 1.08408, 1.08385, 1.08362, 1.0834, 
-1.08317, 1.08295, 1.08272, 1.08249, 1.08227, 1.08204, 1.08182, 1.08159, 
-1.08136, 1.08114, 1.08091, 1.08069, 1.08046, 1.08024, 1.08001, 1.07978, 
-1.07954, 1.0793, 1.07906, 1.07882, 1.07858, 1.07834, 1.0781, 1.07786, 
-1.07762, 1.07738, 1.07714, 1.0769, 1.07666, 1.07642, 1.07618, 1.07594, 
-1.0757, 1.07546, 1.07522, 1.07498, 1.07474, 1.0745, 1.07426, 1.07402, 
-1.07377, 1.07353, 1.07329, 1.07305, 1.07281, 1.07257, 1.07233, 1.07209, 
-1.07185, 1.07161, 1.07136, 1.07112, 1.07088, 1.07064, 1.0704, 1.07017, 
-1.06994, 1.06971, 1.06949, 1.06926, 1.06903, 1.0688, 1.06858, 1.06835, 
-1.06812, 1.06789, 1.06767, 1.06744, 1.06721, 1.06699, 1.06676, 1.06653, 
-1.0663, 1.06608, 1.06585, 1.06564, 1.06544, 1.06524, 1.06503, 1.06483, 
-1.06463, 1.06443, 1.06423, 1.06403, 1.06383, 1.06363, 1.06343, 1.06323, 
-1.06303, 1.06283, 1.06263, 1.06243, 1.06223, 1.06203, 1.06183, 1.06164, 
-1.06147, 1.06129, 1.06112, 1.06095, 1.06077, 1.0606, 1.06043, 1.06025, 
-1.06008, 1.05991, 1.05974, 1.05956, 1.05939, 1.05922, 1.05904, 1.05887, 
-1.0587, 1.05852, 1.05835, 1.05819, 1.05804, 1.05789, 1.05774, 1.05759, 
-1.05744, 1.05729, 1.05714, 1.05699, 1.05684, 1.05669, 1.05654, 1.05639, 
-1.05624, 1.05609, 1.05594, 1.05579, 1.05564, 1.05549, 1.05534, 1.0552, 
-1.05507, 1.05494, 1.05481, 1.05468, 1.05455, 1.05442, 1.05429, 1.05415, 
-1.05402, 1.05389, 1.05376, 1.05363, 1.0535, 1.05337, 1.05324, 1.05311, 
-1.05298, 1.05285, 1.05272, 1.05259, 1.05248, 1.05236, 1.05224, 1.05213, 
-1.05201, 1.0519, 1.05178, 1.05166, 1.05155, 1.05143, 1.05131, 1.0512, 
-1.05108, 1.05097, 1.05085, 1.05073, 1.05062, 1.0505, 1.05039, 1.05027, 
-1.05017, 1.05006, 1.04996, 1.04985, 1.04974, 1.04964, 1.04953, 1.04943, 
-1.04932, 1.04921, 1.04911, 1.049, 1.04889, 1.04879, 1.04868, 1.04858
-};
-
-std::unique_ptr<TGraph> ratioGraph_nu = std::unique_ptr<TGraph>(new TGraph(552, nu_energies, xsec_ratios));
-
   //// MECGenerator::SelectEmpiricalKinematics() uses bogus hard-coded
   //// limits which are copied below for consistency.
   //// TODO: Do something better in MECGenerator, then change this
@@ -527,7 +224,6 @@ void GReWeightXSecMEC::Reset(void)
     it->second.fNormCurr = it->second.fNormDef;
     ++it;
   }
-
  
   fDecayAngTwkDial = 0.;
   fDecayAng2TwkDial = 0.;
@@ -616,6 +312,7 @@ void GReWeightXSecMEC::Init(void) {
   fCCXSecShapeEmpiricalTwkDial = 0.;
   fCCXSecShapeMartiniTwkDial = 0.;
   fEnergyDependenceTwkDial = 0.;
+  fEnergyDepRatioInitialized = false;
 
   // Set the default normalization for each interaction type (tweak dial = 0
   // corresponds to a normalization factor of 1)
@@ -722,6 +419,10 @@ double GReWeightXSecMEC::CalcWeightAngularDist(const genie::EventRecord& event)
   // Changed it to [-1, 1] as there are now two tweak dial values. - L. Bathe-Peters
   double twk_dial = std::max( std::min(1., fDecayAngTwkDial), -1. );
   double twk_dial2 = fDecayAng2TwkDial;
+
+  if( twk_dial2 == 0 ) twk_dial2 = 1.0;
+
+  std::cout << "twk_dial = " << twk_dial << ";    twk_dial2 = " << twk_dial2 << std::endl << std::endl;
 
   // If the tweak dials are set to zero (or are really small) then just return a
   // weight of unity
@@ -833,7 +534,11 @@ double GReWeightXSecMEC::CalcWeightAngularDist(const genie::EventRecord& event)
   // To preserve norm, the weight will be divided by integral of the reweighting over
   // a flat costheta distribution
   double norm =  1.0 - twk_dial + 3.0 * twk_dial * ( 0.5 + (1.0 + std::cos(2.0 * M_PI * twk_dial2)) / (4.0 * (1.0 - 4.0 * twk_dial2 * twk_dial2)) );
-  double weight = ( 3.*twk_dial*std::pow(std::cos(twk_dial2*theta_N1), 2) + (1. - twk_dial) ) / norm;
+
+  double weight;
+
+  if( twk_dial2 == 1.0 ) weight = ( 3.*twk_dial*std::pow(std::cos(twk_dial2*theta_N1), 2) + (1. - twk_dial) );
+  else weight = ( 3.*twk_dial*std::pow(std::cos(twk_dial2*theta_N1), 2) + (1. - twk_dial) ) / norm;
 
   return weight;
 }
@@ -1464,7 +1169,6 @@ double GReWeightXSecMEC::CalcWeightXSecShape_Empirical(const genie::EventRecord&
   // Get the names of the CCMEC cross section default and alternate models
   std::string cc_def_alg_name = fXSecAlgCCDef->Id().Name();
   std::string cc_alt3_alg_name = fXSecAlgCCAlt_Empirical->Id().Name(); 
-
   // Set the hit nucleon cluster PDG code to its sampled value
   // (empirical MEC needs it)
   if ( cc_alt3_alg_name == "genie::EmpiricalMECPXSec2015" ) {
@@ -1726,97 +1430,150 @@ double GReWeightXSecMEC::CalcWeightXSecShape_Martini(const genie::EventRecord& e
 
   return weight;
 }
+//_______________________________________________________________________________________
+void GReWeightXSecMEC::BuildEnergyDepRatioGraphs(const genie::EventRecord& event)
+{
+  // Renormalised cross-section ratios computed dynamically from the three MEC
+  // models (SuSAv2, Valencia, Martini).
+  // Build upper/lower uncertainty envelope graphs from all three MEC models
+  // (SuSAv2, Valencia, Martini). Each model's total xsec is normalised to
+  // agree at E_ref, then the ratio to the default model gives three curves.
+  // The upper (lower) envelope is the max (min) of the three at each energy.
+
+  LOG("ReW", pNOTICE) << "Building energy-dependence ratio graphs from MEC models...";
+
+  const double E_ref  = 10.0;  // Reference energy for normalisation (GeV)
+  const double E_min  =  0.1;  // Avoid threshold issues at exactly 0
+  const double E_max  = 10.0;
+  const double E_step =  0.025;
+  const int nPoints = static_cast<int>((E_max - E_min) / E_step) + 1;
+
+  // Create a template interaction for total xsec queries.
+  // Clone from the event summary, then clear hit nucleon and exclusive
+  // tag so that AsString() produces a clean key matching the spline files
+  // (e.g. "nu:14;tgt:1000180400;proc:Weak[CC],MEC;")
+  Interaction* interaction = new Interaction( *event.Summary() );
+  interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( 0 );
+  interaction->ExclTagPtr()->SetResonance( kNoResonance );
+
+  // Pointers to all three models
+  XSecAlgorithmI* algs[3] = { fXSecAlgCCAlt_SuSAv2,
+                               fXSecAlgCCAlt_Nieves,
+                               fXSecAlgCCAlt_Martini };
+
+  // Compute total xsec for each model at the reference energy (for normalisation)
+  interaction->InitStatePtr()->SetProbeE(E_ref);
+  double xsec_ref[3];
+  for (int m = 0; m < 3; ++m) {
+    xsec_ref[m] = this->GetXSecFromSplineOrIntegral(algs[m], interaction);
+    if (xsec_ref[m] <= 0.) {
+      LOG("ReW", pWARN) << "Model " << m << " has zero xsec at E_ref="
+        << E_ref << " GeV. Setting to 1 to avoid division by zero.";
+      xsec_ref[m] = 1.;
+    }
+  }
+
+  // Also get the default model's xsec at the reference energy
+  double xsec_def_ref = this->GetXSecFromSplineOrIntegral(fXSecAlgCCDef, interaction);
+  if (xsec_def_ref <= 0.) {
+    LOG("ReW", pWARN) << "Default model has zero xsec at E_ref="
+      << E_ref << " GeV. Setting to 1.";
+    xsec_def_ref = 1.;
+  }
+
+  // Compute ratios on the energy grid
+  std::vector<double> energies(nPoints);
+  std::vector<double> upper(nPoints);
+  std::vector<double> lower(nPoints);
+
+  for (int i = 0; i < nPoints; ++i) {
+    double Ev = E_min + i * E_step;
+    energies[i] = Ev;
+
+    interaction->InitStatePtr()->SetProbeE(Ev);
+
+    // Default model xsec, normalised
+    double xsec_def = this->GetXSecFromSplineOrIntegral(fXSecAlgCCDef, interaction);
+    double xsec_def_norm = xsec_def / xsec_def_ref;
+
+    // Compute normalised ratio for each model
+    double ratio_max = 1.0;  // default ratio is 1.0
+    double ratio_min = 1.0;
+
+    for (int m = 0; m < 3; ++m) {
+      double xsec_alt = this->GetXSecFromSplineOrIntegral(algs[m], interaction);
+      double xsec_alt_norm = xsec_alt / xsec_ref[m];
+
+      double ratio = (xsec_def_norm > 0.)
+        ? xsec_alt_norm / xsec_def_norm : 1.0;
+
+      if (ratio > ratio_max) ratio_max = ratio;
+      if (ratio < ratio_min) ratio_min = ratio;
+    }
+
+    upper[i] = ratio_max;
+    lower[i] = ratio_min;
+
+    LOG("ReW", pDEBUG) << "E=" << Ev << " GeV: lower=" << ratio_min
+      << " upper=" << ratio_max;
+  }
+
+  fEnergyDepUpperGraph = std::unique_ptr<TGraph>(
+    new TGraph(nPoints, energies.data(), upper.data()));
+  fEnergyDepLowerGraph = std::unique_ptr<TGraph>(
+    new TGraph(nPoints, energies.data(), lower.data()));
+
+  fEnergyDepRatioInitialized = true;
+
+  delete interaction;
+
+  LOG("ReW", pNOTICE) << "Energy-dependence ratio graphs built successfully.";
+}
 //______________________________________________________________________________________
 double GReWeightXSecMEC::CalcWeightEnergyDependence(const genie::EventRecord& event)
 {
-  // Only tweak dial values on the interval [0, 1] make sense for the energy
-  // dependence dial. Enforce this here regardless of what the user requested.
-  double twk_dial = std::max( std::min(1., fEnergyDependenceTwkDial), 0. );
-  
-  // A dial value at 0 is the default CV, a dial at 1 is the
-  // reweighted distribution.
-  // If the tweak dial is set to zero (or is close to zero) then just return a
-  // weight of unity
+  // Tweak dial on [-1, 1]:
+  //   0  = default (no reweighting)
+  //  +1  = reweight to upper uncertainty envelope
+  //  -1  = reweight to lower uncertainty envelope
+  double twk_dial = std::max( std::min(1., fEnergyDependenceTwkDial), -1. );
+
   bool tweaked = ( std::abs(twk_dial) > controls::kASmallNum );
   if ( !tweaked ) return 1.;
 
-  double weight = 1.;
-
-  weight = CalcWeight2p2hEnergyDependence( event );
+  double weight = CalcWeight2p2hEnergyDependence( event );
 
   return weight;
 }
 //_______________________________________________________________________________________
 double GReWeightXSecMEC::CalcWeight2p2hEnergyDependence(const genie::EventRecord& event)
 {
-  double weight = 1.;
+  // Lazy initialization: build ratio graphs on first call
+  if ( !fEnergyDepRatioInitialized ) {
+    this->BuildEnergyDepRatioGraphs( event );
+  }
 
   GHepParticle* neutrino = event.Particle( 0 );
-
-  // Get the neutrino and its energy.
-  double nu_pdg = neutrino->Pdg();
   double E_nu = neutrino->E();
 
-  // Initialise 2p-2h cross section ratio.
-  double r = -999.;
+  // Clamp energy to the graph range [0.1, 10.0]
+  const double E_min = 0.1;
+  const double E_max = 10.0;
+  double E_eval = std::max( E_min, std::min( E_max, E_nu ) );
 
-  // Consider cross sections for Empirical, Valencia, SuSAv2 and Martini-Ericson-Chanfray-Marteau 
-  // models in energy range [0.0,3.0]. Check whether particle is neutrino ... (idea: can split 
-  // energy dependence dial further into neutrino and antineutrino cases, in addition to low and 
-  // high energy split -> 4 cases)
-  if( nu_pdg > 0 ){
-    if( E_nu < 2.995 ){ // if neutrino energy is in range, take ratio at that energy
-      // r = 1.14523; // replace hard-coded with table value everywhere, TGraph
-      r = ratioGraph_nu->Eval(E_nu);
-    } 
-    else{ // else, take ratio at maximal neutrino energy
-      // r = 1.3245;
-      r = ratioGraph_nu->Eval(2.995);
-    }
-    if( E_nu < 0.245 ){ // if neutrino energy is below range, take ratio at minimal energy
-      // r = 0.97832;
-      r = ratioGraph_nu->Eval(0.245);
-    }
-    
-    // Consider split into low and high energy dial (split is energy where r = 1); in this case change 
-    // fEnergyDependenceTwkDial to fLowEnergyDependenceTwkDial ( for E_nu < 10.0 ) and 
-    // fHighEnergyDependenceTwkDial (else)
-    // if( E_nu < 1.2 ){
-    if( E_nu < 10.0 ){
-      // weight = fEnergyDependenceTwkDial + ( 1 - fEnergyDependenceTwkDial ) / r ; // For dial 1 being CV and dial 0 being tweaked
-      weight = 1 - fEnergyDependenceTwkDial + fEnergyDependenceTwkDial * r ; // For dial 0 being CV and dial 1 being tweaked
-    } 
-    else{
-      // weight = fEnergyDependenceTwkDial + ( 1 - fEnergyDependenceTwkDial ) / r ;
-      weight = 1 - fEnergyDependenceTwkDial + fEnergyDependenceTwkDial / r ;
-    }
-  } 
-  else{ // ... or antineutrino
-    if( E_nu < 2.995 ){ // if neutrino energy is in range, take ratio at that energy
-      // r = 1.14523; // replace hard-coded with table value everywhere, TGraph
-      r = ratioGraph_nu->Eval(E_nu);
-    }
-    else{ // else, take ratio at maximal neutrino energy
-      // r = 1.3245;
-      r = ratioGraph_nu->Eval(2.995);
-    }
-    if( E_nu < 0.245 ){ // if neutrino energy is below range, take ratio at minimal energy
-      // r = 0.97832;
-      r = ratioGraph_nu->Eval(0.245);
-    }
-    
-    // Consider split into low and high energy dial (split is energy where r = 1); in this case change 
-    // fEnergyDependenceTwkDial to fLowEnergyDependenceTwkDial ( for E_nu < 10.0 ) and 
-    // fHighEnergyDependenceTwkDial (else)
-    // if( E_nu < 1.2 ){
-    if( E_nu < 10.0 ){
-      // weight = fEnergyDependenceTwkDial + ( 1 - fEnergyDependenceTwkDial ) / r ;
-      weight = 1 - fEnergyDependenceTwkDial + fEnergyDependenceTwkDial * r ;
-    }
-    else{
-      // weight = fEnergyDependenceTwkDial + ( 1 - fEnergyDependenceTwkDial ) / r ;
-      weight = 1 - fEnergyDependenceTwkDial + fEnergyDependenceTwkDial / r ;
-    }
+  // Look up upper and lower envelope ratios at this energy
+  double r_upper = fEnergyDepUpperGraph->Eval(E_eval);
+  double r_lower = fEnergyDepLowerGraph->Eval(E_eval);
+
+  double twk_dial = std::max( std::min(1., fEnergyDependenceTwkDial), -1. );
+
+  // Interpolate: dial > 0 moves toward upper envelope,
+  //              dial < 0 moves toward lower envelope
+  double weight = 1.;
+  if ( twk_dial >= 0. ) {
+    weight = 1. + twk_dial * (r_upper - 1.);
+  } else {
+    weight = 1. - twk_dial * (r_lower - 1.);
   }
 
   return weight;
@@ -1868,4 +1625,40 @@ double GReWeightXSecMEC::GetXSecIntegral(const XSecAlgorithmI* xsec_alg,
     << ( spline_computed ? "found" : "not found" );
 
   return xsec;
+}
+//_______________________________________________________________________________________
+double GReWeightXSecMEC::GetXSecFromSplineOrIntegral(
+  const XSecAlgorithmI* xsec_alg, const Interaction* interaction)
+{
+  // Search all loaded tunes for a matching spline. Falls back to
+  // numerical integration if no spline is found in any tune.
+
+  XSecSplineList* xssl = XSecSplineList::Instance();
+  assert( xssl );
+
+  std::string orig_tune = xssl->CurrentTune();
+  std::vector<std::string> tunes = xssl->GetLoadedTunes();
+
+  for (const auto& tune : tunes) {
+    xssl->SetCurrentTune(tune);
+    if ( xssl->SplineExists(xsec_alg, interaction) ) {
+      const Spline* spl = xssl->GetSpline(xsec_alg, interaction);
+      double Ev = interaction->InitState().ProbeE(kRfLab);
+      double xsec = 0.;
+      if ( spl->ClosestKnotValueIsZero(Ev, "-") ) xsec = 0.;
+      else xsec = spl->Evaluate(Ev);
+
+      LOG("ReW", pINFO) << "Found spline for " << xsec_alg->Id().Key()
+        << " in tune " << tune;
+
+      xssl->SetCurrentTune(orig_tune);
+      return xsec;
+    }
+  }
+
+  xssl->SetCurrentTune(orig_tune);
+
+  LOG("ReW", pWARN) << "No spline found for " << xsec_alg->Id().Key()
+    << " in any loaded tune. Falling back to numerical integration.";
+  return xsec_alg->Integral(interaction);
 }

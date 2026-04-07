@@ -22,8 +22,11 @@
 #define _G_REWEIGHT_NU_XSEC_MEC_H_
 
 #include <map>
+#include <memory>
 #include <string>
 #include <gsl/gsl_sf_legendre.h> // Include the GSL header for Legendre polynomials
+
+#include <TGraph.h>
 
 // GENIE includes
 #include "Framework/Interaction/InteractionType.h"
@@ -66,8 +69,16 @@ namespace rew   {
    double GetXSecIntegral(const XSecAlgorithmI* xsec_alg,
    const Interaction* interaction);
 
+   /// Get total xsec, searching all loaded tunes for splines before
+   /// falling back to numerical integration
+   double GetXSecFromSplineOrIntegral(const XSecAlgorithmI* xsec_alg,
+   const Interaction* interaction);
+
    /// Helper function for CalcWeightEnergyDependence
    double CalcWeight2p2hEnergyDependence(const EventRecord& event);
+
+   /// Build energy-dependence ratio graphs from all three MEC models
+   void BuildEnergyDepRatioGraphs(const EventRecord& event);
 
    /// Helper function for CalcWeightDecayAngMECLegendre
    double CalcWeightDecayAngMECLegendre(double theta_rad, double twk_dial, double twk_dial2, double twk_dial3, double twk_dial4, double twk_dial5, double twk_dial6);
@@ -133,9 +144,14 @@ namespace rew   {
    double fCCXSecShapeEmpiricalTwkDial;
    double fCCXSecShapeMartiniTwkDial;
 
-   /// Tweak dial value for adjusting the energy dependence of the CCMEC 
+   /// Tweak dial value for adjusting the energy dependence of the CCMEC
    //cross section
    double fEnergyDependenceTwkDial;
+
+   /// Energy-dependence ratio graphs (upper/lower uncertainty envelopes)
+   bool fEnergyDepRatioInitialized;
+   std::unique_ptr<TGraph> fEnergyDepUpperGraph;
+   std::unique_ptr<TGraph> fEnergyDepLowerGraph;
 };
 
 } // rew   namespace
