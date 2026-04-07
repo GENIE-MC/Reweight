@@ -98,6 +98,7 @@
 #include "Framework/ParticleData/PDGCodes.h"
 #include "Framework/ParticleData/PDGCodeList.h"
 #include "Framework/Utils/XSecSplineList.h"
+#include "Framework/Utils/StringUtils.h"
 #include "Framework/Utils/AppInit.h"
 #include "Framework/Utils/RunOpt.h"
 #include "Framework/Utils/CmdLnArgParser.h"
@@ -584,12 +585,18 @@ void GetCommandLineArgs(int argc, char ** argv)
      gOptMaxTwk = -5;
   }
 
-  // Get the splines file
+  // Get the splines file(s) — supports comma-separated list for loading
+  // splines from multiple tunes (e.g. SuSAv2, Valencia, Martini)
   if ( parser.OptionExists("cross-sections") ) {
     LOG("grwght1scan", pINFO) << "Loading cross-section splines";
-    std::string spl_file_name = parser.ArgAsString( "cross-sections" );
+    std::string spl_file_names = parser.ArgAsString( "cross-sections" );
     genie::XSecSplineList* xssl = genie::XSecSplineList::Instance();
-    xssl->LoadFromXml( spl_file_name );
+    std::vector<std::string> files = utils::str::Split(spl_file_names, ",");
+    for (size_t i = 0; i < files.size(); ++i) {
+      std::string trimmed = utils::str::TrimSpaces(files[i]);
+      LOG("grwght1scan", pINFO) << "Loading spline file: " << trimmed;
+      xssl->LoadFromXml( trimmed, /*keep=*/ i > 0 );
+    }
   }
 
 }
