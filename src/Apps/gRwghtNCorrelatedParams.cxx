@@ -192,7 +192,7 @@ int main(int argc, char ** argv)
 
   // Set seed such that we have new set of random number for any new weight computation
   // (in particular in twkvals = CholeskyGenerateCorrelatedParamVariations(lTri))
-  RandomGen::Instance()->SetSeed(time(nullptr));
+  //RandomGen::Instance()->SetSeed(time(nullptr));
 
   TMatrixD *cmat = NULL;
   // Gets Cor, which is needed in decompositions
