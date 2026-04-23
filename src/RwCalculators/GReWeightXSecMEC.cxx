@@ -31,6 +31,7 @@
 #include "Framework/Utils/XSecSplineList.h"
 #include "Physics/XSectionIntegration/GSLXSecFunc.h"
 #include "Physics/Multinucleon/XSection/SuSAv2MECPXSec.h"
+#include "Physics/Multinucleon/XSection/MartiniEricsonChanfrayMarteauMECPXSec2024.h"
 
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightXSecMEC.h"
@@ -714,7 +715,7 @@ double GReWeightXSecMEC::CalcWeightPNDelta(const genie::EventRecord& event)
     // case, let's repeat that here.
     delta_frac_def = 0.;
   }
-  else if ( cc_def_alg_name == "genie::NievesSimoVacasMECPXSec2016" || cc_def_alg_name == "genie::MartiniEricsonChanfrayMarteauMECPXSec2024" ) {
+  else if ( cc_def_alg_name == "genie::NievesSimoVacasMECPXSec2016" ) {
     // For the Valencia MEC model, the pn fraction can vary with q0 and q3. We
     // can get the pn fraction for this event's kinematics by computing the
     // differential cross section for each case. A similar thing is done in
@@ -780,6 +781,18 @@ double GReWeightXSecMEC::CalcWeightPNDelta(const genie::EventRecord& event)
 
     // Get the pn-pair fraction of the default model prediction (SuSAv2)
     pn_frac_def = dynamic_cast< const genie::SuSAv2MECPXSec* >( fXSecAlgCCDef )->PairRatio( interaction );
+
+    // We don't need the cloned interaction anymore, so delete it
+    delete interaction;
+  }
+  else if ( cc_def_alg_name == "genie::MartiniEricsonChanfrayMarteauMECPXSec2024" ) {
+    // Clone the input interaction so that we can modify the PDG code of the
+    // initial nucleon cluster.
+    Interaction* interaction = new Interaction( *event.Summary() );
+
+    // Get the pn-pair fraction of the default model prediction (Martini-Ericson-Chanfray-Marteau)
+    pn_frac_def = dynamic_cast< const genie::MartiniEricsonChanfrayMarteauMECPXSec2024* >( fXSecAlgCCDef )->PairRatio( interaction );
+
 
     // We don't need the cloned interaction anymore, so delete it
     delete interaction;
