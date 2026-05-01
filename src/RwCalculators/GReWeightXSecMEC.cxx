@@ -1602,8 +1602,7 @@ double GReWeightXSecMEC::CalcWeightDecayAngMECLegendre(double theta_rad, double 
   for( size_t i = 0; i < twk_dials.size(); ++i ){
     int l = i + 1; // l in P_l(costheta) determines the Legendre-Polynomial
     double P_l = gsl_sf_legendre_Pl( l, costheta );
-    double w_l =  P_l + 1.0;
-    weight += twk_dials[i] * ( w_l - 1.0 );
+    weight += twk_dials[i] * P_l;
   }
 
   return weight;
