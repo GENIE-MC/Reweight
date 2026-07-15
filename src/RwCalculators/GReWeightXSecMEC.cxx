@@ -357,35 +357,34 @@ void GReWeightXSecMEC::Init(void) {
 
   // Get an alternate (Valencia) CCMEC cross section model for reshaping
   // the default SuSAv2 model
-  // TODO: change hard-coding here, or add different knobs for different
-  // target models
   AlgId alt_id( "genie::NievesSimoVacasMECPXSec2016", "Default" );
-  // AlgId alt_id( "genie::SuSAv2MECPXSec", "Default" );
-  // AlgId alt_id( "genie::EmpiricalMECPXSec2015", "Reweight" );
   fXSecAlgCCAlt_Nieves = dynamic_cast< XSecAlgorithmI* >( algf->AdoptAlgorithm(alt_id) );
   assert( fXSecAlgCCAlt_Nieves );
   fXSecAlgCCAlt_Nieves->AdoptSubstructure();
 
   // Get an alternate (SuSAv2) CCMEC cross section model for reshaping
   // the default model.
-  // AlgId alt_id2( "genie::NievesSimoVacasMECPXSec2016", "Default" );
   AlgId alt_id2( "genie::SuSAv2MECPXSec", "Default" );
-  //AlgId alt_id2( "genie::EmpiricalMECPXSec2015", "Reweight" );
   fXSecAlgCCAlt_SuSAv2 = dynamic_cast< XSecAlgorithmI* >( algf->AdoptAlgorithm(alt_id2) );
   assert( fXSecAlgCCAlt_SuSAv2 );
   fXSecAlgCCAlt_SuSAv2->AdoptSubstructure();
 
   // Get another alternate CCMEC cross section model (Empirical) for reshaping the
-  // default (Valencia, SuSAv2 or Martini-Ericson-Chanfray-Marteau model)
+  // default model
+  // NOTE: The empirical MEC model normally uses a spline that is a constant
+  // fraction of a QEL spline rather than the integral of the underlying
+  // empirical MEC differential xsec. The latter is actually needed for
+  // preserving the normalization in shape-only reweighting. The special
+  // "Reweight" configuration of the empirical MEC xsec algorithm (specified
+  // below) instructs the code to integrate the differential xsec directly
+  // rather than using the default "scale the QEL spline" recipe. - S. Gardiner
   AlgId alt_id3( "genie::EmpiricalMECPXSec2015", "Reweight" );
   fXSecAlgCCAlt_Empirical = dynamic_cast< XSecAlgorithmI* >( algf->AdoptAlgorithm(alt_id3) );
   assert( fXSecAlgCCAlt_Empirical );
   fXSecAlgCCAlt_Empirical->AdoptSubstructure();
 
   // Get another alternate CCMEC cross section model (Martini) for reshaping the
-  // default (SuSAv2 or Valencia).
-  // TODO: Change this line once the Martini model is available in GENIE.
-  //AlgId alt_id4( "genie::EmpiricalMECPXSec2015", "Reweight" );
+  // default model
   AlgId alt_id4( "genie::MartiniEricsonChanfrayMarteauMECPXSec2024", "Default" );
   fXSecAlgCCAlt_Martini = dynamic_cast< XSecAlgorithmI* >( algf->AdoptAlgorithm(alt_id4) );
   assert( fXSecAlgCCAlt_Martini );
