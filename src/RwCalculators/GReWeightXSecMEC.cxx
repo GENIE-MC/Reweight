@@ -6,7 +6,7 @@
  Authors:   Steven Gardiner <gardiner \at fnal.gov>
             Fermi National Accelerator Laboratory
 
- Edited by: Lars Bathe-Peters <lars.bathe-peters@physics.ox.ac.uk>
+            Lars Bathe-Peters <lars.bathe-peters \at physics.ox.ac.uk>
             University of Oxford
 */
 //____________________________________________________________________________
@@ -1481,7 +1481,7 @@ void GReWeightXSecMEC::BuildEnergyDepRatioGraphs(const genie::EventRecord& event
   interaction->InitStatePtr()->SetProbeE(E_ref);
   double xsec_ref[3];
   for (int m = 0; m < 3; ++m) {
-    xsec_ref[m] = this->GetXSecFromSplineOrIntegral(algs[m], interaction);
+    xsec_ref[m] = this->GetXSecIntegral(algs[m], interaction);
     if (xsec_ref[m] <= 0.) {
       LOG("ReW", pWARN) << "Model " << m << " has zero xsec at E_ref="
         << E_ref << " GeV. Setting to 1 to avoid division by zero.";
@@ -1490,7 +1490,7 @@ void GReWeightXSecMEC::BuildEnergyDepRatioGraphs(const genie::EventRecord& event
   }
 
   // Also get the default model's xsec at the reference energy
-  double xsec_def_ref = this->GetXSecFromSplineOrIntegral(fXSecAlgCCDef, interaction);
+  double xsec_def_ref = this->GetXSecIntegral(fXSecAlgCCDef, interaction);
   if (xsec_def_ref <= 0.) {
     LOG("ReW", pWARN) << "Default model has zero xsec at E_ref="
       << E_ref << " GeV. Setting to 1.";
@@ -1509,7 +1509,7 @@ void GReWeightXSecMEC::BuildEnergyDepRatioGraphs(const genie::EventRecord& event
     interaction->InitStatePtr()->SetProbeE(Ev);
 
     // Default model xsec, normalised
-    double xsec_def = this->GetXSecFromSplineOrIntegral(fXSecAlgCCDef, interaction);
+    double xsec_def = this->GetXSecIntegral(fXSecAlgCCDef, interaction);
     double xsec_def_norm = xsec_def / xsec_def_ref;
 
     // Compute normalised ratio for each model
@@ -1517,7 +1517,7 @@ void GReWeightXSecMEC::BuildEnergyDepRatioGraphs(const genie::EventRecord& event
     double ratio_min = 1.0;
 
     for (int m = 0; m < 3; ++m) {
-      double xsec_alt = this->GetXSecFromSplineOrIntegral(algs[m], interaction);
+      double xsec_alt = this->GetXSecIntegral(algs[m], interaction);
       double xsec_alt_norm = xsec_alt / xsec_ref[m];
 
       double ratio = (xsec_def_norm > 0.)
@@ -1611,69 +1611,47 @@ double GReWeightXSecMEC::CalcWeightDecayAngMECLegendre(double theta_rad, double 
   return weight;
 }
 //_______________________________________________________________________________________
-double GReWeightXSecMEC::GetXSecIntegral(const XSecAlgorithmI* xsec_alg,
-  const Interaction* interaction)
-{
-  double xsec = 0.;
-
-  XSecSplineList* xssl = XSecSplineList::Instance();
-  assert( xssl );
-
-  // First check if a total cross section spline is already available
-  // for the requested cross section model and interaction. If it is,
-  // use it to get the integrated cross section.
-  std::string curr_tune = xssl->CurrentTune();
-  bool spline_computed = xssl->HasSplineFromTune( curr_tune )
-    && xssl->SplineExists( xsec_alg, interaction );
-  if ( spline_computed ) {
-    const Spline* spl = xssl->GetSpline( xsec_alg, interaction );
-    double Ev = interaction->InitState().ProbeE( kRfLab ); // kRfHitNucRest?
-    if ( spl->ClosestKnotValueIsZero(Ev, "-") ) xsec = 0.;
-    else xsec = spl->Evaluate( Ev );
-  }
-  // If not, fall back to doing the integration directly
-  else {
-    xsec = xsec_alg->Integral( interaction );
-  }
-
-  LOG("ReW", pDEBUG) << "MECshape spline check: "
-    << ( spline_computed ? "found" : "not found" );
-
-  return xsec;
-}
-//_______________________________________________________________________________________
-double GReWeightXSecMEC::GetXSecFromSplineOrIntegral(
+double GReWeightXSecMEC::GetXSecIntegral(
   const XSecAlgorithmI* xsec_alg, const Interaction* interaction)
 {
   // Search all loaded tunes for a matching spline. Falls back to
   // numerical integration if no spline is found in any tune.
 
+  double xsec = 0.;
+  bool spline_computed = false;
+
   XSecSplineList* xssl = XSecSplineList::Instance();
   assert( xssl );
 
   std::string orig_tune = xssl->CurrentTune();
-  std::vector<std::string> tunes = xssl->GetLoadedTunes();
+  std::vector< std::string > tunes = xssl->GetLoadedTunes();
 
-  for (const auto& tune : tunes) {
-    xssl->SetCurrentTune(tune);
-    if ( xssl->SplineExists(xsec_alg, interaction) ) {
-      const Spline* spl = xssl->GetSpline(xsec_alg, interaction);
-      double Ev = interaction->InitState().ProbeE(kRfLab);
-      double xsec = 0.;
+  for ( const auto& curr_tune : tunes ) {
+    xssl->SetCurrentTune( curr_tune );
+    spline_computed = xssl->HasSplineFromTune( curr_tune )
+      && xssl->SplineExists( xsec_alg, interaction );
+    if ( spline_computed ) {
+      const Spline* spl = xssl->GetSpline( xsec_alg, interaction );
+      double Ev = interaction->InitState().ProbeE( kRfLab );
       if ( spl->ClosestKnotValueIsZero(Ev, "-") ) xsec = 0.;
       else xsec = spl->Evaluate(Ev);
 
-      LOG("ReW", pINFO) << "Found spline for " << xsec_alg->Id().Key()
-        << " in tune " << tune;
+      LOG("ReW", pDEBUG) << "Found spline for " << xsec_alg->Id().Key()
+        << " in tune " << curr_tune;
 
-      xssl->SetCurrentTune(orig_tune);
-      return xsec;
+      // We found the spline, so exit the loop over tunes
+      break;
     }
   }
 
-  xssl->SetCurrentTune(orig_tune);
+  // Reset the current tune back to the original before returning a result
+  xssl->SetCurrentTune( orig_tune );
 
-  LOG("ReW", pWARN) << "No spline found for " << xsec_alg->Id().Key()
+  if ( spline_computed ) {
+    return xsec;
+  }
+
+  LOG("ReW", pDEBUG) << "No spline found for " << xsec_alg->Id().Key()
     << " in any loaded tune. Falling back to numerical integration.";
-  return xsec_alg->Integral(interaction);
+  return xsec_alg->Integral( interaction );
 }

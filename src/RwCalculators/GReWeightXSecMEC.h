@@ -64,13 +64,10 @@ namespace rew   {
    double CalcWeightXSecShape_Martini(const EventRecord& event);
    double CalcWeightEnergyDependence(const EventRecord& event);
 
-   /// Helper function for CalcWeightXSecShape
-   double GetXSecIntegral(const XSecAlgorithmI* xsec_alg,
-     const Interaction* interaction);
-
    /// Get total xsec, searching all loaded tunes for splines before
-   /// falling back to numerical integration
-   double GetXSecFromSplineOrIntegral(const XSecAlgorithmI* xsec_alg,
+   /// falling back to numerical integration. This is a helper function
+   /// for performing shape-only reweighting of differential xsecs.
+   double GetXSecIntegral(const XSecAlgorithmI* xsec_alg,
      const Interaction* interaction);
 
    /// Helper function for CalcWeightEnergyDependence
@@ -80,7 +77,9 @@ namespace rew   {
    void BuildEnergyDepRatioGraphs(const EventRecord& event);
 
    /// Helper function for CalcWeightDecayAngMECLegendre
-   double CalcWeightDecayAngMECLegendre(double theta_rad, double twk_dial, double twk_dial2, double twk_dial3, double twk_dial4, double twk_dial5, double twk_dial6);
+   double CalcWeightDecayAngMECLegendre(double theta_rad, double twk_dial,
+     double twk_dial2, double twk_dial3, double twk_dial4, double twk_dial5,
+     double twk_dial6);
 
    /// Simple struct containing tweak dial information for the
    /// normalization of one MEC interaction type (CC, NC, EM)
