@@ -21,6 +21,7 @@
           [--seed random_number_seed]
           [--message-thresholds xml_file]
           [--event-record-print-level level]
+          [--cross-sections spline_file1,...]
 
          where
          [] is an optional argument.
@@ -64,6 +65,10 @@
             Allows users to customize the message stream thresholds.
             The thresholds are specified using an XML file.
             See $GENIE/config/Messenger.xml for the XML schema.
+         --cross-sections spline_file1,...
+            Specifies one or more cross-section spline XML files that should
+            be loaded before evaluating event weights. File names are separated
+            from each other by commas.
 
 \author  Jim Dobson
          Imperial College London
@@ -586,7 +591,7 @@ void GetCommandLineArgs(int argc, char ** argv)
   }
 
   // Get the splines file(s) — supports comma-separated list for loading
-  // splines from multiple tunes (e.g. SuSAv2, Valencia, Martini)
+  // splines from multiple input XML files
   if ( parser.OptionExists("cross-sections") ) {
     LOG("grwght1scan", pINFO) << "Loading cross-section splines";
     std::string spl_file_names = parser.ArgAsString( "cross-sections" );
@@ -595,6 +600,11 @@ void GetCommandLineArgs(int argc, char ** argv)
     for (size_t i = 0; i < files.size(); ++i) {
       std::string trimmed = utils::str::TrimSpaces(files[i]);
       LOG("grwght1scan", pINFO) << "Loading spline file: " << trimmed;
+      // NOTE: the second argument below is used to merge splines from
+      // all input files into a single list. On the first iteration,
+      // keep == true, and the contents of the spline list are reset
+      // before loading new splines from the XML file. On subsequent
+      // iterations, the new splines are added to the existing list.
       xssl->LoadFromXml( trimmed, /*keep=*/ i > 0 );
     }
   }
@@ -646,7 +656,8 @@ void PrintSyntax(void)
      << "    [-o output_weights_file] \n"
      << "    [--seed random_number_seed] \n"
      << "    [--message-thresholds xml_file]\n"
-     << "    [--event-record-print-level level]\n\n\n"
+     << "    [--event-record-print-level level]\n"
+     << "    [--cross-sections spline_file1,...]\n\n\n"
      << " See the GENIE Physics and User manual for more details";
 }
 //_________________________________________________________________________________
