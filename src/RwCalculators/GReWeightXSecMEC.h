@@ -8,7 +8,7 @@
 \author   Steven Gardiner <gardiner \at fnal.gov>
           Fermi National Accelerator Laboratory
 
-\edits    Lars Bathe-Peters <lars.bathe-peters@physics.ox.ac.uk>
+          Lars Bathe-Peters <lars.bathe-peters@physics.ox.ac.uk>
           University of Oxford
 
 \created  Sep 11, 2019
@@ -24,7 +24,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <gsl/gsl_sf_legendre.h> // Include the GSL header for Legendre polynomials
 
 #include <TGraph.h>
 
@@ -67,12 +66,12 @@ namespace rew   {
 
    /// Helper function for CalcWeightXSecShape
    double GetXSecIntegral(const XSecAlgorithmI* xsec_alg,
-   const Interaction* interaction);
+     const Interaction* interaction);
 
    /// Get total xsec, searching all loaded tunes for splines before
    /// falling back to numerical integration
    double GetXSecFromSplineOrIntegral(const XSecAlgorithmI* xsec_alg,
-   const Interaction* interaction);
+     const Interaction* interaction);
 
    /// Helper function for CalcWeightEnergyDependence
    double CalcWeight2p2hEnergyDependence(const EventRecord& event);
@@ -138,8 +137,8 @@ namespace rew   {
    /// Integrator used by the CalcWeightXSecShape function
    const XSecIntegratorI* fXSecIntegrator;
 
-   /// Tweak dials that interpolates the shape of the CCMEC differential 
-   // cross section between models
+   /// Tweak dials that interpolate the shape of the CCMEC differential
+   /// cross section between models
    double fCCXSecShapeTwkDial;
    double fCCXSecShapeEmpiricalTwkDial;
    double fCCXSecShapeMartiniTwkDial;

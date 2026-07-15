@@ -75,7 +75,6 @@
 #include <TMatrixD.h>
 #include <TTree.h>
 #include <TRandom.h>
-#include <TRandom3.h>
 
 // GENIE/Generator includes
 #include "Framework/Conventions/Constants.h"
@@ -137,8 +136,6 @@ Long64_t gOptNEvt2;
 int      gOptRunKey= 0;
 int      gOptNSyst = 0;
 int      gOptNTwk  = 0;
-double   gOptMinTwk;      ///< Minimum value of tweaked dial
-double   gOptMaxTwk;      ///< Maximum value of tweaked dial
 long int gOptRanSeed;     ///< random number seed
 
 //___________________________________________________________________
@@ -190,10 +187,6 @@ int main(int argc, char ** argv)
   // where L=I and b is a vector of random numbers with b^T.b = 1
   //
 
-  // Set seed such that we have new set of random number for any new weight computation
-  // (in particular in twkvals = CholeskyGenerateCorrelatedParamVariations(lTri))
-  //RandomGen::Instance()->SetSeed(time(nullptr));
-
   TMatrixD *cmat = NULL;
   // Gets Cor, which is needed in decompositions
   // Assumed errors from covariance are stored in one sigma errors for parameters
@@ -214,7 +207,7 @@ int main(int argc, char ** argv)
   GetEventRange(nev_in_file, nfirst, nlast);
   int nev = int(nlast - nfirst + 1);
 
-  LOG("grwghtnp", pNOTICE) << "Will process -------" << nev << " events";
+  LOG("grwghtnp", pNOTICE) << "Will process " << nev << " events";
 
   //
   // Create a GReWeight object and add to it a set of
@@ -242,10 +235,8 @@ int main(int argc, char ** argv)
   GSystSet & syst = rw.Systematics();
 
   // Declare the weights, twkvals
-  const int n_params = (int) gOptNSyst;
-  const int n_tweaks = (int) gOptNTwk;
-  std::cout << "gOptNSyst" << gOptNSyst << std::endl;
-  std::cout << "gOptNTwk" << gOptNTwk << std::endl;
+  const int n_params = (const int) gOptNSyst;
+  const int n_tweaks = (const int) gOptNTwk;
   TVectorD twkvals(n_params);
 
   // Initialize
@@ -934,8 +925,6 @@ void AdoptWeightCalcs (vector<GSyst_t> lsyst, GReWeight & rw)
    }
   }
 }
-
-
 //_________________________________________________________________________________
 void PrintSyntax(void)
 {
