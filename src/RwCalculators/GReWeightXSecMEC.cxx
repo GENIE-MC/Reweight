@@ -782,6 +782,31 @@ double GReWeightXSecMEC::CalcWeightPN(const genie::EventRecord& event)
   return weight;
 }
 //_______________________________________________________________________________________
+// CCMEC differential cross-section shape dials
+//
+// Three dials are available. Each reshapes the MEC differential cross
+// section in lepton kinematics from the default model (dial == 0) toward
+// an alternative model (dial == 1) while preserving the total xsec.
+//
+//   XSecShape_CCMEC:
+//     When originally developed for MicroBooNE, this dial was hard-coded
+//     to reweight from Valencia (Nieves) -> Empirical (see
+//     https://doi.org/10.1103/PhysRevD.105.072001 for details)
+//
+//     Now it selects the alternate model dynamically based on the default:
+//       SuSAv2   -> Valencia (Nieves)
+//       Valencia -> SuSAv2
+//       Martini  -> SuSAv2
+//     Users who want the older behavior can use XSecShape_CCMEC_Empirical.
+//
+//   XSecShape_CCMEC_Empirical:
+//     Default -> Empirical (regardless of which model is default).
+//
+//   XSecShape_CCMEC_Martini:
+//       Valencia (Nieves) -> Martini
+//       SuSAv2 -> Martini
+//       Martini -> Valencia (Nieves)
+// -----------------------------------------------------------------
 double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
 {
   // The XSecShape_CCMEC parameter reweights from the default SuSAv2 CCMEC
