@@ -58,7 +58,8 @@ namespace rew   {
    double CalcWeightNorm(const EventRecord& event);
    double CalcWeightAngularDist(const EventRecord& event);
    double CalcWeightAngularDistLegendre(const EventRecord& event);
-   double CalcWeightPNDelta(const EventRecord& event);
+   double CalcWeightPN(const EventRecord& event);
+   double CalcWeightInternalDelta(const EventRecord& event);
    double CalcWeightXSecShape(const EventRecord& event);
    double CalcWeightXSecShape_Empirical(const EventRecord& event);
    double CalcWeightXSecShape_Martini(const EventRecord& event);
