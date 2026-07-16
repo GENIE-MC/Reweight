@@ -8,6 +8,9 @@
 \author   Steven Gardiner <gardiner \at fnal.gov>
           Fermi National Accelerator Laboratory
 
+          Lars Bathe-Peters <lars.bathe-peters@physics.ox.ac.uk>
+          University of Oxford
+
 \created  Sep 11, 2019
 
 \cpright  Copyright (c) 2003-2025, The GENIE Collaboration
@@ -19,7 +22,10 @@
 #define _G_REWEIGHT_NU_XSEC_MEC_H_
 
 #include <map>
+#include <memory>
 #include <string>
+
+#include <TGraph.h>
 
 // GENIE includes
 #include "Framework/Interaction/InteractionType.h"
@@ -51,12 +57,30 @@ namespace rew   {
    void Init(void);
    double CalcWeightNorm(const EventRecord& event);
    double CalcWeightAngularDist(const EventRecord& event);
-   double CalcWeightPNDelta(const EventRecord& event);
+   double CalcWeightAngularDistLegendre(const EventRecord& event);
+   double CalcWeightPN(const EventRecord& event);
+   double CalcWeightInternalDelta(const EventRecord& event);
    double CalcWeightXSecShape(const EventRecord& event);
+   double CalcWeightXSecShape_Empirical(const EventRecord& event);
+   double CalcWeightXSecShape_Martini(const EventRecord& event);
+   double CalcWeightEnergyDependence(const EventRecord& event);
 
-   /// Helper function for CalcWeightXSecShape
+   /// Get total xsec, searching all loaded tunes for splines before
+   /// falling back to numerical integration. This is a helper function
+   /// for performing shape-only reweighting of differential xsecs.
    double GetXSecIntegral(const XSecAlgorithmI* xsec_alg,
      const Interaction* interaction);
+
+   /// Helper function for CalcWeightEnergyDependence
+   double CalcWeight2p2hEnergyDependence(const EventRecord& event);
+
+   /// Build energy-dependence ratio graphs from all three MEC models
+   void BuildEnergyDepRatioGraphs(const EventRecord& event);
+
+   /// Helper function for CalcWeightDecayAngMECLegendre
+   double CalcWeightDecayAngMECLegendre(double theta_rad, double twk_dial,
+     double twk_dial2, double twk_dial3, double twk_dial4, double twk_dial5,
+     double twk_dial6);
 
    /// Simple struct containing tweak dial information for the
    /// normalization of one MEC interaction type (CC, NC, EM)
@@ -80,6 +104,19 @@ namespace rew   {
    /// distribution
    double fDecayAngTwkDial;
 
+   /// Another tweak dial value for adjusting the nucleon cluster decay
+   /// angular distribution
+   double fDecayAng2TwkDial;
+
+   /// Tweak dial value for adjusting the nucleon cluster decay angular
+   /// distribution for DecayAngMECLegendre parameter
+   double fDecayAngLegendreTwkDial;
+   double fDecayAngLegendre2TwkDial;
+   double fDecayAngLegendre3TwkDial;
+   double fDecayAngLegendre4TwkDial;
+   double fDecayAngLegendre5TwkDial;
+   double fDecayAngLegendre6TwkDial;
+
    /// Tweak dial value for adjusting the fraction of CC events that
    /// involve an initial pn pair
    double fFracPN_CCTwkDial;
@@ -91,15 +128,29 @@ namespace rew   {
    /// CCMEC cross section model used to generate the events (untweaked)
    XSecAlgorithmI* fXSecAlgCCDef;
 
-   /// Alternate CCMEC cross section model
-   XSecAlgorithmI* fXSecAlgCCAlt;
+   /// Alternate CCMEC cross section models
+   XSecAlgorithmI* fXSecAlgCCAlt_Nieves;
+   XSecAlgorithmI* fXSecAlgCCAlt_SuSAv2;
+   XSecAlgorithmI* fXSecAlgCCAlt_Empirical;
+   XSecAlgorithmI* fXSecAlgCCAlt_Martini;
 
    /// Integrator used by the CalcWeightXSecShape function
    const XSecIntegratorI* fXSecIntegrator;
 
-   /// Tweak dial that interpolates the shape of the CCMEC differential cross
-   /// section between models
+   /// Tweak dials that interpolate the shape of the CCMEC differential
+   /// cross section between models
    double fCCXSecShapeTwkDial;
+   double fCCXSecShapeEmpiricalTwkDial;
+   double fCCXSecShapeMartiniTwkDial;
+
+   /// Tweak dial value for adjusting the energy dependence of the CCMEC
+   //cross section
+   double fEnergyDependenceTwkDial;
+
+   /// Energy-dependence ratio graphs (upper/lower uncertainty envelopes)
+   bool fEnergyDepRatioInitialized;
+   std::unique_ptr<TGraph> fEnergyDepUpperGraph;
+   std::unique_ptr<TGraph> fEnergyDepLowerGraph;
 };
 
 } // rew   namespace
