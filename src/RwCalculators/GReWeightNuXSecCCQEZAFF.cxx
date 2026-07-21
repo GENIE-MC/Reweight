@@ -271,10 +271,13 @@ void GReWeightNuXSecCCQEZAFF::Init(void)
     fZExpParaDef.fKmax    = fXSecModelConfig->GetInt(fZExpPath + "QEL-Kmax");
     fZExpParaDef.fT0      = fXSecModelConfig->GetDouble(fZExpPath + "QEL-T0");
     fZExpParaDef.fTcut    = fXSecModelConfig->GetDouble(fZExpPath + "QEL-Tcut");
-    fZExpParaDef.fGep0    = fXSecModelConfig->GetDouble(fZExpPath + "QEL-Gep0");
-    fZExpParaDef.fGmp0    = fXSecModelConfig->GetDouble(fZExpPath + "QEL-Gmp0");
-    fZExpParaDef.fGen0    = fXSecModelConfig->GetDouble(fZExpPath + "QEL-Gen0");
-    fZExpParaDef.fGmn0    = fXSecModelConfig->GetDouble(fZExpPath + "QEL-Gmn0");
+    // Gep0/Gmp0/Gen0/Gmn0 are ELECTRIC form factor parameters (ELFF leftovers)
+    // that do not exist in the axial FF model config and are never used by the
+    // axial weight calculation — do not read them from the Registry.
+    fZExpParaDef.fGep0    = 0.;
+    fZExpParaDef.fGmp0    = 0.;
+    fZExpParaDef.fGen0    = 0.;
+    fZExpParaDef.fGmn0    = 0.;
 
     // Cross-checks: the covariance matrix (read above) and the QEL-Z_A
     // coefficient vector must both match QEL-Kmax, otherwise the derivative
