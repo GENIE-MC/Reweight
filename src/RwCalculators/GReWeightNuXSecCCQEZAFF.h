@@ -25,6 +25,7 @@
 #include "RwCalculators/GReWeightModel.h"
 #include "TRandom3.h"
 #include "TMatrixDSym.h"
+#include "TMatrixD.h"
 
 class TFile;
 class TNtupleD;
@@ -66,6 +67,19 @@ namespace genie {
         // per-coefficient 1-sigma; built-in default 0.1, per-job override
         // (grwght1p --fd-delta). Must be > 0 (checked at first use).
         void SetFiniteDiffDelta (double d){ fFiniteDiffDelta = d; }
+
+        // How the xsec 1-sigma is estimated from the coefficient covariance:
+        //   kSigmaPropagation - analytic error propagation via finite-difference
+        //                       derivatives (default; exact for the quadratic
+        //                       coefficient dependence)
+        //   kSigmaCholesky    - MC sampling: universes a' = a + L*z with L the
+        //                       Cholesky factor of the covariance, sigma = sample
+        //                       std dev of the recomputed xsec (grwghtnp-style)
+        enum ESigmaEstimator { kSigmaPropagation = 0, kSigmaCholesky = 1 };
+        void SetSigmaEstimator (ESigmaEstimator m){ fSigmaEstimator = m; }
+        // number of universes for kSigmaCholesky (default 1000; must be >= 2,
+        // checked at first use). Driver option: grwght1p --n-universes.
+        void SetNUniverses     (int n){ fNUniverses = n; }
 
       private:
         void   Init                (void);
@@ -114,10 +128,13 @@ namespace genie {
         double fFiniteDiffDelta; ///< finite-difference step (fraction of 1-sigma) in XSecPartialDerivative
 
         // Two methods are provided to calculate the uncertainties of XSec
-        // 1. propagation of errors: it is based on grwght1p
-        // 2. Cholesky decomposition: it is based on grwghtnp
-        bool fIsSinglePara;     // it will be used for Cholesky decomposition
-        bool fIsAllPara;        // flag of propagation method
+        // (see ESigmaEstimator): propagation of errors, or Cholesky-sampled
+        // universes. fIsSinglePara/fIsAllPara placeholders retired in favour
+        // of fSigmaEstimator.
+        ESigmaEstimator fSigmaEstimator; ///< how GetOneSigma estimates sigma_xsec
+        int             fNUniverses;     ///< universes for kSigmaCholesky
+        TMatrixD        fLch;            ///< cached Cholesky factor L of error_mat
+        double GetOneSigmaCholesky(const EventRecord & event);
         std::vector<double> A_f;
 
         // List of the uncertainties of parameters from Kaushik

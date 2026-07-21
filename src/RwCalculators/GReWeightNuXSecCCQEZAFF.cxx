@@ -34,6 +34,7 @@
 #include "RwCalculators/GReWeightUtils.h"
 #include "RwFramework/GSystSet.h"
 #include "RwFramework/GSystUncertainty.h"
+#include "Framework/Numerical/MathUtils.h"
 #include "TRandom3.h"
 #include "TVectorD.h"
 #include "TDecompChol.h"
@@ -205,6 +206,11 @@ void GReWeightNuXSecCCQEZAFF::Init(void)
     << "Finite-difference delta default: " << fFiniteDiffDelta
     << " (override with SetFiniteDiffDelta / grwght1p --fd-delta)";
 
+  // sigma-estimator defaults (driver overrides via SetSigmaEstimator /
+  // SetNUniverses, exposed as grwght1p --sigma-method / --n-universes)
+  fSigmaEstimator = kSigmaPropagation;
+  fNUniverses     = 1000;
+
   AlgId id(cc_qel_id);
 
   AlgId twk_id(id);
@@ -307,6 +313,11 @@ void GReWeightNuXSecCCQEZAFF::Init(void)
         << ") for axial form factor model " << fFFModel;
       std::exit(1);
     }
+
+    // Cache the Cholesky factor of the (validated) covariance for the
+    // kSigmaCholesky universe sampler.
+    fLch.ResizeTo(error_mat.GetNrows(), error_mat.GetNcols());
+    fLch = genie::utils::math::CholeskyDecomposition(TMatrixD(error_mat));
 
     fZExpParaDef.fZ_An.resize(fZExpParaDef.fKmax);
     fZExpPara.fZ_An.resize(fZExpParaDef.fKmax);
@@ -416,6 +427,9 @@ void GReWeightNuXSecCCQEZAFF::XSecPartialDerivative(const EventRecord & event){
 //
 //  \sigma_{XSec}^2 = A_f[i] *A_f[j] *M_ij
 double GReWeightNuXSecCCQEZAFF::GetOneSigma(const EventRecord & event){
+  if ( fSigmaEstimator == kSigmaCholesky ) {
+    return this->GetOneSigmaCholesky(event);
+  }
   XSecPartialDerivative(event);
   double OneSigma2 = 0;
   for(int i = 0; i < fZExpParaDef.fKmax; i++){
@@ -424,6 +438,41 @@ double GReWeightNuXSecCCQEZAFF::GetOneSigma(const EventRecord & event){
     }
   }
   return TMath::Sqrt(OneSigma2);
+}
+
+//_______________________________________________________________________________________
+//  Alternative sigma estimator: Cholesky-sampled universes (grwghtnp-style).
+//  Throw fNUniverses correlated coefficient sets a' = a + L*z (z ~ N(0,1)^Kmax,
+//  L = Cholesky factor of the covariance, cached in Init) and take the sample
+//  standard deviation of the recomputed differential xsec. Captures the full
+//  (non-linear) response; reproducible through RandomGen (grwght1p --seed).
+double GReWeightNuXSecCCQEZAFF::GetOneSigmaCholesky(const EventRecord & event){
+  if ( fNUniverses < 2 ) {
+    LOG( "GReWeightNuXSecCCQEZAFF", pFATAL )
+      << "Number of universes must be >= 2, got " << fNUniverses;
+    std::exit(1);
+  }
+
+  double sum = 0., sum2 = 0.;
+  ostringstream alg_key;
+  for (int u = 0; u < fNUniverses; ++u) {
+    TVectorD var = genie::utils::math::CholeskyGenerateCorrelatedParamVariations(fLch);
+    Registry r("GReWeightNuXSecCCQEZAFF",false);
+    for (int i = 0; i < fZExpParaDef.fKmax; ++i) {
+      fZExpPara.fZ_An[i] = fZExpParaDef.fZ_An[i] + var[i];
+      alg_key.str("");
+      alg_key << fZExpPath << "QEL-Z_A-" << i;
+      r.Set(alg_key.str(), fZExpPara.fZ_An[i]);
+    }
+    fXSecModel->Configure(r);
+    double xs = this->UpdateXSec(event);
+    sum  += xs;
+    sum2 += xs*xs;
+  }
+  double mean = sum / fNUniverses;
+  double var_x = (sum2 - fNUniverses*mean*mean) / (fNUniverses - 1.);
+  if ( var_x < 0. ) var_x = 0.;  // numerical guard
+  return TMath::Sqrt(var_x);
 }
 
 //_______________________________________________________________________________________
