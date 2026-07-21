@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<alg_conf>
+
+<!--
+Configuration for the GReWeightNuXSecCCQEZAFF weight calculator (z-expansion
+axial form factor reweighting via covariance error propagation).
+
+ZAFF-FiniteDiff-Delta: step size of the central finite difference used in
+XSecPartialDerivative(), expressed as a fraction of the per-coefficient
+1-sigma uncertainty (sqrt of the covariance diagonal). Must be > 0.
+-->
+
+ <param_set name="Default">
+
+   <param type="double" name="ZAFF-FiniteDiff-Delta"> 0.1 </param>
+
+ </param_set>
+
+</alg_conf>

@@ -218,6 +218,25 @@ void GReWeightNuXSecCCQEZAFF::Init(void)
   LOG( "GReWeightNuXSecCCQEZAFF", pINFO ) << "CovarianceMatrix of z expansion:";
   error_mat.Print();
 
+  // Finite-difference step for XSecPartialDerivative: configurable via
+  // $GENIE_REWEIGHT/config/GReWeightNuXSecCCQEZAFF.xml (registered in
+  // reweight_master_config.xml); falls back to 0.1 when absent so older
+  // installs keep working.
+  fFiniteDiffDelta = 0.1;
+  Registry * zaff_config =
+    conf_pool->FindRegistry("genie::rew::GReWeightNuXSecCCQEZAFF", "Default");
+  if ( zaff_config ) {
+    fFiniteDiffDelta = zaff_config->GetDoubleDef("ZAFF-FiniteDiff-Delta", 0.1, false);
+  }
+  if ( fFiniteDiffDelta <= 0. ) {
+    LOG( "GReWeightNuXSecCCQEZAFF", pFATAL )
+      << "ZAFF-FiniteDiff-Delta must be > 0, got " << fFiniteDiffDelta;
+    std::exit(1);
+  }
+  LOG( "GReWeightNuXSecCCQEZAFF", pINFO )
+    << "Finite-difference delta in use: " << fFiniteDiffDelta
+    << (zaff_config ? " (from GReWeightNuXSecCCQEZAFF.xml)" : " (built-in default)");
+
   AlgId id(cc_qel_id);
 
   AlgId twk_id(id);
@@ -347,7 +366,7 @@ void GReWeightNuXSecCCQEZAFF::XSecPartialDerivative(const EventRecord & event){
     A_f[i] = 0.0;
   }
 
-  double delta = 0.1;
+  double delta = fFiniteDiffDelta;
 
   for(int index = 0; index < fZExpParaDef.fKmax; index++){
     double xsec_tmp_0 = 0.0;
