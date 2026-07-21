@@ -264,6 +264,35 @@ void GReWeightNuXSecCCQEZAFF::Init(void)
     fZExpParaDef.fGen0    = fXSecModelConfig->GetDouble(fZExpPath + "QEL-Gen0");
     fZExpParaDef.fGmn0    = fXSecModelConfig->GetDouble(fZExpPath + "QEL-Gmn0");
 
+    // Cross-checks: the covariance matrix (read above) and the QEL-Z_A
+    // coefficient vector must both match QEL-Kmax, otherwise the derivative
+    // loops in XSecPartialDerivative()/GetOneSigma() index out of bounds
+    // (silent undefined behaviour).
+    if ( fZExpParaDef.fKmax != error_mat.GetNrows() ) {
+      LOG( "GReWeightNuXSecCCQEZAFF", pFATAL )
+        << "QEL-Kmax (" << fZExpParaDef.fKmax
+        << ") does not match the ZExpZAFF@CovarianceMatrix dimension ("
+        << error_mat.GetNrows() << "x" << error_mat.GetNcols()
+        << ") for axial form factor model " << fFFModel
+        << " - fix the model configuration (config set / GXMLPATH override)";
+      std::exit(1);
+    }
+    string zexp_vec_size_key = fZExpPath + Algorithm::BuildParamVectSizeKey("QEL-Z_A");
+    if ( ! fXSecModelConfig->Exists(RgKey(zexp_vec_size_key)) ) {
+      LOG( "GReWeightNuXSecCCQEZAFF", pFATAL )
+        << "Missing '" << zexp_vec_size_key
+        << "' - QEL-Z_A must be configured as a vec-double parameter";
+      std::exit(1);
+    }
+    int n_za = fXSecModelConfig->GetInt(zexp_vec_size_key);
+    if ( n_za != fZExpParaDef.fKmax ) {
+      LOG( "GReWeightNuXSecCCQEZAFF", pFATAL )
+        << "QEL-Z_A vector length (" << n_za
+        << ") does not match QEL-Kmax (" << fZExpParaDef.fKmax
+        << ") for axial form factor model " << fFFModel;
+      std::exit(1);
+    }
+
     fZExpParaDef.fZ_An.resize(fZExpParaDef.fKmax);
     fZExpPara.fZ_An.resize(fZExpParaDef.fKmax);
     fZExpParaTwkDial.fZ_An.resize(fZExpParaDef.fKmax);
