@@ -195,28 +195,6 @@ void GReWeightNuXSecCCQEZAFF::Init(void)
   Registry * gpl = conf_pool->GlobalParameterList();
   // get axial form factor tune from current CCQE model
   RgAlg cc_qel_id = gpl->GetAlg( "XSecModel@genie::EventGenerator/QEL-CC" );
-  RgAlg ff_id = conf_pool->FindRegistry(cc_qel_id)->GetAlg("FormFactorsAlg");
-  RgAlg aff_model_id = conf_pool->FindRegistry(ff_id)->GetAlg("AxialFormFactorModel");
-  // get the covariance matrix
-  Registry * zexp_axial_model = conf_pool->FindRegistry(aff_model_id);
-  int n_row = zexp_axial_model->GetInt(Algorithm::BuildParamMatRowSizeKey("ZExpZAFF@CovarianceMatrix"));
-  int n_col = zexp_axial_model->GetInt(Algorithm::BuildParamMatColSizeKey("ZExpZAFF@CovarianceMatrix"));
-
-  if(n_row != n_col){
-    LOG( "GReWeightNuXSecCCQEZAFF", pFATAL ) << "Non-square covariance matrix"
-      << "encountered in GReWeightNuXSecCCQEZAFF::Init()";
-    std::exit(1);
-  }
-  error_mat.ResizeTo(n_row, n_row);
-  errors.resize(n_row);
-  A_f.resize(n_row);
-  for(int i = 0; i < n_row; i++){
-    for(int j = 0; j < n_row; j++){
-      error_mat[i][j] = zexp_axial_model->GetDouble(Algorithm::BuildParamMatKey("ZExpZAFF@CovarianceMatrix", i, j));
-    }
-  }
-  LOG( "GReWeightNuXSecCCQEZAFF", pINFO ) << "CovarianceMatrix of z expansion:";
-  error_mat.Print();
 
   // Finite-difference step for XSecPartialDerivative: configurable via
   // $GENIE_REWEIGHT/config/GReWeightNuXSecCCQEZAFF.xml (registered in
@@ -274,6 +252,31 @@ void GReWeightNuXSecCCQEZAFF::Init(void)
   if (fModelIsZExp)
   {
     this->SetMode(kModeZExp);
+
+    // Covariance matrix of the zexp axial FF: read only when the tune actually
+    // uses the zexp axial model — an unconditional read kills Init() (missing
+    // Registry key) on any tune without ZExpZAFF@CovarianceMatrix.
+    RgAlg ff_id = conf_pool->FindRegistry(cc_qel_id)->GetAlg("FormFactorsAlg");
+    RgAlg aff_model_id = conf_pool->FindRegistry(ff_id)->GetAlg("AxialFormFactorModel");
+    Registry * zexp_axial_model = conf_pool->FindRegistry(aff_model_id);
+    int n_row = zexp_axial_model->GetInt(Algorithm::BuildParamMatRowSizeKey("ZExpZAFF@CovarianceMatrix"));
+    int n_col = zexp_axial_model->GetInt(Algorithm::BuildParamMatColSizeKey("ZExpZAFF@CovarianceMatrix"));
+    if(n_row != n_col){
+      LOG( "GReWeightNuXSecCCQEZAFF", pFATAL ) << "Non-square covariance matrix"
+        << "encountered in GReWeightNuXSecCCQEZAFF::Init()";
+      std::exit(1);
+    }
+    error_mat.ResizeTo(n_row, n_row);
+    errors.resize(n_row);
+    A_f.resize(n_row);
+    for(int i = 0; i < n_row; i++){
+      for(int j = 0; j < n_row; j++){
+        error_mat[i][j] = zexp_axial_model->GetDouble(Algorithm::BuildParamMatKey("ZExpZAFF@CovarianceMatrix", i, j));
+      }
+    }
+    LOG( "GReWeightNuXSecCCQEZAFF", pINFO ) << "CovarianceMatrix of z expansion:";
+    error_mat.Print();
+
     fZExpParaDef.fQ4limit = fXSecModelConfig->GetBool(fZExpPath + "QEL-Q4limit");
     fZExpParaDef.fKmax    = fXSecModelConfig->GetInt(fZExpPath + "QEL-Kmax");
     fZExpParaDef.fT0      = fXSecModelConfig->GetDouble(fZExpPath + "QEL-T0");

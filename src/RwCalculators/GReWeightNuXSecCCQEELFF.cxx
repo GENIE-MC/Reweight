@@ -201,27 +201,6 @@ void GReWeightNuXSecCCQEELFF::Init(void)
   AlgConfigPool * conf_pool = AlgConfigPool::Instance();
   Registry * gpl = conf_pool->GlobalParameterList();
 
-  // --- get the model configuration from current tune
-  conf_pool->Print(std::cout);
-  gpl->Print(std::cout);
-  RgAlg elff_id = conf_pool->FindRegistry("CommonParamList/ElasticFF")->GetAlg("ElasticFormFactorsModel");
-  Registry * elff_model = conf_pool->FindRegistry(elff_id);
-  int n_row = elff_model->GetInt(Algorithm::BuildParamMatRowSizeKey("ZExpELFF@CovarianceMatrix"));
-  int n_col = elff_model->GetInt(Algorithm::BuildParamMatColSizeKey("ZExpELFF@CovarianceMatrix"));
-  if(n_row != n_col){
-    LOG( "GReWeightNuXSecCCQEELFF", pFATAL ) << "Non-square covariance matrix"
-      << "encountered in GReWeightNuXSecCCQEELFF::Init()";
-    std::exit(1);
-  }
-  error_mat.ResizeTo(n_row, n_row);
-  errors.resize(n_row);
-  A_f.resize(n_row);
-  for(int i = 0; i < n_row; i++){
-    for(int j = 0; j < n_row; j++){
-      error_mat[i][j] = elff_model->GetDouble(Algorithm::BuildParamMatKey("ZExpELFF@CovarianceMatrix", i, j));
-    }
-  }
-  error_mat.Print();
   RgAlg xsec_alg = gpl->GetAlg("XSecModel@genie::EventGenerator/QEL-CC");
   AlgId id(xsec_alg);
 
@@ -260,6 +239,30 @@ void GReWeightNuXSecCCQEELFF::Init(void)
   if (fModelIsZExp)
   {
     this->SetMode(kModeZExp);
+
+    // Covariance matrix of the zexp elastic FF: only read it when the tune
+    // actually uses the zexp EL model — reading unconditionally makes Init()
+    // die (missing Registry key) on every tune without ZExpELFF@CovarianceMatrix,
+    // which breaks ALL grwght1p dials, not just the ELFF one.
+    RgAlg elff_id = conf_pool->FindRegistry("CommonParamList/ElasticFF")->GetAlg("ElasticFormFactorsModel");
+    Registry * elff_model = conf_pool->FindRegistry(elff_id);
+    int n_row = elff_model->GetInt(Algorithm::BuildParamMatRowSizeKey("ZExpELFF@CovarianceMatrix"));
+    int n_col = elff_model->GetInt(Algorithm::BuildParamMatColSizeKey("ZExpELFF@CovarianceMatrix"));
+    if(n_row != n_col){
+      LOG( "GReWeightNuXSecCCQEELFF", pFATAL ) << "Non-square covariance matrix"
+        << "encountered in GReWeightNuXSecCCQEELFF::Init()";
+      std::exit(1);
+    }
+    error_mat.ResizeTo(n_row, n_row);
+    errors.resize(n_row);
+    A_f.resize(n_row);
+    for(int i = 0; i < n_row; i++){
+      for(int j = 0; j < n_row; j++){
+        error_mat[i][j] = elff_model->GetDouble(Algorithm::BuildParamMatKey("ZExpELFF@CovarianceMatrix", i, j));
+      }
+    }
+    error_mat.Print();
+
     fZExpParaDef.fQ4limit = fXSecModelConfig->GetBool(fZExpPath + "QEL-Q4limit");
     fZExpParaDef.fKmax    = fXSecModelConfig->GetInt(fZExpPath + "QEL-Kmax");
     fZExpParaDef.fT0      = fXSecModelConfig->GetDouble(fZExpPath + "QEL-T0");
