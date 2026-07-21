@@ -36,6 +36,7 @@
 #include "RwFramework/GSystUncertainty.h"
 #include "TRandom3.h"
 #include "TVectorD.h"
+#include "Framework/Numerical/MathUtils.h"
 #include "TDecompChol.h"
 
 using namespace genie;
@@ -209,6 +210,11 @@ void GReWeightNuXSecCCQEELFF::Init(void)
     << "Finite-difference delta default: " << fFiniteDiffDelta
     << " (override with SetFiniteDiffDelta / grwght1p --fd-delta)";
 
+  // sigma-estimator defaults (driver overrides via SetSigmaEstimator /
+  // SetNUniverses, exposed as grwght1p --sigma-method / --n-universes)
+  fSigmaEstimator = kSigmaPropagation;
+  fNUniverses     = 1000;
+
   RgAlg xsec_alg = gpl->GetAlg("XSecModel@genie::EventGenerator/QEL-CC");
   AlgId id(xsec_alg);
 
@@ -311,6 +317,11 @@ void GReWeightNuXSecCCQEELFF::Init(void)
         std::exit(1);
       }
     }
+
+    // Cache the Cholesky factor of the (validated) 4*Kmax covariance for the
+    // kSigmaCholesky universe sampler.
+    fLch.ResizeTo(error_mat.GetNrows(), error_mat.GetNcols());
+    fLch = genie::utils::math::CholeskyDecomposition(TMatrixD(error_mat));
 
     fZExpParaDef.fZ_ANn.resize(fZExpParaDef.fKmax);
     fZExpParaDef.fZ_APn.resize(fZExpParaDef.fKmax);
@@ -469,6 +480,9 @@ void GReWeightNuXSecCCQEELFF::XSecPartialDerivative(const EventRecord & event){
 //
 //  \sigma_{XSec}^2 = A_f[i] *A_f[j] *M_ij
 double GReWeightNuXSecCCQEELFF::GetOneSigma(const EventRecord & event){
+  if ( fSigmaEstimator == kSigmaCholesky ) {
+    return this->GetOneSigmaCholesky(event);
+  }
   XSecPartialDerivative(event);
   double OneSigma2 = 0;
   for(int i = 0; i < fZExpParaDef.fKmax * 4; i++){
@@ -477,6 +491,48 @@ double GReWeightNuXSecCCQEELFF::GetOneSigma(const EventRecord & event){
     }
   }
   return TMath::Sqrt(OneSigma2);
+}
+
+//_______________________________________________________________________________________
+//  Alternative sigma estimator: Cholesky-sampled universes (mirror of
+//  GReWeightNuXSecCCQEZAFF::GetOneSigmaCholesky). The covariance — and hence
+//  the variation vector — spans the 4*Kmax stacked coefficient blocks in the
+//  order (AP, BP, AN, BN), matching XSecPartialDerivative's index mapping.
+double GReWeightNuXSecCCQEELFF::GetOneSigmaCholesky(const EventRecord & event){
+  if ( fNUniverses < 2 ) {
+    LOG( "GReWeightNuXSecCCQEELFF", pFATAL )
+      << "Number of universes must be >= 2, got " << fNUniverses;
+    std::exit(1);
+  }
+
+  const int kmax = fZExpParaDef.fKmax;
+  double sum = 0., sum2 = 0.;
+  ostringstream alg_key;
+  for (int u = 0; u < fNUniverses; ++u) {
+    TVectorD var = genie::utils::math::CholeskyGenerateCorrelatedParamVariations(fLch);
+    // stacked ordering: index = icoff*kmax + jcoff, icoff 0=AP, 1=BP, 2=AN, 3=BN
+    for (int j = 0; j < kmax; ++j) {
+      fZExpPara.fZ_APn[j] = fZExpParaDef.fZ_APn[j] + var[0*kmax + j];
+      fZExpPara.fZ_BPn[j] = fZExpParaDef.fZ_BPn[j] + var[1*kmax + j];
+      fZExpPara.fZ_ANn[j] = fZExpParaDef.fZ_ANn[j] + var[2*kmax + j];
+      fZExpPara.fZ_BNn[j] = fZExpParaDef.fZ_BNn[j] + var[3*kmax + j];
+    }
+    Registry r("GReWeightNuXSecCCQEELFF",false);
+    for (int i = 0; i < kmax; ++i) {
+      alg_key.str(""); alg_key << fZExpPath << "QEL-Z_AN-" << i; r.Set(alg_key.str(), fZExpPara.fZ_ANn[i]);
+      alg_key.str(""); alg_key << fZExpPath << "QEL-Z_AP-" << i; r.Set(alg_key.str(), fZExpPara.fZ_APn[i]);
+      alg_key.str(""); alg_key << fZExpPath << "QEL-Z_BN-" << i; r.Set(alg_key.str(), fZExpPara.fZ_BNn[i]);
+      alg_key.str(""); alg_key << fZExpPath << "QEL-Z_BP-" << i; r.Set(alg_key.str(), fZExpPara.fZ_BPn[i]);
+    }
+    fXSecModel->Configure(r);
+    double xs = this->UpdateXSec(event);
+    sum  += xs;
+    sum2 += xs*xs;
+  }
+  double mean = sum / fNUniverses;
+  double var_x = (sum2 - fNUniverses*mean*mean) / (fNUniverses - 1.);
+  if ( var_x < 0. ) var_x = 0.;  // numerical guard
+  return TMath::Sqrt(var_x);
 }
 
 //_______________________________________________________________________________________

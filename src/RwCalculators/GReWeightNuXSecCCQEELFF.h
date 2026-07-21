@@ -25,6 +25,7 @@
 #include "RwCalculators/GReWeightModel.h"
 #include "TRandom3.h"
 #include "TMatrixDSym.h"
+#include "TMatrixD.h"
 
 class TFile;
 class TNtupleD;
@@ -66,6 +67,17 @@ namespace genie {
         // per-coefficient 1-sigma; built-in default 0.1, per-job override
         // (grwght1p --fd-delta). Must be > 0 (checked at first use).
         void SetFiniteDiffDelta (double d){ fFiniteDiffDelta = d; }
+
+        // How the xsec 1-sigma is estimated from the coefficient covariance
+        // (mirror of GReWeightNuXSecCCQEZAFF):
+        //   kSigmaPropagation - analytic error propagation (default)
+        //   kSigmaCholesky    - MC universes a' = a + L*z over the 4*Kmax
+        //                       stacked (AP,BP,AN,BN) coefficient space
+        enum ESigmaEstimator { kSigmaPropagation = 0, kSigmaCholesky = 1 };
+        void SetSigmaEstimator (ESigmaEstimator m){ fSigmaEstimator = m; }
+        // universes for kSigmaCholesky (default 1000, must be >= 2;
+        // driver option: grwght1p --n-universes)
+        void SetNUniverses     (int n){ fNUniverses = n; }
 
       private:
         void   Init                (void);
@@ -119,8 +131,12 @@ namespace genie {
         // Two methods are provided to calculate the uncertainties of XSec
         // 1. propagation of errors: it is based on grwght1p
         // 2. Cholesky decomposition: it is based on grwghtnp
-        bool fIsSinglePara;     // it will be used for Cholesky decomposition
-        bool fIsAllPara;        // flag of propagation method
+        // fIsSinglePara/fIsAllPara placeholders retired in favour of
+        // fSigmaEstimator (see ESigmaEstimator).
+        ESigmaEstimator fSigmaEstimator; ///< how GetOneSigma estimates sigma_xsec
+        int             fNUniverses;     ///< universes for kSigmaCholesky
+        TMatrixD        fLch;            ///< cached Cholesky factor L of error_mat
+        double GetOneSigmaCholesky(const EventRecord & event);
         std::vector<double> A_f;
 
         // List of the uncertainties of parameters from Kaushik

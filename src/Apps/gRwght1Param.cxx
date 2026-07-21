@@ -240,6 +240,11 @@ int main(int argc, char ** argv)
   rw.AdoptWghtCalc( "xsec_ccqe",       new GReWeightNuXSecCCQE      );
   GReWeightNuXSecCCQEELFF * rw_ccqe_elff = new GReWeightNuXSecCCQEELFF;
   if ( gOptFDDelta > 0. ) rw_ccqe_elff->SetFiniteDiffDelta( gOptFDDelta );
+  if ( gOptSigmaMethod == 0 )
+    rw_ccqe_elff->SetSigmaEstimator( GReWeightNuXSecCCQEELFF::kSigmaPropagation );
+  else if ( gOptSigmaMethod == 1 )
+    rw_ccqe_elff->SetSigmaEstimator( GReWeightNuXSecCCQEELFF::kSigmaCholesky );
+  if ( gOptNUniverses > 1 ) rw_ccqe_elff->SetNUniverses( gOptNUniverses );
   rw.AdoptWghtCalc( "xsec_ccqe_elff",  rw_ccqe_elff );
   GReWeightNuXSecCCQEZAFF * rw_ccqe_zaff = new GReWeightNuXSecCCQEZAFF;
   if ( gOptFDDelta > 0. ) rw_ccqe_zaff->SetFiniteDiffDelta( gOptFDDelta );
