@@ -895,6 +895,7 @@ void AdoptWeightCalcs (vector<GSyst_t> lsyst, GReWeight & rw)
         rw.AdoptWghtCalc( "xsec_mec", new GReWeightXSecMEC );
       }
       break;
+      /*
    case kXSecTwkDial_ZExpELFF_AN1:
    case kXSecTwkDial_ZExpELFF_AN2:
    case kXSecTwkDial_ZExpELFF_AN3:
@@ -916,6 +917,7 @@ void AdoptWeightCalcs (vector<GSyst_t> lsyst, GReWeight & rw)
         rw.AdoptWghtCalc( "xsec_ccqe_elff", new GReWeightNuXSecCCQEELFF );
       }
       break;
+      */
     default: // no fine-tuning needed
     break;
     }
