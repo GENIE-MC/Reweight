@@ -214,6 +214,7 @@ void GReWeightNuXSecCCQEELFF::Init(void)
   // SetNUniverses, exposed as grwght1p --sigma-method / --n-universes)
   fSigmaEstimator = kSigmaPropagation;
   fNUniverses     = 1000;
+  fLchComputed    = false;
 
   RgAlg xsec_alg = gpl->GetAlg("XSecModel@genie::EventGenerator/QEL-CC");
   AlgId id(xsec_alg);
@@ -317,11 +318,6 @@ void GReWeightNuXSecCCQEELFF::Init(void)
         std::exit(1);
       }
     }
-
-    // Cache the Cholesky factor of the (validated) 4*Kmax covariance for the
-    // kSigmaCholesky universe sampler.
-    fLch.ResizeTo(error_mat.GetNrows(), error_mat.GetNcols());
-    fLch = genie::utils::math::CholeskyDecomposition(TMatrixD(error_mat));
 
     fZExpParaDef.fZ_ANn.resize(fZExpParaDef.fKmax);
     fZExpParaDef.fZ_APn.resize(fZExpParaDef.fKmax);
@@ -503,6 +499,23 @@ double GReWeightNuXSecCCQEELFF::GetOneSigmaCholesky(const EventRecord & event){
     LOG( "GReWeightNuXSecCCQEELFF", pFATAL )
       << "Number of universes must be >= 2, got " << fNUniverses;
     std::exit(1);
+  }
+
+  // Lazily compute (and validate) the Cholesky factor on first use, so the
+  // propagation estimator never depends on the covariance being
+  // positive-definite.
+  if ( !fLchComputed ) {
+    TDecompChol chol( error_mat );
+    if ( !chol.Decompose() ) {
+      LOG( "GReWeightNuXSecCCQEELFF", pFATAL )
+        << "ZExpELFF@CovarianceMatrix is not positive-definite - cannot use "
+        << "the Cholesky sigma estimator. Fix the covariance data or use "
+        << "--sigma-method propagation.";
+      std::exit(1);
+    }
+    fLch.ResizeTo(error_mat.GetNrows(), error_mat.GetNcols());
+    fLch = TMatrixD(TMatrixD::kTransposed, chol.GetU());  // lower-triangular L
+    fLchComputed = true;
   }
 
   const int kmax = fZExpParaDef.fKmax;

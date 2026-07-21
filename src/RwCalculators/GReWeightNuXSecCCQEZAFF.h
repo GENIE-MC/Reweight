@@ -133,7 +133,8 @@ namespace genie {
         // of fSigmaEstimator.
         ESigmaEstimator fSigmaEstimator; ///< how GetOneSigma estimates sigma_xsec
         int             fNUniverses;     ///< universes for kSigmaCholesky
-        TMatrixD        fLch;            ///< cached Cholesky factor L of error_mat
+        TMatrixD        fLch;            ///< lazily-computed Cholesky factor L of error_mat
+        bool            fLchComputed;    ///< fLch valid? (computed on first kSigmaCholesky use)
         double GetOneSigmaCholesky(const EventRecord & event);
         std::vector<double> A_f;
 
