@@ -63,7 +63,8 @@ namespace genie {
         // z-expansion specific options
         void SetZExpPath    (string p){ fZExpPath    = p;   }
         // finite-difference step for XSecPartialDerivative, as a fraction of the
-        // per-coefficient 1-sigma; default from config/GReWeightNuXSecCCQEZAFF.xml
+        // per-coefficient 1-sigma; built-in default 0.1, per-job override
+        // (grwght1p --fd-delta). Must be > 0 (checked at first use).
         void SetFiniteDiffDelta (double d){ fFiniteDiffDelta = d; }
 
       private:

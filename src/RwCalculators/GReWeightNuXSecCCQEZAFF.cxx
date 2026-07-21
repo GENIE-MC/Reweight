@@ -196,24 +196,14 @@ void GReWeightNuXSecCCQEZAFF::Init(void)
   // get axial form factor tune from current CCQE model
   RgAlg cc_qel_id = gpl->GetAlg( "XSecModel@genie::EventGenerator/QEL-CC" );
 
-  // Finite-difference step for XSecPartialDerivative: configurable via
-  // $GENIE_REWEIGHT/config/GReWeightNuXSecCCQEZAFF.xml (registered in
-  // reweight_master_config.xml); falls back to 0.1 when absent so older
-  // installs keep working.
+  // Finite-difference step for XSecPartialDerivative. This is a reweight-tool
+  // numerical setting, not model physics, so it does NOT come from the tune /
+  // config XML: built-in default here, per-job override via SetFiniteDiffDelta()
+  // (exposed as `grwght1p --fd-delta <val>`).
   fFiniteDiffDelta = 0.1;
-  Registry * zaff_config =
-    conf_pool->FindRegistry("genie::rew::GReWeightNuXSecCCQEZAFF", "Default");
-  if ( zaff_config ) {
-    fFiniteDiffDelta = zaff_config->GetDoubleDef("ZAFF-FiniteDiff-Delta", 0.1, false);
-  }
-  if ( fFiniteDiffDelta <= 0. ) {
-    LOG( "GReWeightNuXSecCCQEZAFF", pFATAL )
-      << "ZAFF-FiniteDiff-Delta must be > 0, got " << fFiniteDiffDelta;
-    std::exit(1);
-  }
   LOG( "GReWeightNuXSecCCQEZAFF", pINFO )
-    << "Finite-difference delta in use: " << fFiniteDiffDelta
-    << (zaff_config ? " (from GReWeightNuXSecCCQEZAFF.xml)" : " (built-in default)");
+    << "Finite-difference delta default: " << fFiniteDiffDelta
+    << " (override with SetFiniteDiffDelta / grwght1p --fd-delta)";
 
   AlgId id(cc_qel_id);
 
@@ -363,6 +353,12 @@ void GReWeightNuXSecCCQEZAFF::XSecPartialDerivative(const EventRecord & event){
   // bp1, bp2, bp3, bp4,
   // an1, an2, an3, an4,
   // bn1, bn2, bn3, bn4
+
+  if ( fFiniteDiffDelta <= 0. ) {
+    LOG( "GReWeightNuXSecCCQEZAFF", pFATAL )
+      << "Finite-difference delta must be > 0, got " << fFiniteDiffDelta;
+    std::exit(1);
+  }
 
   for(int i = 0; i < fZExpParaDef.fKmax; i++){
     errors[i] = TMath::Sqrt(error_mat[i][i]);

@@ -151,6 +151,7 @@ double      gOptMinTwk;      ///< Minimum value of tweaked dial
 double      gOptMaxTwk;      ///< Maximum value of tweaked dial
 PDGCodeList gOptNu(false);   ///< neutrinos to consider
 long int    gOptRanSeed;     ///< random number seed
+double      gOptFDDelta;     ///< finite-diff step for cov-propagation calcs (<=0: use built-in default)
 
 //___________________________________________________________________
 int main(int argc, char ** argv)
@@ -236,7 +237,9 @@ int main(int argc, char ** argv)
   rw.AdoptWghtCalc( "xsec_ncel",       new GReWeightNuXSecNCEL      );
   rw.AdoptWghtCalc( "xsec_ccqe",       new GReWeightNuXSecCCQE      );
   rw.AdoptWghtCalc( "xsec_ccqe_elff",  new GReWeightNuXSecCCQEELFF      );
-  rw.AdoptWghtCalc( "xsec_ccqe_zaff",  new GReWeightNuXSecCCQEZAFF      );
+  GReWeightNuXSecCCQEZAFF * rw_ccqe_zaff = new GReWeightNuXSecCCQEZAFF;
+  if ( gOptFDDelta > 0. ) rw_ccqe_zaff->SetFiniteDiffDelta( gOptFDDelta );
+  rw.AdoptWghtCalc( "xsec_ccqe_zaff",  rw_ccqe_zaff );
   rw.AdoptWghtCalc( "xsec_ccqe_axial", new GReWeightNuXSecCCQEaxial );
   //rwh - xsec_ccqe_vec is problematic for various tunes
   rw.AdoptWghtCalc( "xsec_ccqe_vec",   new GReWeightNuXSecCCQEvec   );
@@ -589,6 +592,21 @@ void GetCommandLineArgs(int argc, char ** argv)
      gOptMaxTwk = -5;
   }
 
+  // finite-difference step for the covariance-propagation calculators
+  // (currently GReWeightNuXSecCCQEZAFF); <=0 sentinel keeps the built-in default
+  if( parser.OptionExists("fd-delta") ) {
+     gOptFDDelta = parser.ArgAsDouble("fd-delta");
+     if( gOptFDDelta <= 0. ) {
+        LOG("grwght1scan", pFATAL)
+          << "--fd-delta must be > 0, got " << gOptFDDelta << " - Exiting";
+        gAbortingInErr = true;
+        PrintSyntax();
+        exit(1);
+     }
+  } else {
+     gOptFDDelta = -1.;
+  }
+
   // Get the splines file
   if ( parser.OptionExists("cross-sections") ) {
     LOG("grwght1scan", pINFO) << "Loading cross-section splines";
@@ -640,6 +658,7 @@ void PrintSyntax(void)
      << "     -t n_twk_diall_values   \n"
      << "    [--min-tweak minimum_tweak_value] \n"
      << "    [--max-tweak maximum_tweak_value] \n"
+     << "    [--fd-delta finite_diff_step]  (covariance-propagation calcs, default 0.1) \n"
      << "    [-p neutrino_codes]      \n"
      << "    [-o output_weights_file] \n"
      << "    [--seed random_number_seed] \n"
