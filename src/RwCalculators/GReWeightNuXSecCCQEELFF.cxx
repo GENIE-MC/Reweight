@@ -201,6 +201,14 @@ void GReWeightNuXSecCCQEELFF::Init(void)
   AlgConfigPool * conf_pool = AlgConfigPool::Instance();
   Registry * gpl = conf_pool->GlobalParameterList();
 
+  // Finite-difference step for XSecPartialDerivative: reweight-tool numerical
+  // setting (not model physics) — built-in default, per-job override via
+  // SetFiniteDiffDelta() (exposed as `grwght1p --fd-delta`).
+  fFiniteDiffDelta = 0.1;
+  LOG( "GReWeightNuXSecCCQEELFF", pINFO )
+    << "Finite-difference delta default: " << fFiniteDiffDelta
+    << " (override with SetFiniteDiffDelta / grwght1p --fd-delta)";
+
   RgAlg xsec_alg = gpl->GetAlg("XSecModel@genie::EventGenerator/QEL-CC");
   AlgId id(xsec_alg);
 
@@ -271,6 +279,38 @@ void GReWeightNuXSecCCQEELFF::Init(void)
     fZExpParaDef.fGmp0    = fXSecModelConfig->GetDouble(fZExpPath + "QEL-Gmp0");
     fZExpParaDef.fGen0    = fXSecModelConfig->GetDouble(fZExpPath + "QEL-Gen0");
     fZExpParaDef.fGmn0    = fXSecModelConfig->GetDouble(fZExpPath + "QEL-Gmn0");
+
+    // Cross-checks (mirror of GReWeightNuXSecCCQEZAFF): the covariance is over
+    // the 4 stacked coefficient blocks (AP,BP,AN,BN) x Kmax, and each QEL-Z_*
+    // vector must have exactly Kmax entries — otherwise the derivative loops
+    // in XSecPartialDerivative()/GetOneSigma() index out of bounds.
+    if ( 4 * fZExpParaDef.fKmax != error_mat.GetNrows() ) {
+      LOG( "GReWeightNuXSecCCQEELFF", pFATAL )
+        << "4 x QEL-Kmax (" << 4 * fZExpParaDef.fKmax
+        << ") does not match the ZExpELFF@CovarianceMatrix dimension ("
+        << error_mat.GetNrows() << "x" << error_mat.GetNcols()
+        << ") for elastic form factor model " << fFFModel
+        << " - fix the model configuration (config set / GXMLPATH override)";
+      std::exit(1);
+    }
+    const char * elff_vec_names[4] = { "QEL-Z_AP", "QEL-Z_BP", "QEL-Z_AN", "QEL-Z_BN" };
+    for (int iv = 0; iv < 4; ++iv) {
+      string vec_size_key = fZExpPath + Algorithm::BuildParamVectSizeKey(elff_vec_names[iv]);
+      if ( ! fXSecModelConfig->Exists(RgKey(vec_size_key)) ) {
+        LOG( "GReWeightNuXSecCCQEELFF", pFATAL )
+          << "Missing '" << vec_size_key << "' - " << elff_vec_names[iv]
+          << " must be configured as a vec-double parameter";
+        std::exit(1);
+      }
+      int n_entries = fXSecModelConfig->GetInt(vec_size_key);
+      if ( n_entries != fZExpParaDef.fKmax ) {
+        LOG( "GReWeightNuXSecCCQEELFF", pFATAL )
+          << elff_vec_names[iv] << " vector length (" << n_entries
+          << ") does not match QEL-Kmax (" << fZExpParaDef.fKmax
+          << ") for elastic form factor model " << fFFModel;
+        std::exit(1);
+      }
+    }
 
     fZExpParaDef.fZ_ANn.resize(fZExpParaDef.fKmax);
     fZExpParaDef.fZ_APn.resize(fZExpParaDef.fKmax);
@@ -346,12 +386,18 @@ void GReWeightNuXSecCCQEELFF::XSecPartialDerivative(const EventRecord & event){
   // an1, an2, an3, an4,
   // bn1, bn2, bn3, bn4
 
+  if ( fFiniteDiffDelta <= 0. ) {
+    LOG( "GReWeightNuXSecCCQEELFF", pFATAL )
+      << "Finite-difference delta must be > 0, got " << fFiniteDiffDelta;
+    std::exit(1);
+  }
+
   for(int i = 0; i < fZExpParaDef.fKmax * 4; i++){
     errors[i] = TMath::Sqrt(error_mat[i][i]);
     A_f[i] = 0.0;
   }
 
-  double delta = 0.1;
+  double delta = fFiniteDiffDelta;
 
   for(int index = 0; index < fZExpParaDef.fKmax * 4; index++){
     double xsec_tmp_0 = 0.0;

@@ -62,6 +62,10 @@ namespace genie {
         void RewNumubar  (bool tf ) { fRewNumubar = tf;   }
         // z-expansion specific options
         void SetZExpPath    (string p){ fZExpPath    = p;   }
+        // finite-difference step for XSecPartialDerivative, as a fraction of the
+        // per-coefficient 1-sigma; built-in default 0.1, per-job override
+        // (grwght1p --fd-delta). Must be > 0 (checked at first use).
+        void SetFiniteDiffDelta (double d){ fFiniteDiffDelta = d; }
 
       private:
         void   Init                (void);
@@ -110,6 +114,7 @@ namespace genie {
         // tweek dial and scale factor in propagation method
         double fZExpTwkDial;
         double fZExp_Scale;
+        double fFiniteDiffDelta; ///< finite-difference step (fraction of 1-sigma) in XSecPartialDerivative
 
         // Two methods are provided to calculate the uncertainties of XSec
         // 1. propagation of errors: it is based on grwght1p

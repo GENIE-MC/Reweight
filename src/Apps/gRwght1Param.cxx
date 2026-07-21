@@ -236,7 +236,9 @@ int main(int argc, char ** argv)
   GReWeight rw;
   rw.AdoptWghtCalc( "xsec_ncel",       new GReWeightNuXSecNCEL      );
   rw.AdoptWghtCalc( "xsec_ccqe",       new GReWeightNuXSecCCQE      );
-  rw.AdoptWghtCalc( "xsec_ccqe_elff",  new GReWeightNuXSecCCQEELFF      );
+  GReWeightNuXSecCCQEELFF * rw_ccqe_elff = new GReWeightNuXSecCCQEELFF;
+  if ( gOptFDDelta > 0. ) rw_ccqe_elff->SetFiniteDiffDelta( gOptFDDelta );
+  rw.AdoptWghtCalc( "xsec_ccqe_elff",  rw_ccqe_elff );
   GReWeightNuXSecCCQEZAFF * rw_ccqe_zaff = new GReWeightNuXSecCCQEZAFF;
   if ( gOptFDDelta > 0. ) rw_ccqe_zaff->SetFiniteDiffDelta( gOptFDDelta );
   rw.AdoptWghtCalc( "xsec_ccqe_zaff",  rw_ccqe_zaff );
