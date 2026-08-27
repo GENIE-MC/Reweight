@@ -77,7 +77,7 @@ genie::rew::GReWeighthA2025::~GReWeighthA2025()
 //______________________________________________________________________________
 bool genie::rew::GReWeighthA2025::IsHandled(GSyst_t syst) const
 {
-  if ( syst == kINukehA2025_cex ) return true;
+  if ( syst == kINukehA2018_to_hA2025 ) return true;
   return false;
 }
 //______________________________________________________________________________

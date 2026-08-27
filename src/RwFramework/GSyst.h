@@ -240,8 +240,9 @@ typedef enum EGSyst {
   kXSecTwkDial_ZExpELFF_BN3,
   kXSecTwkDial_ZExpELFF_BN4,
 
-  // hA2018 FSI reweight dial
-  kINukehA2025_cex,
+  // Approximate reweight of pion fate fractions from hA2018 to hA2025
+  kINukehA2018_to_hA2025,
+
   //
   // Misc
   //
