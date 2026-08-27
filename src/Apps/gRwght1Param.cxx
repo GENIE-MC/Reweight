@@ -123,6 +123,7 @@
 #include "RwCalculators/GReWeightNuXSecCCQEvec.h"
 #include "RwCalculators/GReWeightNuXSecNCRES.h"
 #include "RwCalculators/GReWeightNuXSecDIS.h"
+#include "RwCalculators/GReWeighthA2025.h"
 
 #include "RwCalculators/GReWeightINukeParams.h"
 #include "RwCalculators/GReWeightNuXSecNC.h"
@@ -248,6 +249,7 @@ int main(int argc, char ** argv)
   rw.AdoptWghtCalc( "hadro_fzone",     new GReWeightFZone           );
   rw.AdoptWghtCalc( "hadro_intranuke", new GReWeightINuke           );
   rw.AdoptWghtCalc( "hadro_agky",      new GReWeightAGKY            );
+  rw.AdoptWghtCalc( "hA_2025_cex_weight", new GReWeighthA2025       );
 
   // GReWeightDISNuclMod::CalcWeight() not implemented - don't try to use it ..
   // will return 1 if tweak dial = 0, hard fail otherwise
