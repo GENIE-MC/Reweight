@@ -39,6 +39,7 @@ class TNtupleD;
 namespace genie {
 
 class XSecAlgorithmI;
+class XSecIntegratorI;
 
 namespace rew   {
 
