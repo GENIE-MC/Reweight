@@ -1,10 +1,10 @@
 //____________________________________________________________________________
 /*
- Copyright (c) 2003-2025, The GENIE Collaboration
+ Copyright (c) 2003-2026, The GENIE Collaboration
  For the full text of the license visit http://copyright.genie-mc.org
 
- Authors: Mohamed Ismail <msi10@pitt.edu>
-          University of Pittsburgh 
+ Authors: Mohamed Ismail <msi10 \at pitt.edu>
+          University of Pittsburgh
 
 */
 //____________________________________________________________________________
@@ -46,18 +46,10 @@
 #include "RwCalculators/GReWeightUtils.h"
 #include "RwFramework/GSystUncertainty.h"
 
-using namespace genie;
-using namespace genie::rew;
-
-//_______________________________________________________________________________________
-GReWeighthA2025::GReWeighthA2025() :
-GReWeightModel("IntraNuke")
+//______________________________________________________________________________
+genie::rew::GReWeighthA2025::GReWeighthA2025()
+  : GReWeightModel("IntraNuke2018to2025")
 {
-#ifdef _G_REWEIGHT_INUKE_DEBUG_NTP_
-  fTestFile = new TFile("./intranuke_reweight_test.root","recreate");
-  fTestNtp  = new TNtuple("testntp","","pdg:E:mfp_twk_dial:d:d_mfp:fate:interact:w_mfp:w_fate");
-#endif
-
   // Look up the FSI model for the current tune. Also check whether FSIs are
   // actually enabled.
   AlgConfigPool* conf_pool = AlgConfigPool::Instance();
@@ -71,90 +63,68 @@ GReWeightModel("IntraNuke")
     std::exit( 1 );
   }
 
-  AlgId id( fsi_alg );
-
-  AlgFactory* algf = AlgFactory::Instance();
-
-  Algorithm* alg = algf->AdoptAlgorithm( id );
-  fFSIModel = dynamic_cast< HAIntranuke2018* >( alg );
-
-  if ( !fFSIModel ) {
+  if ( fsi_alg.name != "genie::HAIntranuke2018" ) {
     LOG( "ReW", pFATAL ) << "Reweighting events produced with the FSI model "
       << fsi_alg << " is not currently supported.";
     std::exit( 1 );
   }
 
-  fFSIModel->AdoptSubstructure();
 }
-//_______________________________________________________________________________________
-GReWeighthA2025::~GReWeighthA2025()
+//______________________________________________________________________________
+genie::rew::GReWeighthA2025::~GReWeighthA2025()
 {
-#ifdef _G_REWEIGHT_INUKE_DEBUG_NTP_
-  assert(fTestFile);
-  assert(fTestNtp);
-  fTestFile->cd();
-  fTestNtp->Write();
-  fTestFile->Close();
-  delete fTestFile;
-  //delete fTestNtp;
-#endif
 }
-//_______________________________________________________________________________________
-bool GReWeighthA2025::IsHandled(GSyst_t syst) const
+//______________________________________________________________________________
+bool genie::rew::GReWeighthA2025::IsHandled(GSyst_t syst) const
 {
-   bool handle;
-
-   switch(syst) {
-     case ( kINukehA2025_cex ) :
-          handle = true;
-          break;
-
-     default:
-          handle = false;
-   }
-
-   return handle;
-}
-//_______________________________________________________________________________________
-bool GReWeighthA2025::AppliesTo(ScatteringType_t type, bool /*is_cc*/) const
-{
-  if (type != kScCoherentProduction ) {
-    return true;
-  }
+  if ( syst == kINukehA2025_cex ) return true;
   return false;
 }
-//_______________________________________________________________________________________
-
-void GReWeighthA2025::SetSystematic(GSyst_t syst, double val)
+//______________________________________________________________________________
+bool genie::rew::GReWeighthA2025::AppliesTo( const genie::EventRecord& evrec )
+  const
+{
+  auto type = evrec.Summary()->ProcInfo().ScatteringTypeId();
+  switch (type) {
+    case kScCoherentProduction:
+    case kScDiffractive:
+    case kScNuElectronElastic:
+    case kScAMNuGamma:
+    case kScCoherentElastic:
+      return false;
+    default:
+      return true;
+  }
+}
+//______________________________________________________________________________
+void genie::rew::GReWeighthA2025::SetSystematic(GSyst_t /*syst*/,
+  double /*val*/)
 {
  // if(this->IsHandled(syst)) {
  //    fINukeRwParams.SetTwkDial(syst, val);
  // }
 }
-//_______________________________________________________________________________________
-void GReWeighthA2025::Reset(void)
+//______________________________________________________________________________
+void genie::rew::GReWeighthA2025::Reset(void)
 {
  // fINukeRwParams.Reset();
  // this->Reconfigure();
 }
 //_______________________________________________________________________________________
-void GReWeighthA2025::Reconfigure(void)
+void genie::rew::GReWeighthA2025::Reconfigure(void)
 {
  // fINukeRwParams.Reconfigure();
 }
-
-//_______________________________________________________________________________________
-double GReWeighthA2025::CalcWeight(const EventRecord & event)
+//______________________________________________________________________________
+double genie::rew::GReWeighthA2025::CalcWeight(const EventRecord & event)
 {
-  // get the atomic mass number for the hit nucleus
-  GHepParticle * tgt = event.TargetNucleus();
-  if (!tgt) return 1.0;
+  // Non-trivial weights can only be returned for a complex nuclear target
+  GHepParticle* tgt = event.TargetNucleus();
+  if ( !tgt ) return 1.0;
   double A = tgt->A();
   double Z = tgt->Z();
-  if (A<=1) return 1.0;
-  if (Z<=1) return 1.0;
-
-  //fINukeRwParams.SetTargetA( A );
+  if ( A <= 1 ) return 1.0;
+  if ( Z <= 1 ) return 1.0;
 
   // Get the pre-FSI nuclear remnant. The A and Z values for this particle
   // (distinct from both the post-FSI remnant and the target nucleus)
@@ -186,112 +156,78 @@ double GReWeighthA2025::CalcWeight(const EventRecord & event)
   }
 
   // Store the nucleon and proton numbers for the pre-FSI remnant.
-  // These will be used for mean free path calculations in
-  // genie::utils::rew::MeanFreePathWeight
   int remnA = pre_fsi_remnant->A();
   int remnZ = pre_fsi_remnant->Z();
   LOG( "ReW", pDEBUG ) << "Found pre-FSI remnant with A = " << remnA
     << ", Z = " << remnZ << ". Target had A = " << A << ", Z = " << Z;
 
+  INukeHadroData2018* hd2018 = INukeHadroData2018::Instance();
+  INukeHadroData2025* hd2025 = INukeHadroData2025::Instance();
 
   double event_weight  = 1.0;
 
-  // Loop over stdhep entries and only calculate weights for particles.
-  // All particles that are not hadrons generated inside the nucleus are given weights of 1.0
-  int ip=-1;
-  GHepParticle * p = 0;
-  TIter event_iter(&event);
-  while ( (p = dynamic_cast<GHepParticle *>(event_iter.Next())) ) {
-     ip++;
+  // Loop over GHepParticle entries and calculate a per-particle weight for
+  // hadrons in the nucleus. The product of these particle weights is the
+  // overall event weight.
+  int ip = -1;
+  GHepParticle* p = 0;
+  TIter event_iter( &event );
+  while ( (p = dynamic_cast< GHepParticle* >(event_iter.Next())) ) {
+    ++ip;
 
-     // Skip particles not rescattered by the actual hadron transport code
-     int  pdgc       = p->Pdg();
-     bool is_pion    = pdg::IsPion   (pdgc);
-     bool is_nucleon = pdg::IsNucleon(pdgc);
-     bool is_kaon = pdg::IsKaon( pdgc );
-     if(!is_pion && !is_nucleon && !is_kaon)
-     {
-        continue;
-     }
+    // Skip particles other than pions (hA2025 has the same fate fractions
+    // as hA2018 for nucleons)
+    int pdgc = p->Pdg();
+    bool is_pion = pdg::IsPion( pdgc );
+    if ( !is_pion ) continue;
 
-     
-     // Get 4-momentum and 4-position
-     TLorentzVector x4 (p->Vx(), p->Vy(), p->Vz(), 0.    );
-     TLorentzVector p4 (p->Px(), p->Py(), p->Pz(), p->E());
-     
-     int fsi_code = p->RescatterCode();
-     bool escaped    = (fsi_code == (int)kIHAFtNoInteraction);
-     bool interacted = !escaped;
-     
-     // new 
-    double fate_frac2018 = 0.0;
-    double fate_frac2025 = 0.0;
-    if (is_pion  and fsi_code > 1 ){ 
-      INukeHadroData2018 * hd2018 = INukeHadroData2018::Instance();
-      INukeHadroData2025 * hd2025 = INukeHadroData2025::Instance();
+    // This weight calculator only accounts for differences in fate fractions,
+    // so skip particles that did not interact during the cascade
+    auto fsi_code = static_cast< INukeFateHA_t >( p->RescatterCode() );
+    bool interacted = ( fsi_code != kIHAFtNoInteraction );
+    if ( !interacted ) continue;
 
-	  // convert to MeV and
-	  
-	  double KE = p4.Energy() - p4.M(); // kinetic energy
-	  double ke = KE / units::MeV;
-	  
-	  // get particle fate
-	  auto fate_rescatter = p->RescatterCode();
-	  
-	  // get fate frac
-
-	  if (fate_rescatter == kIHAFtAbs){
-	   fate_frac2018 = hd2018->FracADep(pdgc, kIHAFtAbs, ke, remnA);
-	   fate_frac2025 = hd2025->FracADep(pdgc, kIHAFtAbs, ke, remnA);	  
-	  }
-	  
-	   else if (fate_rescatter == kIHAFtInelas){
-	   fate_frac2018 = hd2018->FracADep(pdgc, kIHAFtInelas, ke, remnA);
-	   fate_frac2025 = hd2025->FracADep(pdgc, kIHAFtInelas, ke, remnA);	  
-	  }
-	  
-	 else if (fate_rescatter == kIHAFtCEx){
-	   fate_frac2018 = hd2018->FracADep(pdgc, kIHAFtCEx, ke, remnA);
-	   fate_frac2025 = hd2025->FracADep(pdgc, kIHAFtCEx, ke, remnA);	  
-	  }
-	  
-	 else if (fate_rescatter == kIHAFtPiProd){
-	   fate_frac2018 = hd2018->FracADep(pdgc, kIHAFtPiProd, ke, remnA);
-	   fate_frac2025 = hd2025->FracADep(pdgc, kIHAFtPiProd, ke, remnA);	  
-	  }
-	  
-	LOG("ReW", pNOTICE)
-        << "New:::::Reweighted hadron at position = " << ip
-        << " with PDG code = " << pdgc
-        << ", FSI code = "  << fsi_code
-        << ", KE= "  << ke
-        << ", A= "  << remnA
-        << " (" << INukeHadroFates::AsString((INukeFateHA_t)fsi_code) << ") :"
-        << " frac2018 = "  << fate_frac2018
-        <<", frac2025 = " << fate_frac2025;
-	  
-
-
+    // Skip particles with an unhandled fate (this shouldn't occur, it's a
+    // fallback for robustness)
+    if ( fsi_code != kIHAFtAbs && fsi_code != kIHAFtInelas
+      && fsi_code != kIHAFtCEx && fsi_code != kIHAFtPiProd )
+    {
+	    LOG("ReW", pWARN) << "Unhandled hadron fate "
+        << INukeHadroFates::AsString( static_cast< INukeFateHA_t >(fsi_code) )
+        << " encountered in GReWeighthA2025::CalcWeight() for particle"
+        << " with index " << ip << " and PDG code = " << pdgc;
+      continue;
     }
-    double frac_ratio = 0.0;
-    if (fate_frac2018 != 0.0) {
+
+    // Retrieve the kinetic energy
+	  double ke = p->KinE();
+
+    // Convert the kinetic energy to MeV (expected units for the calls to
+    // FracADep below)
+	  double ke_in_MeV = ke / units::MeV;
+
+    double fate_frac2018 = hd2018->FracADep( pdgc, fsi_code, ke_in_MeV, remnA );
+    double fate_frac2025 = hd2025->FracADep( pdgc, fsi_code, ke_in_MeV, remnA );
+
+	  LOG("ReW", pDEBUG)
+      << "GReWeighthA2025 reweighted hadron at position = " << ip
+      << " with PDG code = " << pdgc
+      << ", FSI code = "  << fsi_code
+      << ", KE= "  << ke
+      << ", A= "  << remnA
+      << " (" << INukeHadroFates::AsString((INukeFateHA_t)fsi_code) << ") :"
+      << " frac2018 = "  << fate_frac2018
+      <<", frac2025 = " << fate_frac2025;
+
+    double frac_ratio = 1.0;
+    if ( fate_frac2018 != 0.0 ) {
 	    frac_ratio = fate_frac2025 / fate_frac2018;
-	} else {
-	frac_ratio =1.0 ; 
-	}
-        
+	  }
 
- 
+    // Update the current event weight
+    event_weight *= frac_ratio;
 
-
-
-     // Update the current event weight
-     event_weight *= frac_ratio;
-
-
-
-  }//particle loop
+  } // particle loop
 
   return event_weight;
 }
-
