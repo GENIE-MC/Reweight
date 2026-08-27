@@ -125,6 +125,7 @@
 #include "RwCalculators/GReWeightFZone.h"
 #include "RwCalculators/GReWeightINuke.h"
 #include "RwCalculators/GReWeightINukeExtra.h"
+#include "RwCalculators/GReWeightINukeKinematics.h"
 #include "RwCalculators/GReWeightAGKY.h"
 #include "RwCalculators/GReWeightNuXSecCCQEaxial.h"
 #include "RwCalculators/GReWeightNuXSecCCQEvec.h"
@@ -256,6 +257,7 @@ int main(int argc, char ** argv)
   rw.AdoptWghtCalc( "hadro_fzone",     new GReWeightFZone           );
   rw.AdoptWghtCalc( "hadro_intranuke", new GReWeightINuke           );
   rw.AdoptWghtCalc( "hadro_intranuke_extra", new GReWeightINukeExtra);
+  rw.AdoptWghtCalc( "hadro_inuke_kin", new GReWeightINukeKinematics );
   rw.AdoptWghtCalc( "hadro_agky",      new GReWeightAGKY            );
   rw.AdoptWghtCalc( "hA_2025_cex_weight", new GReWeighthA2025       );
 
