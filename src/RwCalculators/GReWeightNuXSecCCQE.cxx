@@ -321,7 +321,7 @@ void GReWeightNuXSecCCQE::Reconfigure(void)
     for (int i=0;i<fZExpMaxCoef;i++)
     {
       alg_key.str(""); // algorithm key for each coefficient
-      alg_key << fZExpPath << "QEL-Z_A" << i+1;
+      alg_key << fZExpPath << "QEL-Z_A-" << i;
       r.Set(alg_key.str(), fZExpCurr[i]);
     }
   }
@@ -478,7 +478,7 @@ void GReWeightNuXSecCCQE::Init(void)
   for (int i=0;i<fZExpMaxSyst;i++)
   {
     alg_key.str("");
-    alg_key << fZExpPath << "QEL-Z_A" << i+1;
+    alg_key << fZExpPath << "QEL-Z_A-" << i;
     if (fModelIsZExp && i < fZExpMaxCoef)
     { fZExpDef[i] = fXSecModelConfig->GetDouble(alg_key.str()); }
     else

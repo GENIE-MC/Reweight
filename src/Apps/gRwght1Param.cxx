@@ -116,6 +116,7 @@
 #include "RwCalculators/GReWeightNuXSecNCEL.h"
 #include "RwCalculators/GReWeightNuXSecCCQE.h"
 #include "RwCalculators/GReWeightNuXSecCCQEELFF.h"
+#include "RwCalculators/GReWeightNuXSecCCQEZAFF.h"
 #include "RwCalculators/GReWeightNuXSecCCRES.h"
 #include "RwCalculators/GReWeightNuXSecCOH.h"
 #include "RwCalculators/GReWeightNonResonanceBkg.h"
@@ -159,6 +160,9 @@ double      gOptMinTwk;      ///< Minimum value of tweaked dial
 double      gOptMaxTwk;      ///< Maximum value of tweaked dial
 PDGCodeList gOptNu(false);   ///< neutrinos to consider
 long int    gOptRanSeed;     ///< random number seed
+double      gOptFDDelta;     ///< finite-diff step for cov-propagation calcs (<=0: use built-in default)
+int         gOptSigmaMethod; ///< sigma estimator: -1 default, 0 propagation, 1 cholesky
+int         gOptNUniverses;  ///< universes for cholesky sigma (<=0: use built-in default)
 
 //___________________________________________________________________
 int main(int argc, char ** argv)
@@ -243,7 +247,22 @@ int main(int argc, char ** argv)
   GReWeight rw;
   rw.AdoptWghtCalc( "xsec_ncel",       new GReWeightNuXSecNCEL      );
   rw.AdoptWghtCalc( "xsec_ccqe",       new GReWeightNuXSecCCQE      );
-  rw.AdoptWghtCalc( "xsec_ccqe_elff",  new GReWeightNuXSecCCQEELFF      );
+  GReWeightNuXSecCCQEELFF * rw_ccqe_elff = new GReWeightNuXSecCCQEELFF;
+  if ( gOptFDDelta > 0. ) rw_ccqe_elff->SetFiniteDiffDelta( gOptFDDelta );
+  if ( gOptSigmaMethod == 0 )
+    rw_ccqe_elff->SetSigmaEstimator( GReWeightNuXSecCCQEELFF::kSigmaPropagation );
+  else if ( gOptSigmaMethod == 1 )
+    rw_ccqe_elff->SetSigmaEstimator( GReWeightNuXSecCCQEELFF::kSigmaCholesky );
+  if ( gOptNUniverses > 1 ) rw_ccqe_elff->SetNUniverses( gOptNUniverses );
+  rw.AdoptWghtCalc( "xsec_ccqe_elff",  rw_ccqe_elff );
+  GReWeightNuXSecCCQEZAFF * rw_ccqe_zaff = new GReWeightNuXSecCCQEZAFF;
+  if ( gOptFDDelta > 0. ) rw_ccqe_zaff->SetFiniteDiffDelta( gOptFDDelta );
+  if ( gOptSigmaMethod == 0 )
+    rw_ccqe_zaff->SetSigmaEstimator( GReWeightNuXSecCCQEZAFF::kSigmaPropagation );
+  else if ( gOptSigmaMethod == 1 )
+    rw_ccqe_zaff->SetSigmaEstimator( GReWeightNuXSecCCQEZAFF::kSigmaCholesky );
+  if ( gOptNUniverses > 1 ) rw_ccqe_zaff->SetNUniverses( gOptNUniverses );
+  rw.AdoptWghtCalc( "xsec_ccqe_zaff",  rw_ccqe_zaff );
   rw.AdoptWghtCalc( "xsec_ccqe_axial", new GReWeightNuXSecCCQEaxial );
   //rwh - xsec_ccqe_vec is problematic for various tunes
   rw.AdoptWghtCalc( "xsec_ccqe_vec",   new GReWeightNuXSecCCQEvec   );
@@ -274,10 +293,13 @@ int main(int argc, char ** argv)
 
   // Get GSystSet and include the (single) input systematic parameter
 
+
   GSystSet & syst = rw.Systematics();
   syst.Init(gOptSyst);
 
   // Fine-tune weight calculators
+
+
 
   if ( gOptSyst == kXSecTwkDial_MaCCQE ) {
      // By default GReWeightNuXSecCCQE is in `NormAndMaShape' mode
@@ -596,6 +618,50 @@ void GetCommandLineArgs(int argc, char ** argv)
      gOptMaxTwk = -5;
   }
 
+  // Finite-difference step for the covariance-propagation calculators
+  // (currently GReWeightNuXSecCCQEZAFF); <=0 sentinel keeps the built-in
+  // default
+  if( parser.OptionExists("fd-delta") ) {
+     gOptFDDelta = parser.ArgAsDouble("fd-delta");
+     if( gOptFDDelta <= 0. ) {
+        LOG("grwght1scan", pFATAL)
+          << "--fd-delta must be > 0, got " << gOptFDDelta << " - Exiting";
+        gAbortingInErr = true;
+        PrintSyntax();
+        exit(1);
+     }
+  } else {
+     gOptFDDelta = -1.;
+  }
+
+  // sigma estimator for the covariance-based calculators
+  gOptSigmaMethod = -1;
+  if( parser.OptionExists("sigma-method") ) {
+     string m = parser.ArgAsString("sigma-method");
+     if      (m == "propagation") gOptSigmaMethod = 0;
+     else if (m == "cholesky")    gOptSigmaMethod = 1;
+     else {
+        LOG("grwght1scan", pFATAL)
+          << "--sigma-method must be 'propagation' or 'cholesky', got '" << m << "' - Exiting";
+        gAbortingInErr = true;
+        PrintSyntax();
+        exit(1);
+     }
+  }
+
+  // number of universes for the cholesky sigma estimator
+  gOptNUniverses = -1;
+  if( parser.OptionExists("n-universes") ) {
+     gOptNUniverses = parser.ArgAsInt("n-universes");
+     if( gOptNUniverses < 2 ) {
+        LOG("grwght1scan", pFATAL)
+          << "--n-universes must be >= 2, got " << gOptNUniverses << " - Exiting";
+        gAbortingInErr = true;
+        PrintSyntax();
+        exit(1);
+     }
+  }
+
   // Get the splines file(s) — supports comma-separated list for loading
   // splines from multiple input XML files
   if ( parser.OptionExists("cross-sections") ) {
@@ -658,6 +724,9 @@ void PrintSyntax(void)
      << "     -t n_twk_diall_values   \n"
      << "    [--min-tweak minimum_tweak_value] \n"
      << "    [--max-tweak maximum_tweak_value] \n"
+     << "    [--fd-delta finite_diff_step]  (covariance-propagation calcs, default 0.1) \n"
+     << "    [--sigma-method propagation|cholesky]  (xsec 1-sigma estimator, default propagation) \n"
+     << "    [--n-universes N]  (universes for cholesky sigma, default 1000) \n"
      << "    [-p neutrino_codes]      \n"
      << "    [-o output_weights_file] \n"
      << "    [--seed random_number_seed] \n"
