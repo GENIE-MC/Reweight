@@ -1,12 +1,12 @@
 //____________________________________________________________________________
 /*!
 
-\class    genie::rew::GReWeightINuke
+\class    genie::rew::GReWeighthA2025
 
-\brief    Applies an approximate reweight from hA2018 to hA2025
+\brief    Applies an approximate reweight from hA2018 to hA2025 for pion fates
 
 \author   Mohamed Ismail <msi10 \at pitt.edu>
-    			University of Pittsburgh
+          University of Pittsburgh
 
 \created  Sep 2025
 
@@ -22,8 +22,6 @@
 #include "RwCalculators/GReWeightModel.h"
 
 namespace genie {
-
- class HAIntranuke2018;
 
 namespace rew   {
 
