@@ -97,27 +97,31 @@ bool genie::rew::GReWeighthA2025::AppliesTo( const genie::EventRecord& evrec )
   }
 }
 //______________________________________________________________________________
-void genie::rew::GReWeighthA2025::SetSystematic(GSyst_t /*syst*/,
-  double /*val*/)
+void genie::rew::GReWeighthA2025::SetSystematic(GSyst_t syst, double val)
 {
- // if(this->IsHandled(syst)) {
- //    fINukeRwParams.SetTwkDial(syst, val);
- // }
+  // Skip unhandled tweak dials (all of them but the one of interest)
+  if ( !this->IsHandled(syst) ) return;
+
+  // Set the tweak dial value while enforcing the valid range of [0, 1]
+  fTwkDial = std::min( 1., std::max(0., val) );
 }
 //______________________________________________________________________________
 void genie::rew::GReWeighthA2025::Reset(void)
 {
- // fINukeRwParams.Reset();
- // this->Reconfigure();
+  fTwkDial = 0.;
+  this->Reconfigure();
 }
 //_______________________________________________________________________________________
 void genie::rew::GReWeighthA2025::Reconfigure(void)
 {
- // fINukeRwParams.Reconfigure();
 }
 //______________________________________________________________________________
 double genie::rew::GReWeighthA2025::CalcWeight(const EventRecord & event)
 {
+  // Return a trivial unit weight if the tweak dial hasn't been changed
+  // or falls outside of the valid range (just in case)
+  if ( fTwkDial <= 0. || fTwkDial > 1. ) return 1.0;
+
   // Non-trivial weights can only be returned for a complex nuclear target
   GHepParticle* tgt = event.TargetNucleus();
   if ( !tgt ) return 1.0;
@@ -219,13 +223,14 @@ double genie::rew::GReWeighthA2025::CalcWeight(const EventRecord & event)
       << " frac2018 = "  << fate_frac2018
       <<", frac2025 = " << fate_frac2025;
 
-    double frac_ratio = 1.0;
+    double particle_weight = 1.0;
     if ( fate_frac2018 != 0.0 ) {
-	    frac_ratio = fate_frac2025 / fate_frac2018;
+      particle_weight = ( (1. - fTwkDial)*fate_frac2018
+        + fTwkDial*fate_frac2025 ) / fate_frac2018;
 	  }
 
     // Update the current event weight
-    event_weight *= frac_ratio;
+    event_weight *= particle_weight;
 
   } // particle loop
 
