@@ -39,6 +39,14 @@ namespace rew   {
    void   Reset          (void);
    void   Reconfigure    (void);
    double CalcWeight     (const EventRecord & event);
+
+ private:
+
+   // Tweak dial value for this weight calculator. A value of zero leaves
+   // the input unaltered. A value of one reweights pion fate fractions
+   // from hA2018 to hA2025. A value between these extremes interpolates.
+   // Values outside of this range will throw an exception.
+   double fTwkDial = 0;
  };
 
 } // rew
