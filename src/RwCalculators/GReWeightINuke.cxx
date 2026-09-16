@@ -81,6 +81,8 @@ GReWeightModel("IntraNuke")
   }
 
   fFSIModel->AdoptSubstructure();
+
+  fINukeRwParams = std::make_shared< GReWeightINukeParams >();
 }
 //_______________________________________________________________________________________
 GReWeightINuke::~GReWeightINuke()
@@ -141,19 +143,19 @@ bool GReWeightINuke::AppliesTo(const EventRecord & event) const
 void GReWeightINuke::SetSystematic(GSyst_t syst, double val)
 {
   if(this->IsHandled(syst)) {
-     fINukeRwParams.SetTwkDial(syst, val);
+     fINukeRwParams->SetTwkDial(syst, val);
   }
 }
 //_______________________________________________________________________________________
 void GReWeightINuke::Reset(void)
 {
-  fINukeRwParams.Reset();
+  fINukeRwParams->Reset();
   this->Reconfigure();
 }
 //_______________________________________________________________________________________
 void GReWeightINuke::Reconfigure(void)
 {
-  fINukeRwParams.Reconfigure();
+  fINukeRwParams->Reconfigure();
 }
 //_______________________________________________________________________________________
 double GReWeightINuke::CalcWeight(const EventRecord & event)
@@ -166,7 +168,7 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
   if (A<=1) return 1.0;
   if (Z<=1) return 1.0;
 
-  fINukeRwParams.SetTargetA( A );
+  fINukeRwParams->SetTargetA( A );
 
   // Get the pre-FSI nuclear remnant. The A and Z values for this particle
   // (distinct from both the post-FSI remnant and the target nucleus)
@@ -274,14 +276,14 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
      double w_fate = 1.0;
 
      // Check which weights need to be calculated (only if relevant params were tweaked)
-     bool calc_w_mfp  = fINukeRwParams.MeanFreePathParams(pdgc)->IsTweaked();
-     bool calc_w_fate = fINukeRwParams.FateParams(pdgc)->IsTweaked();
+     bool calc_w_mfp  = fINukeRwParams->MeanFreePathParams(pdgc)->IsTweaked();
+     bool calc_w_fate = fINukeRwParams->FateParams(pdgc)->IsTweaked();
 
      // Compute weight to account for changes in the total rescattering probability
      double mfp_scale_factor = 1.;
      if(calc_w_mfp)
      {
-        mfp_scale_factor = fINukeRwParams.MeanFreePathParams(pdgc)->ScaleFactor();
+        mfp_scale_factor = fINukeRwParams->MeanFreePathParams(pdgc)->ScaleFactor(p4);
         w_mfp = utils::rew::MeanFreePathWeight( pdgc, x4, p4, A, Z,
           mfp_scale_factor, interacted, *fFSIModel );
      } // calculate mfp weight?
@@ -290,7 +292,7 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
      if(calc_w_fate && interacted)
      {
         double fate_fraction_scale_factor =
-             fINukeRwParams.FateParams(pdgc)->ScaleFactor(
+             fINukeRwParams->FateParams(pdgc)->ScaleFactor(
                   GSyst::INukeFate2GSyst((INukeFateHA_t)fsi_code,pdgc), p4);
         w_fate = fate_fraction_scale_factor;
      }
