@@ -187,17 +187,17 @@ double genie::rew::GReWeighthA2025::CalcWeight(const EventRecord & event)
 
     // This weight calculator only accounts for differences in fate fractions,
     // so skip particles that did not interact during the cascade
-    auto fsi_code = static_cast< INukeFateHA_t >( p->RescatterCode() );
-    bool interacted = ( fsi_code != kIHAFtNoInteraction );
+    auto fsi_code = static_cast< INukeFateHA2018_t >( p->RescatterCode() );
+    bool interacted = ( fsi_code != kIHA18FtNoInteraction );
     if ( !interacted ) continue;
 
     // Skip particles with an unhandled fate (this shouldn't occur, it's a
     // fallback for robustness)
-    if ( fsi_code != kIHAFtAbs && fsi_code != kIHAFtInelas
-      && fsi_code != kIHAFtCEx && fsi_code != kIHAFtPiProd )
+    if ( fsi_code != kIHA18FtAbs && fsi_code != kIHA18FtInelas
+      && fsi_code != kIHA18FtCEx && fsi_code != kIHA18FtPiProd )
     {
 	    LOG("ReW", pWARN) << "Unhandled hadron fate "
-        << INukeHadroFates::AsString( static_cast< INukeFateHA_t >(fsi_code) )
+        << INukeHadroFates2018::AsString( static_cast< INukeFateHA2018_t >(fsi_code) )
         << " encountered in GReWeighthA2025::CalcWeight() for particle"
         << " with index " << ip << " and PDG code = " << pdgc;
       continue;
@@ -211,7 +211,7 @@ double genie::rew::GReWeighthA2025::CalcWeight(const EventRecord & event)
 	  double ke_in_MeV = ke / units::MeV;
 
     double fate_frac2018 = hd2018->FracADep( pdgc, fsi_code, ke_in_MeV, remnA );
-    double fate_frac2025 = hd2025->FracADep( pdgc, fsi_code, ke_in_MeV, remnA );
+    double fate_frac2025 = hd2025->FracADep( pdgc, static_cast<INukeFateHA2025_t>(fsi_code), ke_in_MeV, remnA );
 
 	  LOG("ReW", pDEBUG)
       << "GReWeighthA2025 reweighted hadron at position = " << ip
@@ -219,7 +219,7 @@ double genie::rew::GReWeighthA2025::CalcWeight(const EventRecord & event)
       << ", FSI code = "  << fsi_code
       << ", KE= "  << ke
       << ", A= "  << remnA
-      << " (" << INukeHadroFates::AsString((INukeFateHA_t)fsi_code) << ") :"
+      << " (" << INukeHadroFates2018::AsString((INukeFateHA2018_t)fsi_code) << ") :"
       << " frac2018 = "  << fate_frac2018
       <<", frac2025 = " << fate_frac2025;
 

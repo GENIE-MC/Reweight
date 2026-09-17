@@ -257,14 +257,14 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
         << "Attempting to reweight hadron at position = " << ip
         << " with PDG code = " << pdgc
         << " and FSI code = "  << fsi_code
-        << " (" << INukeHadroFates::AsString((INukeFateHA_t)fsi_code) << ")";
-     if(fsi_code == -1 || fsi_code == (int)kIHAFtUndefined) {
+        << " (" << INukeHadroFates2018::AsString((INukeFateHA2018_t)fsi_code) << ")";
+     if(fsi_code == -1 || fsi_code == (int)kIHA18FtUndefined) {
        LOG("ReW", pFATAL) << "INTRANUKE didn't set a valid rescattering code for event in position: " << ip;
        LOG("ReW", pFATAL) << "Here is the problematic event:";
        LOG("ReW", pFATAL) << event;
        exit(1);
      }
-     bool escaped    = (fsi_code == (int)kIHAFtNoInteraction);
+     bool escaped    = (fsi_code == (int)kIHA18FtNoInteraction);
      bool interacted = !escaped;
 
      // Get 4-momentum and 4-position
@@ -293,7 +293,7 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
      {
         double fate_fraction_scale_factor =
              fINukeRwParams->FateParams(pdgc)->ScaleFactor(
-                  GSyst::INukeFate2GSyst((INukeFateHA_t)fsi_code,pdgc), p4);
+                  GSyst::INuke2018Fate2GSyst((INukeFateHA2018_t)fsi_code,pdgc), p4);
         w_fate = fate_fraction_scale_factor;
      }
 
@@ -304,7 +304,7 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
         << "Reweighted hadron at position = " << ip
         << " with PDG code = " << pdgc
         << ", FSI code = "  << fsi_code
-        << " (" << INukeHadroFates::AsString((INukeFateHA_t)fsi_code) << ") :"
+        << " (" << INukeHadroFates2018::AsString((INukeFateHA2018_t)fsi_code) << ") :"
         << " w_mfp = "  << w_mfp
         <<", w_fate = " << w_fate;
 
@@ -350,7 +350,7 @@ void GReWeightINuke::CalcDeltaAZ( const EventRecord& event,
   // address those here since the information is simply lost. The good news is
   // that it shouldn't be a big deal for FSI reweighting.
   // -- S. Gardiner, 19 June 2021
-  if ( p.RescatterCode() == genie::kIHAFtAbs ) {
+  if ( p.RescatterCode() == genie::kIHA18FtAbs ) {
 
     if ( p.Pdg() == genie::kPdgPiM ) {
       int daught = p.FirstDaughter();

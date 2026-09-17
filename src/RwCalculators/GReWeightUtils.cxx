@@ -150,31 +150,31 @@ double genie::utils::rew::FateFraction(genie::rew::GSyst_t syst, double kinE,
 
     case (genie::rew::kINukeTwkDial_FrCEx_pi) :
     {
-      fate_frac = hd->FracADep(kPdgPiP, kIHAFtCEx, ke, target_A);
+      fate_frac = hd->FracADep(kPdgPiP, kIHA18FtCEx, ke, target_A);
     }
     break;
 
     //    case (genie::rew::kINukeTwkDial_FrElas_pi) :
     //    {
-    //      fate_frac = hd->FracADep(kPdgPiP, kIHAFtElas, ke, target_A);
+    //      fate_frac = hd->FracADep(kPdgPiP, kIHA18FtElas, ke, target_A);
     //    }
     //    break;
 
     case (genie::rew::kINukeTwkDial_FrInel_pi) :
     {
-      fate_frac = hd->FracADep(kPdgPiP, kIHAFtInelas, ke, target_A);
+      fate_frac = hd->FracADep(kPdgPiP, kIHA18FtInelas, ke, target_A);
     }
     break;
 
     case (genie::rew::kINukeTwkDial_FrAbs_pi) :
     {
-      fate_frac = hd->FracADep(kPdgPiP, kIHAFtAbs, ke, target_A);
+      fate_frac = hd->FracADep(kPdgPiP, kIHA18FtAbs, ke, target_A);
     }
     break;
 
     case (genie::rew::kINukeTwkDial_FrPiProd_pi) :
     {
-      fate_frac = hd->FracADep(kPdgPiP, kIHAFtPiProd,  ke, target_A);
+      fate_frac = hd->FracADep(kPdgPiP, kIHA18FtPiProd,  ke, target_A);
     }
     break;
 
@@ -184,31 +184,31 @@ double genie::utils::rew::FateFraction(genie::rew::GSyst_t syst, double kinE,
 
     case (genie::rew::kINukeTwkDial_FrCEx_N) :
     {
-      fate_frac = hd->FracAIndep(kPdgProton, kIHAFtCEx, ke);
+      fate_frac = hd->FracAIndep(kPdgProton, kIHA18FtCEx, ke);
     }
     break;
 
     //    case (genie::rew::kINukeTwkDial_FrElas_N) :
     //    {
-    //      fate_frac = hd->Frac(kPdgProton, kIHAFtElas, ke);
+    //      fate_frac = hd->Frac(kPdgProton, kIHA18FtElas, ke);
     //    }
     //    break;
 
     case (genie::rew::kINukeTwkDial_FrInel_N) :
     {
-      fate_frac = hd->FracAIndep(kPdgProton, kIHAFtInelas, ke);
+      fate_frac = hd->FracAIndep(kPdgProton, kIHA18FtInelas, ke);
     }
     break;
 
     case (genie::rew::kINukeTwkDial_FrAbs_N) :
     {
-      fate_frac = hd->FracAIndep(kPdgProton, kIHAFtAbs,    ke);
+      fate_frac = hd->FracAIndep(kPdgProton, kIHA18FtAbs,    ke);
     }
     break;
 
     case (genie::rew::kINukeTwkDial_FrPiProd_N) :
     {
-      fate_frac = hd->FracAIndep(kPdgProton, kIHAFtPiProd,  ke);
+      fate_frac = hd->FracAIndep(kPdgProton, kIHA18FtPiProd,  ke);
     }
     break;
 

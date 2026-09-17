@@ -93,7 +93,7 @@ std::map<GSyst_t, std::string> GSyst::BuildGSystToStringMap() {
   temp_map[ kINukeTwkDial_MFPM2E_N ]        = "MFPM2E_N";
   temp_map[ kINukeTwkDial_MFPHiE_N ]        = "MFPHiE_N";
   temp_map[ kINukeTwkDial_FrCEx_pi ]        = "FrCEx_pi";
-//temp_map[ kINukeTwkDial_FrElas_pi ]       = "FrElas_pi";
+  temp_map[ kINukeTwkDial_FrElas_pi ]       = "FrElas_pi";
   temp_map[ kINukeTwkDial_FrInel_pi ]       = "FrInel_pi";
   temp_map[ kINukeTwkDial_FrAbs_pi ]        = "FrAbs_pi";
   temp_map[ kINukeTwkDial_FrPiProd_pi ]     = "FrPiProd_pi";
@@ -108,7 +108,7 @@ std::map<GSyst_t, std::string> GSyst::BuildGSystToStringMap() {
   temp_map[ kINukeTwkDial_G4HiE_N ]         = "FrG4HiE_N";
   temp_map[ kINukeTwkDial_INCLHiE_N ]       = "FrINCLHiE_N";
   temp_map[ kINukeTwkDial_FrCEx_N ]         = "FrCEx_N";
-//temp_map[ kINukeTwkDial_FrElas_N ]        = "FrElas_N";
+  temp_map[ kINukeTwkDial_FrElas_N ]        = "FrElas_N";
   temp_map[ kINukeTwkDial_FrInel_N ]        = "FrInel_N";
   temp_map[ kINukeTwkDial_FrAbs_N ]         = "FrAbs_N";
   temp_map[ kINukeTwkDial_FrPiProd_N ]      = "FrPiProd_N";
