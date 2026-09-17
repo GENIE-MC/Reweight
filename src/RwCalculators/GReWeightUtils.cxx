@@ -23,10 +23,16 @@
 #include "Framework/Numerical/Spline.h"
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/ParticleData/PDGCodes.h"
+#include "Physics/HadronTransport/INukeHadroFates2018.h"
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
 #include "Physics/HadronTransport/Intranuke2018.h"
 #include "Physics/HadronTransport/INukeHadroData2018.h"
-#include "Physics/HadronTransport/INukeHadroFates2018.h"
 #include "Physics/HadronTransport/INukeUtils2018.h"
+#else
+#include "Physics/HadronTransport/Intranuke2025.h"
+#include "Physics/HadronTransport/INukeHadroData2025.h"
+#include "Physics/HadronTransport/INukeUtils2025.h"
+#endif
 
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightUtils.h"
@@ -39,7 +45,11 @@ using namespace genie::controls;
 double genie::utils::rew::MeanFreePathWeight(
   int pdgc, const TLorentzVector & x4, const TLorentzVector & p4,
   double A, double Z,
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
   double mfp_scale_factor, bool interacted, const Intranuke2018& fsi_model )
+#else
+  double mfp_scale_factor, bool interacted, const Intranuke2025& fsi_model )
+#endif
 {
    LOG("ReW", pINFO)
      << "Calculating mean free path weight: "
@@ -48,13 +58,21 @@ double genie::utils::rew::MeanFreePathWeight(
      << ", interacted = " << interacted;
 
    // Get the nominal survival probability
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
    double pdef = utils::intranuke2018::ProbSurvival(
+#else
+   double pdef = utils::intranuke2025::ProbSurvival(
+#endif
       pdgc, x4, p4, A, Z, 1., fsi_model );
    LOG("ReW", pINFO)  << "Probability(default mfp) = " << pdef;
    if(pdef<=0) return 1.;
 
    // Get the survival probability for the tweaked mean free path
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
    double ptwk = utils::intranuke2018::ProbSurvival(
+#else
+   double ptwk = utils::intranuke2025::ProbSurvival(
+#endif
       pdgc, x4, p4, A, Z, mfp_scale_factor, fsi_model );
    LOG("ReW", pINFO)  << "Probability(tweaked mfp) = " << ptwk;
    if(ptwk<=0) return 1.;
@@ -68,7 +86,11 @@ double genie::utils::rew::MeanFreePathWeight(
 double genie::utils::rew::FZoneWeight(
   int pdgc, const TLorentzVector & vtx, const TLorentzVector & x4,
   const TLorentzVector & p4, double A, double Z,
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
   double fz_scale_factor, bool interacted, const Intranuke2018& fsi_model )
+#else
+  double fz_scale_factor, bool interacted, const Intranuke2025& fsi_model )
+#endif
 {
    // Calculate hadron start assuming tweaked formation zone
    TLorentzVector fz    = x4 - vtx;
@@ -78,7 +100,11 @@ double genie::utils::rew::FZoneWeight(
    LOG("ReW", pDEBUG)  << "Formation zone = "<< fz.Vect().Mag() << " fm";
 
    // Get nominal survival probability.
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
    double pdef = utils::intranuke2018::ProbSurvival(
+#else
+   double pdef = utils::intranuke2025::ProbSurvival(
+#endif
       pdgc, x4, p4, A, Z, 1., fsi_model );
    LOG("ReW", pDEBUG)  << "Survival probability (nominal) = "<< pdef;
    if(pdef<=0) return 1.;
@@ -90,7 +116,11 @@ double genie::utils::rew::FZoneWeight(
    }
 
    // Get tweaked survival probability.
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
    double ptwk = utils::intranuke2018::ProbSurvival(
+#else
+   double ptwk = utils::intranuke2025::ProbSurvival(
+#endif
       pdgc, x4twk, p4, A, Z, 1., fsi_model );
    if(ptwk<=0) return 1.;
    LOG("ReW", pDEBUG)  << "Survival probability (tweaked) = "<< ptwk;
@@ -135,12 +165,21 @@ double genie::utils::rew::FateFraction(genie::rew::GSyst_t syst, double kinE,
 
   double fate_frac = 0.0;
 
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
   INukeHadroData2018 * hd = INukeHadroData2018::Instance();
+#else
+  INukeHadroData2025 * hd = INukeHadroData2025::Instance();
+#endif
 
   // convert to MeV and
   double ke = kinE / units::MeV;
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
   ke = TMath::Max(INukeHadroData2018::fMinKinEnergy,   ke);
   ke = TMath::Min(INukeHadroData2018::fMaxKinEnergyHA, ke);
+#else
+  ke = TMath::Max(INukeHadroData2025::fMinKinEnergy,   ke);
+  ke = TMath::Min(INukeHadroData2025::fMaxKinEnergyHA, ke);
+#endif
 
   switch (syst) {
 
@@ -150,31 +189,31 @@ double genie::utils::rew::FateFraction(genie::rew::GSyst_t syst, double kinE,
 
     case (genie::rew::kINukeTwkDial_FrCEx_pi) :
     {
-      fate_frac = hd->FracADep(kPdgPiP, kIHA18FtCEx, ke, target_A);
+      fate_frac = hd->FracADep(kPdgPiP, kIHAFtCEx, ke, target_A);
     }
     break;
 
     //    case (genie::rew::kINukeTwkDial_FrElas_pi) :
     //    {
-    //      fate_frac = hd->FracADep(kPdgPiP, kIHA18FtElas, ke, target_A);
+    //      fate_frac = hd->FracADep(kPdgPiP, kIHAFtElas, ke, target_A);
     //    }
     //    break;
 
     case (genie::rew::kINukeTwkDial_FrInel_pi) :
     {
-      fate_frac = hd->FracADep(kPdgPiP, kIHA18FtInelas, ke, target_A);
+      fate_frac = hd->FracADep(kPdgPiP, kIHAFtInelas, ke, target_A);
     }
     break;
 
     case (genie::rew::kINukeTwkDial_FrAbs_pi) :
     {
-      fate_frac = hd->FracADep(kPdgPiP, kIHA18FtAbs, ke, target_A);
+      fate_frac = hd->FracADep(kPdgPiP, kIHAFtAbs, ke, target_A);
     }
     break;
 
     case (genie::rew::kINukeTwkDial_FrPiProd_pi) :
     {
-      fate_frac = hd->FracADep(kPdgPiP, kIHA18FtPiProd,  ke, target_A);
+      fate_frac = hd->FracADep(kPdgPiP, kIHAFtPiProd,  ke, target_A);
     }
     break;
 
@@ -184,31 +223,31 @@ double genie::utils::rew::FateFraction(genie::rew::GSyst_t syst, double kinE,
 
     case (genie::rew::kINukeTwkDial_FrCEx_N) :
     {
-      fate_frac = hd->FracAIndep(kPdgProton, kIHA18FtCEx, ke);
+      fate_frac = hd->FracAIndep(kPdgProton, kIHAFtCEx, ke);
     }
     break;
 
     //    case (genie::rew::kINukeTwkDial_FrElas_N) :
     //    {
-    //      fate_frac = hd->Frac(kPdgProton, kIHA18FtElas, ke);
+    //      fate_frac = hd->Frac(kPdgProton, kIHAFtElas, ke);
     //    }
     //    break;
 
     case (genie::rew::kINukeTwkDial_FrInel_N) :
     {
-      fate_frac = hd->FracAIndep(kPdgProton, kIHA18FtInelas, ke);
+      fate_frac = hd->FracAIndep(kPdgProton, kIHAFtInelas, ke);
     }
     break;
 
     case (genie::rew::kINukeTwkDial_FrAbs_N) :
     {
-      fate_frac = hd->FracAIndep(kPdgProton, kIHA18FtAbs,    ke);
+      fate_frac = hd->FracAIndep(kPdgProton, kIHAFtAbs,    ke);
     }
     break;
 
     case (genie::rew::kINukeTwkDial_FrPiProd_N) :
     {
-      fate_frac = hd->FracAIndep(kPdgProton, kIHA18FtPiProd,  ke);
+      fate_frac = hd->FracAIndep(kPdgProton, kIHAFtPiProd,  ke);
     }
     break;
 

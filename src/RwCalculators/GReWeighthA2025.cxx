@@ -36,7 +36,6 @@
 #include "Physics/HadronTransport/INukeUtils2018.h"
 
 #include "Physics/HadronTransport/INukeHadroData2025.h"
-#include "Physics/HadronTransport/INukeHadroFates2025.h"
 #include "Physics/HadronTransport/INukeUtils2025.h"
 #include "Physics/HadronTransport/HAIntranuke2025.h"
 #include "Physics/HadronTransport/Intranuke2025.h"
@@ -54,20 +53,8 @@ genie::rew::GReWeighthA2025::GReWeighthA2025()
   // actually enabled.
   AlgConfigPool* conf_pool = AlgConfigPool::Instance();
   Registry* gpl = conf_pool->GlobalParameterList();
-  RgAlg fsi_alg = gpl->GetAlg( "HadronTransp-Model" );
-  bool fsi_enabled = gpl->GetBool( "HadronTransp-Enable" );
-
-  if ( !fsi_enabled ) {
-    LOG( "ReW", pFATAL ) << "FSIs are not enabled for the current tune."
-      << " Refusing to reweight FSIs.";
-    std::exit( 1 );
-  }
-
-  if ( fsi_alg.name != "genie::HAIntranuke2018" ) {
-    LOG( "ReW", pFATAL ) << "Reweighting events produced with the FSI model "
-      << fsi_alg << " is not currently supported.";
-    std::exit( 1 );
-  }
+  fFSIAlg = gpl->GetAlg( "HadronTransp-Model" );
+  fFSIEnabled = gpl->GetBool( "HadronTransp-Enable" );
 
 }
 //______________________________________________________________________________
@@ -118,6 +105,19 @@ void genie::rew::GReWeighthA2025::Reconfigure(void)
 //______________________________________________________________________________
 double genie::rew::GReWeighthA2025::CalcWeight(const EventRecord & event)
 {
+
+  if ( !fFSIEnabled ) {
+    LOG( "ReW", pFATAL ) << "FSIs are not enabled for the current tune."
+      << " Refusing to reweight FSIs.";
+    std::exit( 1 );
+  }
+
+  if ( fFSIAlg.name != "genie::HAIntranuke2018" ) {
+    LOG( "ReW", pFATAL ) << "Reweighting events produced with the FSI model "
+      << fFSIAlg << " is not currently supported.";
+    std::exit( 1 );
+  }
+
   // Return a trivial unit weight if the tweak dial hasn't been changed
   // or falls outside of the valid range (just in case)
   if ( fTwkDial <= 0. || fTwkDial > 1. ) return 1.0;
@@ -188,13 +188,13 @@ double genie::rew::GReWeighthA2025::CalcWeight(const EventRecord & event)
     // This weight calculator only accounts for differences in fate fractions,
     // so skip particles that did not interact during the cascade
     auto fsi_code = static_cast< INukeFateHA2018_t >( p->RescatterCode() );
-    bool interacted = ( fsi_code != kIHA18FtNoInteraction );
+    bool interacted = ( fsi_code != kIHAFtNoInteraction );
     if ( !interacted ) continue;
 
     // Skip particles with an unhandled fate (this shouldn't occur, it's a
     // fallback for robustness)
-    if ( fsi_code != kIHA18FtAbs && fsi_code != kIHA18FtInelas
-      && fsi_code != kIHA18FtCEx && fsi_code != kIHA18FtPiProd )
+    if ( fsi_code != kIHAFtAbs && fsi_code != kIHAFtInelas
+      && fsi_code != kIHAFtCEx && fsi_code != kIHAFtPiProd )
     {
 	    LOG("ReW", pWARN) << "Unhandled hadron fate "
         << INukeHadroFates2018::AsString( static_cast< INukeFateHA2018_t >(fsi_code) )
@@ -211,7 +211,7 @@ double genie::rew::GReWeighthA2025::CalcWeight(const EventRecord & event)
 	  double ke_in_MeV = ke / units::MeV;
 
     double fate_frac2018 = hd2018->FracADep( pdgc, fsi_code, ke_in_MeV, remnA );
-    double fate_frac2025 = hd2025->FracADep( pdgc, static_cast<INukeFateHA2025_t>(fsi_code), ke_in_MeV, remnA );
+    double fate_frac2025 = hd2025->FracADep( pdgc, fsi_code, ke_in_MeV, remnA );
 
 	  LOG("ReW", pDEBUG)
       << "GReWeighthA2025 reweighted hadron at position = " << ip

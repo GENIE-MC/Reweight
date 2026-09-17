@@ -30,9 +30,9 @@
 // GENIE/Generator includes
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Interaction/InteractionType.h"
+#include "Framework/Conventions/GBuild.h"
 #include "Physics/HadronTransport/INukeHadroFates.h"
 #include "Physics/HadronTransport/INukeHadroFates2018.h"
-#include "Physics/HadronTransport/INukeHadroFates2025.h"
 
 using std::string;
 
@@ -457,56 +457,28 @@ public:
     return kNullSystematic;
  }
  //......................................................................................
- static GSyst_t INuke2018Fate2GSyst(INukeFateHA2018_t fate, int pdgc)
+ static GSyst_t INukeFate2GSyst(INukeFateHA2018_t fate, int pdgc)
  {
   // get the corresponding GSyst_t systematic parameter enumeration from the
   // input intranuke fate enumeration and PDG code
   //
   if(pdg::IsPion(pdgc)) {
      switch (fate) {
-      case kIHA18FtUndefined : return kNullSystematic;            break;
-      case kIHA18FtCEx       : return kINukeTwkDial_FrCEx_pi;     break;
-      case kIHA18FtInelas    : return kINukeTwkDial_FrInel_pi;    break;
-      case kIHA18FtAbs       : return kINukeTwkDial_FrAbs_pi;     break;
-      case kIHA18FtPiProd    : return kINukeTwkDial_FrPiProd_pi;  break;
+      case kIHAFtUndefined : return kNullSystematic;            break;
+      case kIHAFtCEx       : return kINukeTwkDial_FrCEx_pi;     break;
+      case kIHAFtInelas    : return kINukeTwkDial_FrInel_pi;    break;
+      case kIHAFtAbs       : return kINukeTwkDial_FrAbs_pi;     break;
+      case kIHAFtPiProd    : return kINukeTwkDial_FrPiProd_pi;  break;
       default              : return kNullSystematic;            break;
      }
   } else
   if(pdg::IsNucleon(pdgc)) {
      switch (fate) {
-      case kIHA18FtUndefined : return kNullSystematic;           break;
-      case kIHA18FtCEx       : return kINukeTwkDial_FrCEx_N;     break;
-      case kIHA18FtInelas    : return kINukeTwkDial_FrInel_N;    break;
-      case kIHA18FtAbs       : return kINukeTwkDial_FrAbs_N;     break;
-      case kIHA18FtPiProd    : return kINukeTwkDial_FrPiProd_N;  break;
-      default              : return kNullSystematic;           break;
-     }
-  }
-  return kNullSystematic;
- }
- //......................................................................................
- static GSyst_t INuke2025Fate2GSyst(INukeFateHA2025_t fate, int pdgc)
- {
-  // get the corresponding GSyst_t systematic parameter enumeration from the
-  // input intranuke fate enumeration and PDG code
-  //
-  if(pdg::IsPion(pdgc)) {
-     switch (fate) {
-      case kIHA25FtUndefined : return kNullSystematic;            break;
-      case kIHA25FtCEx       : return kINukeTwkDial_FrCEx_pi;     break;
-      case kIHA25FtInelas    : return kINukeTwkDial_FrInel_pi;    break;
-      case kIHA25FtAbs       : return kINukeTwkDial_FrAbs_pi;     break;
-      case kIHA25FtPiProd    : return kINukeTwkDial_FrPiProd_pi;  break;
-      default              : return kNullSystematic;            break;
-     }
-  } else
-  if(pdg::IsNucleon(pdgc)) {
-     switch (fate) {
-      case kIHA25FtUndefined : return kNullSystematic;           break;
-      case kIHA25FtCEx       : return kINukeTwkDial_FrCEx_N;     break;
-      case kIHA25FtInelas    : return kINukeTwkDial_FrInel_N;    break;
-      case kIHA25FtAbs       : return kINukeTwkDial_FrAbs_N;     break;
-      case kIHA25FtPiProd    : return kINukeTwkDial_FrPiProd_N;  break;
+      case kIHAFtUndefined : return kNullSystematic;           break;
+      case kIHAFtCEx       : return kINukeTwkDial_FrCEx_N;     break;
+      case kIHAFtInelas    : return kINukeTwkDial_FrInel_N;    break;
+      case kIHAFtAbs       : return kINukeTwkDial_FrAbs_N;     break;
+      case kIHAFtPiProd    : return kINukeTwkDial_FrPiProd_N;  break;
       default              : return kNullSystematic;           break;
      }
   }

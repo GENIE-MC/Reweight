@@ -21,6 +21,13 @@
 #ifndef _G_REWEIGHT_FZONE_H_
 #define _G_REWEIGHT_FZONE_H_
 
+// GENIE/Generator includes
+#include "Framework/Conventions/GBuild.h"
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
+#include "Physics/HadronTransport/HAIntranuke2018.h"
+#else
+#include "Physics/HadronTransport/HAIntranuke2025.h"
+#endif
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightModel.h"
 
@@ -63,7 +70,11 @@ namespace rew   {
    double fct0nucleon; ///<
    double fK;          ///<
 
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
    HAIntranuke2018* fFSIModel;
+#else
+   HAIntranuke2025* fFSIModel;
+#endif
 
  };
 
