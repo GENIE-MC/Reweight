@@ -106,6 +106,11 @@ void genie::rew::GReWeighthA2025::Reconfigure(void)
 double genie::rew::GReWeighthA2025::CalcWeight(const EventRecord & event)
 {
 
+  // Return a trivial unit weight if the tweak dial hasn't been changed
+  // or falls outside of the valid range (just in case)
+  if ( fTwkDial <= 0. || fTwkDial > 1. ) return 1.0;
+
+  // If a nontrivial weight is requested, ensure it's sensible.
   if ( !fFSIEnabled ) {
     LOG( "ReW", pFATAL ) << "FSIs are not enabled for the current tune."
       << " Refusing to reweight FSIs.";
@@ -114,13 +119,9 @@ double genie::rew::GReWeighthA2025::CalcWeight(const EventRecord & event)
 
   if ( fFSIAlg.name != "genie::HAIntranuke2018" ) {
     LOG( "ReW", pFATAL ) << "Reweighting events produced with the FSI model "
-      << fFSIAlg << " is not currently supported.";
+      << fFSIAlg << " is not currently supported, or hA 2018 not configured.";
     std::exit( 1 );
   }
-
-  // Return a trivial unit weight if the tweak dial hasn't been changed
-  // or falls outside of the valid range (just in case)
-  if ( fTwkDial <= 0. || fTwkDial > 1. ) return 1.0;
 
   // Non-trivial weights can only be returned for a complex nuclear target
   GHepParticle* tgt = event.TargetNucleus();
