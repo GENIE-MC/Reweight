@@ -31,11 +31,18 @@
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Registry/Registry.h"
 #include "Physics/NuclearState/NuclearUtils.h"
+#include "Physics/HadronTransport/INukeHadroFates2018.h"
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
 #include "Physics/HadronTransport/HAIntranuke2018.h"
 #include "Physics/HadronTransport/Intranuke2018.h"
 #include "Physics/HadronTransport/INukeHadroData2018.h"
-#include "Physics/HadronTransport/INukeHadroFates2018.h"
 #include "Physics/HadronTransport/INukeUtils2018.h"
+#else
+#include "Physics/HadronTransport/HAIntranuke2025.h"
+#include "Physics/HadronTransport/Intranuke2025.h"
+#include "Physics/HadronTransport/INukeHadroData2025.h"
+#include "Physics/HadronTransport/INukeUtils2025.h"
+#endif
 
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightINuke.h"
@@ -72,7 +79,11 @@ GReWeightModel("IntraNuke")
   AlgFactory* algf = AlgFactory::Instance();
 
   Algorithm* alg = algf->AdoptAlgorithm( id );
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
   fFSIModel = dynamic_cast< HAIntranuke2018* >( alg );
+#else
+  fFSIModel = dynamic_cast< HAIntranuke2025* >( alg );
+#endif
 
   if ( !fFSIModel ) {
     LOG( "ReW", pERROR ) << "Reweighting events produced with the FSI model "
@@ -257,7 +268,7 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
         << "Attempting to reweight hadron at position = " << ip
         << " with PDG code = " << pdgc
         << " and FSI code = "  << fsi_code
-        << " (" << INukeHadroFates::AsString((INukeFateHA_t)fsi_code) << ")";
+        << " (" << INukeHadroFates2018::AsString((INukeFateHA2018_t)fsi_code) << ")";
      if(fsi_code == -1 || fsi_code == (int)kIHAFtUndefined) {
        LOG("ReW", pFATAL) << "INTRANUKE didn't set a valid rescattering code for event in position: " << ip;
        LOG("ReW", pFATAL) << "Here is the problematic event:";
@@ -292,8 +303,8 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
      if(calc_w_fate && interacted)
      {
         double fate_fraction_scale_factor =
-             fINukeRwParams->FateParams(pdgc)->ScaleFactor(
-                  GSyst::INukeFate2GSyst((INukeFateHA_t)fsi_code,pdgc), p4);
+	  fINukeRwParams->FateParams(pdgc)->ScaleFactor(
+	        GSyst::INukeFate2GSyst((INukeFateHA2018_t)fsi_code,pdgc), p4);
         w_fate = fate_fraction_scale_factor;
      }
 
@@ -304,19 +315,24 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
         << "Reweighted hadron at position = " << ip
         << " with PDG code = " << pdgc
         << ", FSI code = "  << fsi_code
-        << " (" << INukeHadroFates::AsString((INukeFateHA_t)fsi_code) << ") :"
+        << " (" << INukeHadroFates2018::AsString((INukeFateHA2018_t)fsi_code) << ") :"
         << " w_mfp = "  << w_mfp
         <<", w_fate = " << w_fate;
 
      // Debug info
 #ifdef _G_REWEIGHT_INUKE_DEBUG_NTP_
      // TODO: Fix the debugging functions here for the hA2018 updates
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
      double d        = utils::intranuke2018::Dist2Exit(x4,p4,A);
      double d_mfp    = utils::intranuke2018::Dist2ExitMFP(pdgc,x4,p4,A,Z);
+#else
+     double d        = utils::intranuke2025::Dist2Exit(x4,p4,A);
+     double d_mfp    = utils::intranuke2025::Dist2ExitMFP(pdgc,x4,p4,A,Z);
+#endif // #ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
      double Eh       = p->E();
      double iflag    = (interacted) ? 1 : 0;
      fTestNtp->Fill(pdgc, Eh, mfp_scale_factor, d, d_mfp, fsi_code, iflag, w_mfp, w_fate);
-#endif
+#endif // #ifdef _G_REWEIGHT_INUKE_DEBUG_NTP_
 
      // Update the current event weight
      event_weight *= hadron_weight;

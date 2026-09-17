@@ -47,6 +47,9 @@ namespace rew   {
    // from hA2018 to hA2025. A value between these extremes interpolates.
    // Values outside of this range will throw an exception.
    double fTwkDial = 0;
+
+   RgAlg fFSIAlg;
+   bool fFSIEnabled = false;
  };
 
 } // rew

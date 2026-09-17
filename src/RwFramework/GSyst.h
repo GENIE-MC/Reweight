@@ -30,6 +30,8 @@
 // GENIE/Generator includes
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Interaction/InteractionType.h"
+#include "Framework/Conventions/GBuild.h"
+#include "Physics/HadronTransport/INukeHadroFates.h"
 #include "Physics/HadronTransport/INukeHadroFates2018.h"
 
 using std::string;
@@ -131,7 +133,8 @@ typedef enum EGSyst {
   kINukeTwkDial_MFPHiE_N,       ///< tweak mean free path for nucleons, 600 <= KE MeV
   kINukeTwkDial_FrCEx_pi,    ///< tweak charge exchange probability for pions, for given total rescattering probability
   // sd - hA no longer has elastic fate
-  kINVALID_INukeTwkDial_FrElas_pi,   ///< tweak elastic         probability for pions, for given total rescattering probability
+  // J. Plows : if this fate is not supported it should be removed from Generator.
+  kINukeTwkDial_FrElas_pi,   ///< tweak elastic         probability for pions, for given total rescattering probability
   kINukeTwkDial_FrInel_pi,   ///< tweak inelastic       probability for pions, for given total rescattering probability
   kINukeTwkDial_FrAbs_pi,    ///< tweak absorption      probability for pions, for given total rescattering probability
   kINukeTwkDial_FrPiProd_pi, ///< tweak pion production probability for pions, for given total rescattering probability
@@ -148,7 +151,8 @@ typedef enum EGSyst {
   kINukeTwkDial_INCLHiE_N,     ///< tweak intranuclear scattering to INCL values, 600 <= KE
 
   kINukeTwkDial_FrCEx_N,     ///< tweak charge exchange probability for nucleons, for given total rescattering probability
-  kINVALID_INukeTwkDial_FrElas_N,    ///< tweak elastic         probability for nucleons, for given total rescattering probability
+  // J. Plows : ditto here.
+  kINukeTwkDial_FrElas_N,    ///< tweak elastic         probability for nucleons, for given total rescattering probability
   kINukeTwkDial_FrInel_N,    ///< tweak inelastic       probability for nucleons, for given total rescattering probability
   kINukeTwkDial_FrAbs_N,     ///< tweak absorption      probability for nucleons, for given total rescattering probability
   kINukeTwkDial_FrPiProd_N,  ///< tweak pion production probability for nucleons, for given total rescattering probability
@@ -453,7 +457,7 @@ public:
     return kNullSystematic;
  }
  //......................................................................................
- static GSyst_t INukeFate2GSyst(INukeFateHA_t fate, int pdgc)
+ static GSyst_t INukeFate2GSyst(INukeFateHA2018_t fate, int pdgc)
  {
   // get the corresponding GSyst_t systematic parameter enumeration from the
   // input intranuke fate enumeration and PDG code
@@ -462,7 +466,6 @@ public:
      switch (fate) {
       case kIHAFtUndefined : return kNullSystematic;            break;
       case kIHAFtCEx       : return kINukeTwkDial_FrCEx_pi;     break;
-	//      case kIHAFtElas      : return kINukeTwkDial_FrElas_pi;    break;
       case kIHAFtInelas    : return kINukeTwkDial_FrInel_pi;    break;
       case kIHAFtAbs       : return kINukeTwkDial_FrAbs_pi;     break;
       case kIHAFtPiProd    : return kINukeTwkDial_FrPiProd_pi;  break;
@@ -473,7 +476,6 @@ public:
      switch (fate) {
       case kIHAFtUndefined : return kNullSystematic;           break;
       case kIHAFtCEx       : return kINukeTwkDial_FrCEx_N;     break;
-	//      case kIHAFtElas      : return kINukeTwkDial_FrElas_N;    break;
       case kIHAFtInelas    : return kINukeTwkDial_FrInel_N;    break;
       case kIHAFtAbs       : return kINukeTwkDial_FrAbs_N;     break;
       case kIHAFtPiProd    : return kINukeTwkDial_FrPiProd_N;  break;

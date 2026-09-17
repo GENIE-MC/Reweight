@@ -141,7 +141,7 @@ double GReWeightINukeKinematics::CalcWeight(const EventRecord &event) {
         << "Attempting to reweight hadron at position = " << ip
         << " with PDG code = " << pdgc
         << " and FSI code = "  << fsi_code
-        << " (" << INukeHadroFates::AsString((INukeFateHA_t)fsi_code) << ")\n";
+        << " (" << INukeHadroFates2018::AsString((INukeFateHA2018_t)fsi_code) << ")\n";
 
      // Inelastic, Charge Exchange 
      if (fsi_code == (int)kIHAFtInelas || fsi_code == (int)kIHAFtCEx) {
