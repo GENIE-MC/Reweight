@@ -34,6 +34,9 @@
 
 //#define _G_REWEIGHT_INUKE_DEBUG_NTP_
 
+// Standard library includes
+#include <memory>
+
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightModel.h"
 #include "RwCalculators/GReWeightINukeParams.h"
@@ -56,7 +59,7 @@ namespace rew   {
  {
  public:
    GReWeightINuke();
-  ~GReWeightINuke();
+   virtual ~GReWeightINuke();
 
    // implement the GReWeightI interface
    bool   AppliesTo      (const EventRecord & event) const;
@@ -66,14 +69,14 @@ namespace rew   {
    void   Reconfigure    (void);
    double CalcWeight     (const EventRecord & event);
 
- private:
+ protected:
 
    void CalcDeltaAZ( const EventRecord& event, const GHepParticle& p,
      int& deltaA, int& deltaZ );
 
    void UpdateRemnantAZ( int deltaA, int deltaZ );
 
-   GReWeightINukeParams fINukeRwParams;
+   std::shared_ptr< GReWeightINukeParams > fINukeRwParams;
 
    HAIntranuke2018* fFSIModel;
 
