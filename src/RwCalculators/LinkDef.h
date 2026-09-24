@@ -40,6 +40,9 @@
 #pragma link C++ class genie::rew::GReWeightXSecMEC;
 #pragma link C++ class genie::rew::GReWeightDeltaradAngle;
 
+#pragma link C++ class genie::rew::GReWeightINukeKinematics;
+#pragma link C++ class genie::rew::GReWeightINukeKinematicsParams;
+
 #pragma link C++ ioctortype TRootIOCtor;
 
 #endif
