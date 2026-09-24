@@ -22,7 +22,11 @@
 #include "Framework/Registry/Registry.h"
 #include "Framework/Utils/PrintUtils.h"
 #include "Framework/Utils/PhysUtils.h"
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
 #include "Physics/HadronTransport/HAIntranuke2018.h"
+#else
+#include "Physics/HadronTransport/HAIntranuke2025.h"
+#endif
 #include "Physics/DeepInelastic/EventGen/DISHadronicSystemGenerator.h"
 
 // GENIE/Reweight includes
@@ -236,7 +240,11 @@ void GReWeightFZone::Init(void)
   AlgId id( fsi_alg );
 
   Algorithm* alg = algf->AdoptAlgorithm( id );
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
   fFSIModel = dynamic_cast< HAIntranuke2018* >( alg );
+#else
+  fFSIModel = dynamic_cast< HAIntranuke2025* >( alg );
+#endif
 
   if ( !fFSIModel ) {
     LOG( "ReW", pERROR ) << "Reweighting events produced with the FSI model "

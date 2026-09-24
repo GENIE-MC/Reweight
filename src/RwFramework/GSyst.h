@@ -30,6 +30,8 @@
 // GENIE/Generator includes
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Interaction/InteractionType.h"
+#include "Framework/Conventions/GBuild.h"
+#include "Physics/HadronTransport/INukeHadroFates.h"
 #include "Physics/HadronTransport/INukeHadroFates2018.h"
 
 using std::string;
@@ -453,7 +455,7 @@ public:
     return kNullSystematic;
  }
  //......................................................................................
- static GSyst_t INukeFate2GSyst(INukeFateHA_t fate, int pdgc)
+ static GSyst_t INukeFate2GSyst(INukeFateHA2018_t fate, int pdgc)
  {
   // get the corresponding GSyst_t systematic parameter enumeration from the
   // input intranuke fate enumeration and PDG code
@@ -462,7 +464,6 @@ public:
      switch (fate) {
       case kIHAFtUndefined : return kNullSystematic;            break;
       case kIHAFtCEx       : return kINukeTwkDial_FrCEx_pi;     break;
-	//      case kIHAFtElas      : return kINukeTwkDial_FrElas_pi;    break;
       case kIHAFtInelas    : return kINukeTwkDial_FrInel_pi;    break;
       case kIHAFtAbs       : return kINukeTwkDial_FrAbs_pi;     break;
       case kIHAFtPiProd    : return kINukeTwkDial_FrPiProd_pi;  break;
@@ -473,7 +474,6 @@ public:
      switch (fate) {
       case kIHAFtUndefined : return kNullSystematic;           break;
       case kIHAFtCEx       : return kINukeTwkDial_FrCEx_N;     break;
-	//      case kIHAFtElas      : return kINukeTwkDial_FrElas_N;    break;
       case kIHAFtInelas    : return kINukeTwkDial_FrInel_N;    break;
       case kIHAFtAbs       : return kINukeTwkDial_FrAbs_N;     break;
       case kIHAFtPiProd    : return kINukeTwkDial_FrPiProd_N;  break;
