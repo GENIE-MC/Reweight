@@ -264,22 +264,10 @@ typedef enum EGSyst {
   // Alternative approach to CCQE form factors (z-expansion) vector form factor
   //
   kXSecTwkDial_ZExpELFF,
-  kXSecTwkDial_ZExpELFF_AP1,
-  kXSecTwkDial_ZExpELFF_AP2,
-  kXSecTwkDial_ZExpELFF_AP3,
-  kXSecTwkDial_ZExpELFF_AP4,
-  kXSecTwkDial_ZExpELFF_AN1,
-  kXSecTwkDial_ZExpELFF_AN2,
-  kXSecTwkDial_ZExpELFF_AN3,
-  kXSecTwkDial_ZExpELFF_AN4,
-  kXSecTwkDial_ZExpELFF_BP1,
-  kXSecTwkDial_ZExpELFF_BP2,
-  kXSecTwkDial_ZExpELFF_BP3,
-  kXSecTwkDial_ZExpELFF_BP4,
-  kXSecTwkDial_ZExpELFF_BN1,
-  kXSecTwkDial_ZExpELFF_BN2,
-  kXSecTwkDial_ZExpELFF_BN3,
-  kXSecTwkDial_ZExpELFF_BN4,
+  //
+  // Alternative approach to CCQE form factors (z-expansion) axial form factor
+  //
+  kXSecTwkDial_ZExpZAFF,
 
   // Approximate reweight of pion fate fractions from hA2018 to hA2025
   kINukehA2018_to_hA2025,
