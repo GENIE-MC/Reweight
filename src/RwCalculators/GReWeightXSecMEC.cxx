@@ -3,8 +3,11 @@
  Copyright (c) 2003-2025, The GENIE Collaboration
  For the full text of the license visit http://copyright.genie-mc.org
 
- Authors: Steven Gardiner <gardiner \at fnal.gov>
-          Fermi National Accelerator Laboratory
+ Authors:   Steven Gardiner <gardiner \at fnal.gov>
+            Fermi National Accelerator Laboratory
+
+            Lars Bathe-Peters <lars.bathe-peters \at physics.ox.ac.uk>
+            University of Oxford
 */
 //____________________________________________________________________________
 
@@ -27,11 +30,16 @@
 #include "Framework/Registry/Registry.h"
 #include "Framework/Utils/XSecSplineList.h"
 #include "Physics/XSectionIntegration/GSLXSecFunc.h"
+#include "Physics/Multinucleon/XSection/SuSAv2MECPXSec.h"
+#include "Physics/Multinucleon/XSection/MartiniEricsonChanfrayMarteauMECPXSec2024.h"
 
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightXSecMEC.h"
 #include "RwFramework/GSystSet.h"
 #include "RwFramework/GSystUncertainty.h"
+
+// GNU Scientific library includes
+#include <gsl/gsl_sf_legendre.h>
 
 using namespace genie;
 using namespace genie::rew;
@@ -93,7 +101,10 @@ GReWeightXSecMEC::~GReWeightXSecMEC()
 {
   // Delete the adopted algorithms if needed
   if ( fXSecAlgCCDef ) delete fXSecAlgCCDef;
-  if ( fXSecAlgCCAlt ) delete fXSecAlgCCAlt;
+  if ( fXSecAlgCCAlt_Nieves ) delete fXSecAlgCCAlt_Nieves;
+  if ( fXSecAlgCCAlt_SuSAv2 ) delete fXSecAlgCCAlt_SuSAv2;
+  if ( fXSecAlgCCAlt_Empirical ) delete fXSecAlgCCAlt_Empirical;
+  if ( fXSecAlgCCAlt_Martini ) delete fXSecAlgCCAlt_Martini;
 }
 //_______________________________________________________________________________________
 bool GReWeightXSecMEC::IsHandled(GSyst_t syst) const
@@ -101,9 +112,19 @@ bool GReWeightXSecMEC::IsHandled(GSyst_t syst) const
   // Some MEC tweak dials are independent of interaction type. Check
   // whether we can handle these first.
   if ( syst == kXSecTwkDial_DecayAngMEC ) return true;
+  if ( syst == kXSecTwkDial_DecayAng2MEC ) return true;
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre ) return true;
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre2 ) return true;
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre3 ) return true;
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre4 ) return true;
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre5 ) return true;
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre6 ) return true;
   if ( syst == kXSecTwkDial_FracPN_CCMEC ) return true;
   if ( syst == kXSecTwkDial_FracDelta_CCMEC ) return true;
   if ( syst == kXSecTwkDial_XSecShape_CCMEC ) return true;
+  if ( syst == kXSecTwkDial_XSecShape_CCMEC_Empirical ) return true;
+  if ( syst == kXSecTwkDial_XSecShape_CCMEC_Martini ) return true;
+  if ( syst == kXSecTwkDial_EnergyDependence_CCMEC ) return true;
 
   // If we have an entry for a knob that is interaction type dependent in the
   // GSyst_t -> InteractionType_t map, then this calculator can handle it.
@@ -129,6 +150,34 @@ void GReWeightXSecMEC::SetSystematic(GSyst_t syst, double twk_dial)
     fDecayAngTwkDial = twk_dial;
     return;
   }
+  if ( syst == kXSecTwkDial_DecayAng2MEC ) {
+    fDecayAng2TwkDial = twk_dial;
+    return;
+  }
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre ) {
+    fDecayAngLegendreTwkDial = twk_dial;
+    return;
+  }
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre2 ) {
+    fDecayAngLegendre2TwkDial = twk_dial;
+    return;
+  }
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre3 ) {
+    fDecayAngLegendre3TwkDial = twk_dial;
+    return;
+  }
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre4 ) {
+    fDecayAngLegendre4TwkDial = twk_dial;
+    return;
+  }
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre5 ) {
+    fDecayAngLegendre5TwkDial = twk_dial;
+    return;
+  }
+  if ( syst == kXSecTwkDial_DecayAngMECLegendre6 ) {
+    fDecayAngLegendre6TwkDial = twk_dial;
+    return;
+  }
   else if ( syst == kXSecTwkDial_FracPN_CCMEC ) {
     fFracPN_CCTwkDial = twk_dial;
     return;
@@ -139,6 +188,18 @@ void GReWeightXSecMEC::SetSystematic(GSyst_t syst, double twk_dial)
   }
   else if ( syst == kXSecTwkDial_XSecShape_CCMEC ) {
     fCCXSecShapeTwkDial = twk_dial;
+    return;
+  }
+  else if ( syst == kXSecTwkDial_XSecShape_CCMEC_Empirical ) {
+    fCCXSecShapeEmpiricalTwkDial = twk_dial;
+    return;
+  }
+  else if ( syst == kXSecTwkDial_XSecShape_CCMEC_Martini ) {
+    fCCXSecShapeMartiniTwkDial = twk_dial;
+    return;
+  }
+  else if ( syst == kXSecTwkDial_EnergyDependence_CCMEC ) {
+    fEnergyDependenceTwkDial = twk_dial;
     return;
   }
 
@@ -164,10 +225,19 @@ void GReWeightXSecMEC::Reset(void)
   }
 
   fDecayAngTwkDial = 0.;
+  fDecayAng2TwkDial = 0.;
+  fDecayAngLegendreTwkDial = 0.;
+  fDecayAngLegendre2TwkDial = 0.;
+  fDecayAngLegendre3TwkDial = 0.;
+  fDecayAngLegendre4TwkDial = 0.;
+  fDecayAngLegendre5TwkDial = 0.;
+  fDecayAngLegendre6TwkDial = 0.;
   fCCXSecShapeTwkDial = 0.;
-
+  fCCXSecShapeEmpiricalTwkDial = 0.;
+  fCCXSecShapeMartiniTwkDial = 0.;
   fFracPN_CCTwkDial = 0.;
   fFracDelta_CCTwkDial = 0.;
+  fEnergyDependenceTwkDial = 0.;
 
   this->Reconfigure();
 }
@@ -205,8 +275,13 @@ double GReWeightXSecMEC::CalcWeight(const genie::EventRecord& event)
 
   double weight = this->CalcWeightNorm( event );
   weight *= this->CalcWeightAngularDist( event );
-  weight *= this->CalcWeightPNDelta( event );
+  weight *= this->CalcWeightAngularDistLegendre( event );
+  weight *= this->CalcWeightPN( event );
+  weight *= this->CalcWeightInternalDelta( event );
   weight *= this->CalcWeightXSecShape( event );
+  weight *= this->CalcWeightXSecShape_Empirical( event );
+  weight *= this->CalcWeightXSecShape_Martini( event );
+  weight *= this->CalcWeightEnergyDependence( event );
   return weight;
 }
 //_______________________________________________________________________________________
@@ -214,9 +289,20 @@ void GReWeightXSecMEC::Init(void) {
 
   // Set the tweak dials to their default values
   fDecayAngTwkDial = 0.;
+  fDecayAng2TwkDial = 0.;
+  fDecayAngLegendreTwkDial = 0.;
+  fDecayAngLegendre2TwkDial = 0.;
+  fDecayAngLegendre3TwkDial = 0.;
+  fDecayAngLegendre4TwkDial = 0.;
+  fDecayAngLegendre5TwkDial = 0.;
+  fDecayAngLegendre6TwkDial = 0.;
   fFracPN_CCTwkDial = 0.;
   fFracDelta_CCTwkDial = 0.;
   fCCXSecShapeTwkDial = 0.;
+  fCCXSecShapeEmpiricalTwkDial = 0.;
+  fCCXSecShapeMartiniTwkDial = 0.;
+  fEnergyDependenceTwkDial = 0.;
+  fEnergyDepRatioInitialized = false;
 
   // Set the default normalization for each interaction type (tweak dial = 0
   // corresponds to a normalization factor of 1)
@@ -248,20 +334,46 @@ void GReWeightXSecMEC::Init(void) {
   //  fXSecAlgCCDef->SubAlg("NumericalIntegrationAlg") );
   //assert( fXSecIntegrator );
 
-
   // Get the "fast" configuration of MECXSec to use to integrate
   // the alternate MEC model in the CalcWeightShape member function
   fXSecIntegrator = dynamic_cast<const XSecIntegratorI*>( algf->AdoptAlgorithm(
     "genie::MECXSec", "Fast") );
   assert( fXSecIntegrator );
 
-  // Get an alternate CCMEC cross section model for reshaping the default
-  // TODO: change hard-coding here, or add different knobs for different
-  // target models
-  AlgId alt_id( "genie::EmpiricalMECPXSec2015", "Reweight" );
-  fXSecAlgCCAlt = dynamic_cast< XSecAlgorithmI* >( algf->AdoptAlgorithm(alt_id) );
-  assert( fXSecAlgCCAlt );
-  fXSecAlgCCAlt->AdoptSubstructure();
+  // Get an alternate (Valencia) CCMEC cross section model for reshaping
+  // the default SuSAv2 model
+  AlgId alt_id( "genie::NievesSimoVacasMECPXSec2016", "Default" );
+  fXSecAlgCCAlt_Nieves = dynamic_cast< XSecAlgorithmI* >( algf->AdoptAlgorithm(alt_id) );
+  assert( fXSecAlgCCAlt_Nieves );
+  fXSecAlgCCAlt_Nieves->AdoptSubstructure();
+
+  // Get an alternate (SuSAv2) CCMEC cross section model for reshaping
+  // the default model.
+  AlgId alt_id2( "genie::SuSAv2MECPXSec", "Default" );
+  fXSecAlgCCAlt_SuSAv2 = dynamic_cast< XSecAlgorithmI* >( algf->AdoptAlgorithm(alt_id2) );
+  assert( fXSecAlgCCAlt_SuSAv2 );
+  fXSecAlgCCAlt_SuSAv2->AdoptSubstructure();
+
+  // Get another alternate CCMEC cross section model (Empirical) for reshaping the
+  // default model
+  // NOTE: The empirical MEC model normally uses a spline that is a constant
+  // fraction of a QEL spline rather than the integral of the underlying
+  // empirical MEC differential xsec. The latter is actually needed for
+  // preserving the normalization in shape-only reweighting. The special
+  // "Reweight" configuration of the empirical MEC xsec algorithm (specified
+  // below) instructs the code to integrate the differential xsec directly
+  // rather than using the default "scale the QEL spline" recipe. - S. Gardiner
+  AlgId alt_id3( "genie::EmpiricalMECPXSec2015", "Reweight" );
+  fXSecAlgCCAlt_Empirical = dynamic_cast< XSecAlgorithmI* >( algf->AdoptAlgorithm(alt_id3) );
+  assert( fXSecAlgCCAlt_Empirical );
+  fXSecAlgCCAlt_Empirical->AdoptSubstructure();
+
+  // Get another alternate CCMEC cross section model (Martini) for reshaping the
+  // default model
+  AlgId alt_id4( "genie::MartiniEricsonChanfrayMarteauMECPXSec2024", "Default" );
+  fXSecAlgCCAlt_Martini = dynamic_cast< XSecAlgorithmI* >( algf->AdoptAlgorithm(alt_id4) );
+  assert( fXSecAlgCCAlt_Martini );
+  fXSecAlgCCAlt_Martini->AdoptSubstructure();
 }
 //_______________________________________________________________________________________
 double GReWeightXSecMEC::CalcWeightNorm(const genie::EventRecord& event)
@@ -292,9 +404,14 @@ double GReWeightXSecMEC::CalcWeightAngularDist(const genie::EventRecord& event)
 {
   // Only tweak dial values on the interval [0, 1] make sense for the angular
   // distribution. Enforce this here regardless of what the user requested.
-  double twk_dial = std::max( std::min(1., fDecayAngTwkDial), 0. );
+  //double twk_dial = std::max( std::min(1., fDecayAngTwkDial), 0. );
+  // Changed it to [-1, 1] as there are now two tweak dial values. - L. Bathe-Peters
+  double twk_dial = std::max( std::min(1., fDecayAngTwkDial), -1. );
+  double twk_dial2 = fDecayAng2TwkDial;
 
-  // If the tweak dial is set to zero (or is really small) then just return a
+  if ( twk_dial2 == 0 ) twk_dial2 = 1.0;
+
+  // If the tweak dials are set to zero (or are really small) then just return a
   // weight of unity
   bool tweaked = ( std::abs(twk_dial) > controls::kASmallNum );
   if ( !tweaked ) return 1.;
@@ -394,13 +511,145 @@ double GReWeightXSecMEC::CalcWeightAngularDist(const genie::EventRecord& event)
   // 3-momentum transfer along the +z direction. The tweak dial linearly
   // interpolates between purely isotropic (0) and purely the alternate
   // distribution (1).
-  // TODO: come up with something better for the alternate distribution
-  double weight = 3.*twk_dial*std::pow(std::cos(theta_N1), 2) + (1. - twk_dial);
+  // TODO: come up with something better for the alternate distribution (dial extended
+  // to alternate distribution with two tweak dial values and DecayAngMECLegendre dials)
+  //double weight = 3.*twk_dial*std::pow(std::cos(theta_N1), 2) + (1. - twk_dial);
+
+  // Implemented an alternate distribution with twk_dial1 taking values in [-1,1] and
+  // a second tweak dial twk_dial2 in order to change the frequency of the harmonic
+  // function.
+  // To preserve norm, the weight will be divided by integral of the reweighting over
+  // a flat costheta distribution
+  double norm =  1.0 - twk_dial + 3.0 * twk_dial * ( 0.5 + (1.0 + std::cos(2.0 * M_PI * twk_dial2)) / (4.0 * (1.0 - 4.0 * twk_dial2 * twk_dial2)) );
+
+  double weight;
+
+  if( twk_dial2 == 1.0 ) weight = ( 3.*twk_dial*std::pow(std::cos(twk_dial2*theta_N1), 2) + (1. - twk_dial) );
+  else weight = ( 3.*twk_dial*std::pow(std::cos(twk_dial2*theta_N1), 2) + (1. - twk_dial) ) / norm;
 
   return weight;
 }
 //_______________________________________________________________________________________
-double GReWeightXSecMEC::CalcWeightPNDelta(const genie::EventRecord& event)
+double GReWeightXSecMEC::CalcWeightAngularDistLegendre(const genie::EventRecord& event)
+{
+  // Only accept tweak dial values on the interval [-12, 12] for now.
+  // Enforce this here regardless of what the user requested.
+  double twk_dial = std::max( std::min(12., fDecayAngLegendreTwkDial), -12. );
+  double twk_dial2 = fDecayAngLegendre2TwkDial;
+  double twk_dial3 = fDecayAngLegendre3TwkDial;
+  double twk_dial4 = fDecayAngLegendre4TwkDial;
+  double twk_dial5 = fDecayAngLegendre5TwkDial;
+  double twk_dial6 = fDecayAngLegendre6TwkDial;
+
+  // If the tweak dials are set to zero (or are really small) then just return a
+  // weight of unity
+  //bool tweaked = ( std::abs(twk_dial) > controls::kASmallNum );
+  //bool tweaked = ( ( std::abs(twk_dial) > controls::kASmallNum ) || ( std::abs(twk_dial2) > controls::kASmallNum ) );
+  //if ( !tweaked ) return 1.;
+
+  // Get the daughters of the recoiled two-nucleon cluster
+  // TODO: Consider using something less fragile here. Right now, this relies
+  // on the observation that MECGenerator.cxx always places the recoiling
+  // nucleon cluster at position 5 in the GENIE event record.
+  const int recoil_nucleon_cluster_pos = 5;
+  GHepParticle* nucleon_cluster = event.Particle( recoil_nucleon_cluster_pos );
+  assert( nucleon_cluster );
+
+  // Make sure that the retrieved particle is really a two-nucleon cluster. If
+  // it isn't, just complain and return a unit weight.
+  int cluster_pdg = nucleon_cluster->Pdg();
+  if ( !pdg::Is2NucleonCluster(cluster_pdg) ) {
+    LOG("ReW", pERROR) << "Invalid two-nucleon cluster PDG code " << cluster_pdg
+      << " encountered in GReWeightXSecMEC::CalcWeightAngularDistLegendre()";
+    return 1.;
+  }
+
+  // The two-nucleon cluster should have exactly two daughters (the two
+  // final-state nucleons). If it doesn't complain and return a unit weight.
+  int first = nucleon_cluster->FirstDaughter();
+  int last = nucleon_cluster->LastDaughter();
+  if ( !nucleon_cluster->HasDaughters() || (last - first) != 1 ) {
+    LOG("ReW", pERROR) << "Invalid number of daughters for a two-nucleon"
+      << " cluster encountered in GReWeightXSecMEC::CalcWeightAngularDistLegendre()";
+    return 1.;
+  }
+
+  // Get the two final-state nucleons
+  GHepParticle* N1 = event.Particle( first );
+  GHepParticle* N2 = event.Particle( last );
+
+  // If one of them isn't really a nucleon, complain and return a unit weight
+  if ( !pdg::IsNucleon(N1->Pdg()) || !pdg::IsNucleon(N2->Pdg()) ) {
+    LOG("ReW", pERROR) << "Non-nucleon daughter of a two-nucleon"
+      << " cluster encountered in GReWeightXSecMEC::CalcWeightAngularDistLegendre()";
+    return 1.;
+  }
+
+  // Get the 4-momenta of the two outgoing nucleons
+  TLorentzVector p4N1 = *N1->P4();
+  TLorentzVector p4N2 = *N2->P4();
+
+  // Boost the 4-momenta of the two nucleons from the lab frame to their
+  // CM frame (which is also the rest frame of the recoiling nucleon cluster)
+  TLorentzVector p4Cluster = p4N1 + p4N2;
+  TVector3 boostToCM = -p4Cluster.BoostVector();
+
+  p4N1.Boost( boostToCM );
+  p4N2.Boost( boostToCM );
+
+  // Also get the 4-momenta of the initial and final leptons. These will be
+  // used to compute the 4-momentum transfer
+  TLorentzVector p4Probe = *event.Probe()->P4();
+  TLorentzVector p4Lep = *event.FinalStatePrimaryLepton()->P4();
+
+  TLorentzVector q4 = p4Probe - p4Lep;
+
+  // Boost the 4-momentum transfer into the two-nucleon CM frame
+  q4.Boost( boostToCM );
+
+  // Use the 3-momentum transfer in the two-nucleon CM frame as the reference
+  // z-axis for the altered angular distribution
+  TVector3 q3 = q4.Vect().Unit();
+
+  // Determine a rotation axis and angle that will cause the 3-momentum to
+  // point along the +z direction
+  TVector3 zvec(0., 0., 1.);
+  TVector3 rot = ( q3.Cross(zvec) ).Unit();
+  double angle = zvec.Angle( q3 );
+
+  // Handle the edge case where q3 is along -z, so the
+  // cross product above vanishes
+  if ( q3.Perp() == 0. && q3.Z() < 0. ) {
+    rot = TVector3(0., 1., 0.);
+    angle = constants::kPi;
+  }
+
+  // If the rotation vector is non-null (within numerical precision) then
+  // rotate the CM frame 3-momentum of nucleon #1 into a frame where q3 points along +z
+  TVector3 p3N1 = p4N1.Vect();
+  if ( rot.Mag() >= controls::kASmallNum ) {
+    p3N1.Rotate(angle, rot);
+  }
+
+  // We now have what we need. Compute the emission angles for nucleon #1 relative to the
+  // 3-momentum transfer in the rest frame of the recoiling nucleon cluster.
+  double theta_N1 = p3N1.Theta();
+
+  // Default model (used by all current GENIE MEC implementations) is to decay
+  // the recoiling nucleon cluster isotropically. The alternate model is to
+  // decay it according to the shape of Legendre Polynomials. The tweak dial linearly
+  // interpolates between purely isotropic (0) and purely the alternate distribution (1).
+
+  // Since the arguments of P_l(x) with l /geq 0 and |x| \leg 1, but theta_N1 \in [0, \Pi],
+  // the angle is divided by \Pi/2 and subtracted by 1 such that the argument of P_l(x) is
+  // within [-1,1]. The factor 3 is to enhance the effect of the reweighting as P_l(x) < 1.
+
+  double weight = CalcWeightDecayAngMECLegendre(theta_N1, twk_dial, twk_dial2, twk_dial3, twk_dial4, twk_dial5, twk_dial6);
+
+  return weight;
+}
+//_______________________________________________________________________________________
+double GReWeightXSecMEC::CalcWeightPN(const genie::EventRecord& event)
 {
   // Only handle CC events for now (and return unit weight for the others)
   // TODO: Add capability to tweak nucleon pair isospin for NC, EM
@@ -409,8 +658,7 @@ double GReWeightXSecMEC::CalcWeightPNDelta(const genie::EventRecord& event)
 
   // If the tweak dial is set to zero (or is really small) then just return a
   // weight of unity
-  bool tweaked = ( std::abs(fFracPN_CCTwkDial) > controls::kASmallNum
-    || std::abs(fFracDelta_CCTwkDial) > controls::kASmallNum );
+  bool tweaked = std::abs( fFracPN_CCTwkDial ) > controls::kASmallNum;
   if ( !tweaked ) return 1.;
 
   // Enforce that the current event involves an initial nucleon cluster.
@@ -424,30 +672,18 @@ double GReWeightXSecMEC::CalcWeightPNDelta(const genie::EventRecord& event)
   // Whether the current event involved an initial pn nucleon cluster
   bool is_pn_event = ( two_nuc_pdg == kPdgClusterNP );
 
-  // Whether the current event involved a virtual delta resonance
-  // (currently only used by the Valencia model). If this is the
-  // case, then a resonance will be set in the interaction.
-  bool is_delta_event = event.Summary()->ExclTag().KnownResonance();
-
   // Calculate the model's default fraction of initial pn pairs. For empirical
   // MEC, this is just a fixed number from the configuration. For Valencia, it's
   // dependent on the kinematics, so we'll need to compute ratios of
   // differential cross sections.
   double pn_frac_def = 0.;
 
-  // Also calculate the model's default fraction of internal deltas. This
-  // is only used by the Valencia model for now.
-  double delta_frac_def = 0.;
-
   std::string cc_def_alg_name = fXSecAlgCCDef->Id().Name();
+
   if ( cc_def_alg_name == "genie::EmpiricalMECPXSec2015" ) {
     // For GENIE's empirical MEC model, the pn fraction is not dependent on
     // kinematics. We can just retrieve the value from the model configuration.
     pn_frac_def = fXSecAlgCCDef->GetConfig().GetDouble( "EmpiricalMEC-FracPN_CC" );
-    // The empirical MEC model doesn't account for internal delta resonances
-    // explicitly. We've set the default delta fraction to zero above, but just in
-    // case, let's repeat that here.
-    delta_frac_def = 0.;
   }
   else if ( cc_def_alg_name == "genie::NievesSimoVacasMECPXSec2016" ) {
     // For the Valencia MEC model, the pn fraction can vary with q0 and q3. We
@@ -458,7 +694,7 @@ double GReWeightXSecMEC::CalcWeightPNDelta(const genie::EventRecord& event)
 
     // Get the differential cross section for an initial pn pair and the total
     // for all pair types (this is how the Valencia calculation is organized in
-    // GENIE). Note that the that the Valencia MEC model works in the kPSTlctl
+    // GENIE). Note that the Valencia MEC model works in the kPSTlctl
     // phase space. Clone the input interaction so that we can modify
     // the PDG code of the initial nucleon cluster.
     Interaction* interaction = new Interaction( *event.Summary() );
@@ -478,88 +714,58 @@ double GReWeightXSecMEC::CalcWeightPNDelta(const genie::EventRecord& event)
     interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( 0 );
     double xsec_tot = fXSecAlgCCDef->XSec( interaction, kPSTlctl );
 
-    // Get the total differential cross section for an internal resonance
-    interaction->ExclTagPtr()->SetResonance( kP33_1232 );
-    double xsec_tot_delta = fXSecAlgCCDef->XSec( interaction, kPSTlctl );
-
-    // Get the differential cross section for an internal resonance and an
-    // initial pn pair (the resonance is still set)
-    interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( kPdgClusterNP );
-    double xsec_pn_delta = fXSecAlgCCDef->XSec( interaction, kPSTlctl );
-
     // We don't need the cloned interaction anymore, so delete it
     delete interaction;
 
     assert( xsec_tot > 0. );
     pn_frac_def = xsec_pn / xsec_tot;
-
-    // Compute the delta fraction appropriate for the initial nucleon cluster
-    // type sampled in this event. This allows us to maintain consistency when
-    // potentially tweaking both the pn fraction and delta fraction.
-    if ( is_pn_event ) {
-      assert( xsec_pn > 0. );
-      delta_frac_def = xsec_pn_delta / xsec_pn;
-    }
-    else {
-      double xsec_nn = xsec_tot - xsec_pn;
-      double xsec_nn_delta = xsec_tot_delta - xsec_pn_delta;
-      assert( xsec_nn > 0. );
-      delta_frac_def = xsec_nn_delta / xsec_nn;
-    }
-
   }
   else if ( cc_def_alg_name == "genie::SuSAv2MECPXSec" ) {
-    // TODO: actually implement this
-    LOG("ReW", pWARN) << "MEC pn reweighting for SuSAv2 not yet implemented";
-    return 1.;
+    // Clone the input interaction so that we can modify the PDG code of the
+    // initial nucleon cluster.
+    Interaction* interaction = new Interaction( *event.Summary() );
+
+    // Get the pn-pair fraction of the default model prediction (SuSAv2)
+    pn_frac_def = dynamic_cast< const genie::SuSAv2MECPXSec* >( fXSecAlgCCDef )->PairRatio( interaction );
+
+    // We don't need the cloned interaction anymore, so delete it
+    delete interaction;
+  }
+  else if ( cc_def_alg_name == "genie::MartiniEricsonChanfrayMarteauMECPXSec2024" ) {
+    // Clone the input interaction so that we can modify the PDG code of the
+    // initial nucleon cluster.
+    Interaction* interaction = new Interaction( *event.Summary() );
+
+    // Get the pn-pair fraction of the default model prediction
+    // (Martini-Ericson-Chanfray-Marteau)
+    pn_frac_def = dynamic_cast< const genie::MartiniEricsonChanfrayMarteauMECPXSec2024* >( fXSecAlgCCDef )->PairRatio( interaction );
+
+    // We don't need the cloned interaction anymore, so delete it
+    delete interaction;
   }
   else {
     LOG("ReW", pERROR) << "Unrecognized MEC model " << cc_def_alg_name
-      << " encountered in genie::rew::GReWeightXSecMEC::CalcWeightPNDelta()";
+      << " encountered in genie::rew::GReWeightXSecMEC::CalcWeightPN()";
     return 1.;
   }
 
-  // Relax these sanity checks for now. Interpolation of the hadron tensors
-  // can allow the pn or delta fraction to move a bit above one. Just
-  // force it to be on [0, 1] instead of returning a unit weight.
-
-  //// Check that the pn fraction computed above is sane. If not, complain and
-  //// return a unit weight.
-  //bool impossible_pp_or_nn_event = ( pn_frac_def == 1. && !is_pn_event );
-  //if ( pn_frac_def < 0. || pn_frac_def > 1. || impossible_pp_or_nn_event ) {
-  //  LOG("ReW", pERROR) << "Invalid pn fraction value " << pn_frac_def
-  //    << " encountered in genie::rew::GReWeightXSecMEC::CalcWeightPNDelta()";
-  //  return 1.;
-  //}
-
-  //// Do the same for the delta fraction.
-  //bool impossible_delta_event = ( delta_frac_def == 1. && !is_delta_event );
-  //if ( delta_frac_def < 0. || delta_frac_def > 1. || impossible_delta_event ) {
-  //  LOG("ReW", pERROR) << "Invalid delta fraction value " << delta_frac_def
-  //    << " encountered in genie::rew::GReWeightXSecMEC::CalcWeightPNDelta()";
-  //  return 1.;
-  //}
-
-  // Force the default fractions to be on the interval [0, 1] for sanity's sake.
-  // This will counteract interpolation problems.
+  // Force the default pn fraction to be on the interval [0, 1] for sanity's
+  // sake. This will counteract interpolation problems.
   pn_frac_def = std::max( std::min(1., pn_frac_def), 0. );
-  delta_frac_def = std::max( std::min(1., delta_frac_def), 0. );
 
   // TODO: add support for asymmetric errors here
   GSystUncertainty* gsu = GSystUncertainty::Instance();
   double frac_err_pn_cc = gsu->OneSigmaErr( kXSecTwkDial_FracPN_CCMEC );
-  double frac_err_delta_cc = gsu->OneSigmaErr( kXSecTwkDial_FracDelta_CCMEC );
 
   // Compute the scaling factor for the pn fraction that corresponds to the
   // current tweak dial setting
   double pn_tweak_factor = ( 1. + fFracPN_CCTwkDial * frac_err_pn_cc );
-  double delta_tweak_factor = ( 1. + fFracDelta_CCTwkDial * frac_err_delta_cc );
 
   // To conserve the total cross section (which is separately controlled by the
   // normalization tweak dials), enforce that the tweaked pn fraction lies on
-  // the interval [0, 1]. Do the same for the delta fraction.
-  double pn_frac_tweak = std::max( std::min(1., pn_frac_def * pn_tweak_factor), 0. );
-  double delta_frac_tweak = std::max( std::min(1., delta_frac_def * delta_tweak_factor), 0. );
+  // the interval [0, 1].
+  double pn_frac_tweak = std::max(
+    std::min( 1., pn_frac_def * pn_tweak_factor ), 0. );
 
   // Assign the appropriate likelihood ratio as the weight. Note that
   // we've already checked that pn_frac_def lies in a reasonable range
@@ -568,32 +774,257 @@ double GReWeightXSecMEC::CalcWeightPNDelta(const genie::EventRecord& event)
   if ( is_pn_event ) weight = pn_frac_tweak / pn_frac_def;
   else weight = ( 1. - pn_frac_tweak ) / ( 1. - pn_frac_def );
 
-  // Also multiply by the tweaked delta fraction
-  if ( is_delta_event ) weight *= delta_frac_tweak / delta_frac_def;
-  else weight *= ( 1. - delta_frac_tweak ) / ( 1. - delta_frac_def );
-
   LOG("ReW", pDEBUG) << "pn_twk_dial = " << fFracPN_CCTwkDial << ", frac_err = "
     << frac_err_pn_cc;
   LOG("ReW", pDEBUG) << "pn_frac_def = " << pn_frac_def << ", pn_frac_tweak = "
-    << pn_frac_tweak;
-  LOG("ReW", pDEBUG) << "delta_twk_dial = " << fFracDelta_CCTwkDial << ", frac_err = "
-    << frac_err_delta_cc;
-  LOG("ReW", pDEBUG) << "delta_frac_def = " << delta_frac_def << ", delta_frac_tweak = "
-    << delta_frac_tweak << ", weight = " << weight;
+    << pn_frac_tweak << ", weight = " << weight;
 
   return weight;
 }
 //_______________________________________________________________________________________
+// CCMEC differential cross-section shape dials
+//
+// Three dials are available. Each reshapes the MEC differential cross
+// section in lepton kinematics from the default model (dial == 0) toward
+// an alternative model (dial == 1) while preserving the total xsec.
+//
+//   XSecShape_CCMEC:
+//     When originally developed for MicroBooNE, this dial was hard-coded
+//     to reweight from Valencia (Nieves) -> Empirical (see
+//     https://doi.org/10.1103/PhysRevD.105.072001 for details)
+//
+//     Now it selects the alternate model dynamically based on the default:
+//       SuSAv2   -> Valencia (Nieves)
+//       Valencia -> SuSAv2
+//       Martini  -> SuSAv2
+//     Users who want the older behavior can use XSecShape_CCMEC_Empirical.
+//
+//   XSecShape_CCMEC_Empirical:
+//     Default -> Empirical (regardless of which model is default).
+//
+//   XSecShape_CCMEC_Martini:
+//       Valencia (Nieves) -> Martini
+//       SuSAv2 -> Martini
+//       Martini -> Valencia (Nieves)
+// -----------------------------------------------------------------
 double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
 {
+  // The XSecShape_CCMEC parameter reweights from the default SuSAv2 CCMEC
+  // model to the Valencia CCMEC model or vice versa in case a tune with
+  // the Valencia CCMEC cross section model is used as input. If the default
+  // is the Martini-Ericson-Chanfray-Marteau CCMEC model, weights for the re-
+  // weighting to the SuSAv2 CCMEC model are computed.
+
   // Only handle CC events for now (and return unit weight for the others)
   // TODO: Add capability to tweak the shape for NC and EM
   InteractionType_t type = event.Summary()->ProcInfo().InteractionTypeId();
   if ( type != kIntWeakCC ) return 1.;
 
   // Only tweak dial values on the interval [0, 1] make sense for this
-  // knob. Enforce this here regardless of what the user requested.
+  // knob (0 is pure default model shape; 1 is pure alternate model shape).
+  // Enforce this here regardless of what the user requested.
   double twk_dial = std::max( std::min(1., fCCXSecShapeTwkDial), 0. );
+
+  // If the tweak dial is set to zero (or is really small) then just return a
+  // weight of unity
+  bool tweaked = ( std::abs(twk_dial) > controls::kASmallNum );
+  if ( !tweaked ) return 1.;
+
+  // Compute the probability density for generating the selected kinematics
+  // under the default cross section model
+  // TODO: add check that the default model predictions match those stored
+  // in the event record
+
+  // Clone the input interaction so that we can clear the set nucleon cluster
+  // PDG code and resonance flags. The total cross section stored in the
+  // event record for the Valencia model includes all contributions.
+  Interaction* interaction = new Interaction( *event.Summary() );
+
+  // Double-check that the running value of the lepton kinetic energy
+  // is set in the input interaction. If it isn't, set it manually
+  // using the lepton 4-momentum.
+  genie::Kinematics* kine_ptr = interaction->KinePtr();
+  if ( !kine_ptr->KVSet(kKVTl) ) {
+
+    // Final lepton mass
+    double ml = interaction->FSPrimLepton()->Mass();
+    // Final lepton 4-momentum
+    const TLorentzVector& p4l = kine_ptr->FSLeptonP4();
+    // Final lepton kinetic energy
+    double Tl = p4l.E() - ml;
+    // Final lepton scattering cosine
+    double ctl = p4l.CosTheta();
+
+    kine_ptr->SetKV( kKVTl, Tl );
+    kine_ptr->SetKV( kKVctl, ctl );
+
+  }
+
+  // The 3-momentum transfer is limited to q3 < 1.2 GeV in the Valencia model
+  // (Reference: https://journals.aps.org/prd/pdf/10.1103/PhysRevD.88.113007).
+  // If the default  model differential cross section is outside this region
+  // of phase space, the alternative model differential cross section is 0, so
+  // the resulting weight is 1 - twk_dial. This way, the reweighted
+  // distribution interpolates naturally according to the phase-space
+  // limitations of the alternative model.
+
+  // Double-check that the running value of the momentum transfer
+  // is set in the input interaction. If it isn't, set it manually
+  // using the lepton 4-momentum.
+
+  if ( !kine_ptr->KVSet(kKVQ0) ) {
+
+    // Final lepton 4-momentum
+    const TLorentzVector& p4l = kine_ptr->FSLeptonP4();
+    // Final lepton total energy
+    double El = p4l.E();
+    // Probe 4-momentum
+    const InitialState& init_state = interaction->InitState();
+    TLorentzVector* p4v = init_state.GetProbeP4( kRfLab );
+    // Probe total energy
+    double Ev = p4v->E();
+    // Energy transfer
+    double q0 = Ev - El;
+    // Magnitude of the momentum transfer
+    double q3 = ( (*p4v) - p4l ).Vect().Mag();
+
+    kine_ptr->SetKV( kKVQ0, q0 );
+    kine_ptr->SetKV( kKVQ3, q3 );
+
+  }
+
+  // Get the differential and total cross section for the default
+  // MEC model (including contributions from both kinds of
+  // initial nucleon clusters and both kinds of diagrams)
+  // Save the hit nucleon cluster PDG code (we'll need to set it again
+  // for the alternate model NievesSimoVacasMECPXSec2016)
+  int hit_nuc_pdg = interaction->InitState().Tgt().HitNucPdg();
+  interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( 0 );
+  interaction->ExclTagPtr()->SetResonance( kNoResonance );
+  double diff_xsec_def = fXSecAlgCCDef->XSec( interaction,
+    kPSTlctl);
+  double tot_xsec_def = event.XSec();
+  double prob_density_def = diff_xsec_def / tot_xsec_def;
+
+  //double check_tot_xsec_def = fXSecAlgCCDef->Integral( interaction );
+  //LOG("ReW", pDEBUG) << "check_tot_xsec_def = " << check_tot_xsec_def;
+
+  // Get the names of the CCMEC cross section default and alternate models
+  std::string cc_def_alg_name = fXSecAlgCCDef->Id().Name();
+  std::string cc_alt_alg_name = fXSecAlgCCAlt_Nieves->Id().Name();
+  std::string cc_def_alg_config = fXSecAlgCCDef->Id().Config();
+  std::string cc_alt_alg_config = fXSecAlgCCAlt_Nieves->Id().Config();
+  std::string cc_alt2_alg_name = fXSecAlgCCAlt_SuSAv2->Id().Name();
+
+  // Set the hit nucleon cluster PDG code to its sampled value
+  // (empirical MEC needs it)
+  // Note: In order for this code to be more flexible, the if-condition
+  // makes sure that in case either fXSecAlgCCAlt_Nieves or fXSecAlgCCAlt_SuSAv2
+  // is set to "genie::EmpiricalMECPXSec2015", one can still use the XSecShape_CCMEC
+  // parameter. However, to reweight to the Empirical CCMEC model, the
+  // XSecShape_Empirical_CCMEC parameter was added, so that one can
+  // reweight to two models simultaneously and also in order to not
+  // having to change the hard-coded part of the code.
+  if ( ( cc_def_alg_name == "genie::SuSAv2MECPXSec" && cc_alt_alg_name == "genie::EmpiricalMECPXSec2015" )
+    || ( cc_def_alg_name == "genie::NievesSimoVacasMECPXSec2016" && cc_alt2_alg_name == "genie::EmpiricalMECPXSec2015" )
+    || ( cc_def_alg_name == "genie::MartiniEricsonChanfrayMarteauMECPXSec2024" && cc_alt2_alg_name == "genie::EmpiricalMECPXSec2015" ) ) {
+    interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( hit_nuc_pdg );
+  }
+
+  //// The empirical MEC differential cross section doesn't check the
+  //// kinematic limits imposed by MECGenerator, so enforce them here.
+  //// If we're outside, then don't bother calculating the alternative
+  //// model differential cross section.
+  //double diff_xsec_alt = 0.;
+  //Range1D_t rW = getWLimitsEmpiricalMEC();
+  //Range1D_t rQ2 = getQ2LimitsEmpiricalMEC();
+
+  //double W = interaction->Kine().W();
+  //double Q2 = interaction->Kine().Q2();
+
+  //LOG("RwMEC", pERROR) << "NIEVES: W = " << W << ", Q2 = " << Q2;
+  //if ( rW.min <= W && rW.max >= W && rQ2.min <= Q2 && rQ2.max >= Q2 ) {
+
+  // If none of the following if statements are true, that means that the
+  // input tune does not have the SuSAv2 or Valencia model as its default
+  // CCMEC cross section model. In this case, just return a weight of 1 as
+  // there are currently no plans to have either model as the default model.
+  double diff_xsec_alt = diff_xsec_def;
+  double tot_xsec_alt = tot_xsec_def;
+
+  if ( cc_def_alg_name == "genie::SuSAv2MECPXSec" ) {
+    // If the SuSAv2 model is the default CCMEC cross section model from the
+    // input tune, compute the differential and total cross section of GENIE's
+    // Valencia MEC (alternative) model.
+
+    diff_xsec_alt = fXSecAlgCCAlt_Nieves->XSec( interaction, kPSTlctl );
+    tot_xsec_alt = this->GetXSecIntegral( fXSecAlgCCAlt_Nieves, interaction );
+  }
+  else if ( cc_def_alg_name == "genie::NievesSimoVacasMECPXSec2016" ) {
+    // If the Valencia model is the default CCMEC cross section model from the
+    // input tune, compute the differential and total cross section of GENIE's
+    // SuSAv2 MEC (alternative) model.
+
+    diff_xsec_alt = fXSecAlgCCAlt_SuSAv2->XSec( interaction, kPSTlctl );
+    tot_xsec_alt = this->GetXSecIntegral( fXSecAlgCCAlt_SuSAv2, interaction );
+  }
+  else if ( cc_def_alg_name == "genie::MartiniEricsonChanfrayMarteauMECPXSec2024" ) {
+    // If the Martini-Ericson-Chanfray-Marteau model is the default CCMEC cross section
+    // model from the input tune, compute the differential and total cross section of GENIE's
+    // SuSAv2 MEC (alternative) model.
+
+    diff_xsec_alt = fXSecAlgCCAlt_SuSAv2->XSec( interaction, kPSTlctl );
+    tot_xsec_alt = this->GetXSecIntegral( fXSecAlgCCAlt_SuSAv2, interaction );
+  }
+  else {
+    // If the Empirical or any other model is the default CCMEC cross section
+    // model from the input tune, just return a weight of 1 as there are
+    // currently no plans to have either model as the default model.
+    LOG("ReW", pWARN) << "Unrecognized MEC model requested for MEC"
+      " xsec shape reweighting";
+  }
+
+  // Protect against NaNs when the total cross section for the alternative
+  // model is zero
+  if ( tot_xsec_alt == 0. ) {
+    diff_xsec_alt = 0.;
+    tot_xsec_alt = 1.;
+  }
+  double prob_density_alt = diff_xsec_alt / tot_xsec_alt;
+
+  // Compute a new probability density for this event by interpolating between
+  // the two models while preserving the total cross section
+  double tweaked_prob_density = (1. - twk_dial)*prob_density_def + twk_dial*prob_density_alt;
+
+  // The weight is then the likelihood ratio
+  double weight = tweaked_prob_density / prob_density_def;
+
+  LOG("ReW", pDEBUG) << "xsec_def = " << diff_xsec_def << ", xsec_alt = " << diff_xsec_alt;
+  LOG("ReW", pDEBUG) << "tot_xsec_def = " << tot_xsec_def << ", tot_xsec_alt = " << tot_xsec_alt;
+  LOG("ReW", pDEBUG) << "twk_dial = " << fCCXSecShapeTwkDial << ", prob_density_def = "
+    << prob_density_def << ", prob_density_alt = " << prob_density_alt << ", weight = " << weight;
+
+  // We don't need the cloned interaction anymore, so delete it
+  delete interaction;
+
+  return weight;
+}
+
+//_______________________________________________________________________________________
+double GReWeightXSecMEC::CalcWeightXSecShape_Empirical(const genie::EventRecord& event)
+{
+  // The XSecShape_CCMEC_Empirical parameter reweights from the default SuSAv2,
+  // Valencia or Martini-Ericson-Chanfray-Marteau CCMEC model to the Empirical CCMEC model.
+
+  // Only handle CC events for now (and return unit weight for the others)
+  // TODO: Add capability to tweak the shape for NC and EM
+  InteractionType_t type = event.Summary()->ProcInfo().InteractionTypeId();
+  if ( type != kIntWeakCC ) return 1.;
+
+  // Only tweak dial values on the interval [0, 1] make sense for this
+  // knob (0 is pure Valencia shape; 1 is pure GENIE empirical shape).
+  // Enforce this here regardless of what the user requested.
+  double twk_dial = std::max( std::min(1., fCCXSecShapeEmpiricalTwkDial), 0. );
 
   // If the tweak dial is set to zero (or is really small) then just return a
   // weight of unity
@@ -629,6 +1060,29 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
     kine_ptr->SetKV( kKVctl, ctl );
   }
 
+  // Double-check that the running value of the momentum transfer
+  // is set in the input interaction. If it isn't, set it manually
+  // using the lepton 4-momentum.
+  if ( !kine_ptr->KVSet(kKVQ0) ) {
+
+    // Final lepton 4-momentum
+    const TLorentzVector& p4l = kine_ptr->FSLeptonP4();
+    // Final lepton total energy
+    double El = p4l.E();
+    // Probe 4-momentum
+    const InitialState& init_state = interaction->InitState();
+    TLorentzVector* p4v = init_state.GetProbeP4( kRfLab );
+    // Probe total energy
+    double Ev = p4v->E();
+    // Energy transfer
+    double q0 = Ev - El;
+    // Magnitude of the momentum transfer
+    double q3 = ( (*p4v) - p4l ).Vect().Mag();
+
+    kine_ptr->SetKV( kKVQ0, q0 );
+    kine_ptr->SetKV( kKVQ3, q3 );
+  }
+
   // Get the differential and total cross section for the default
   // MEC model (including contributions from both kinds of
   // initial nucleon clusters and both kinds of diagrams)
@@ -637,6 +1091,7 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
   int hit_nuc_pdg = interaction->InitState().Tgt().HitNucPdg();
   interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( 0 );
   interaction->ExclTagPtr()->SetResonance( kNoResonance );
+
   double diff_xsec_def = fXSecAlgCCDef->XSec( interaction,
     kPSTlctl);
   double tot_xsec_def = event.XSec();
@@ -645,9 +1100,14 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
   //double check_tot_xsec_def = fXSecAlgCCDef->Integral( interaction );
   //LOG("ReW", pDEBUG) << "check_tot_xsec_def = " << check_tot_xsec_def;
 
+  // Get the names of the CCMEC cross section default and alternate models
+  std::string cc_def_alg_name = fXSecAlgCCDef->Id().Name();
+  std::string cc_alt3_alg_name = fXSecAlgCCAlt_Empirical->Id().Name();
   // Set the hit nucleon cluster PDG code to its sampled value
   // (empirical MEC needs it)
-  interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( hit_nuc_pdg );
+  if ( cc_alt3_alg_name == "genie::EmpiricalMECPXSec2015" ) {
+    interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( hit_nuc_pdg );
+  }
 
   //// The empirical MEC differential cross section doesn't check the
   //// kinematic limits imposed by MECGenerator, so enforce them here.
@@ -660,14 +1120,15 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
   //double W = interaction->Kine().W();
   //double Q2 = interaction->Kine().Q2();
 
-  //LOG("RwMEC", pERROR) << "NIEVES: W = " << W << ", Q2 = " << Q2;
-  //if ( rW.min <= W && rW.max >= W && rQ2.min <= Q2 && rQ2.max >= Q2 ) {
-
-  double diff_xsec_alt = fXSecAlgCCAlt->XSec( interaction, kPSTlctl );
+  // Once the CCMEC Martini model is available, just change fXSecAlgCCAlt3
+  // (reweight from SuSAv2 or Valencia to the Empirical model) to
+  // fXSecAlgCCAlt4 (reweight from SuSAv2 or Valencia to the Martini model)
+  // and this should just work
+  double diff_xsec_alt = fXSecAlgCCAlt_Empirical->XSec( interaction, kPSTlctl );
 
   //}
 
-  double tot_xsec_alt = this->GetXSecIntegral( fXSecAlgCCAlt, interaction );
+  double tot_xsec_alt = this->GetXSecIntegral( fXSecAlgCCAlt_Empirical, interaction );
 
   //LOG("RwMEC", pERROR) << "diff_xsec_alt = " << diff_xsec_alt << ", tot_xsec_alt = " << tot_xsec_alt;
 
@@ -690,7 +1151,7 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
 
   LOG("ReW", pDEBUG) << "xsec_def = " << diff_xsec_def << ", xsec_alt = " << diff_xsec_alt;
   LOG("ReW", pDEBUG) << "tot_xsec_def = " << tot_xsec_def << ", tot_xsec_alt = " << tot_xsec_alt;
-  LOG("ReW", pDEBUG) << "twk_dial = " << fCCXSecShapeTwkDial << ", prob_density_def = "
+  LOG("ReW", pDEBUG) << "twk_dial = " << fCCXSecShapeEmpiricalTwkDial << ", prob_density_def = "
     << prob_density_def << ", prob_density_alt = " << prob_density_alt << ", weight = " << weight;
 
   // We don't need the cloned interaction anymore, so delete it
@@ -699,33 +1160,521 @@ double GReWeightXSecMEC::CalcWeightXSecShape(const genie::EventRecord& event)
   return weight;
 }
 //_______________________________________________________________________________________
-double GReWeightXSecMEC::GetXSecIntegral(const XSecAlgorithmI* xsec_alg,
-  const Interaction* interaction)
+double GReWeightXSecMEC::CalcWeightXSecShape_Martini(const genie::EventRecord& event)
 {
+  // The XSecShape_CCMEC_Martini parameter reweights from the default SuSAv2 or Valencia CCMEC
+  // model to the Martini-Ericson-Chanfray-Marteau CCMEC model. If the default is the
+  // Martini-Ericson-Chanfray-Marteau CCMEC model, weights for the re-weighting to the Valencia
+  // CCMEC model are computed.
+
+  // Only handle CC events for now (and return unit weight for the others)
+  // TODO: Add capability to tweak the shape for NC and EM
+  InteractionType_t type = event.Summary()->ProcInfo().InteractionTypeId();
+  if ( type != kIntWeakCC ) return 1.;
+
+  // Only tweak dial values on the interval [0, 1] make sense for this
+  // knob (0 is pure Valencia shape; 1 is pure GENIE empirical shape).
+  // Enforce this here regardless of what the user requested.
+  double twk_dial = std::max( std::min(1., fCCXSecShapeMartiniTwkDial), 0. );
+
+  // If the tweak dial is set to zero (or is really small) then just return a
+  // weight of unity
+  bool tweaked = ( std::abs(twk_dial) > controls::kASmallNum );
+  if ( !tweaked ) return 1.;
+
+  // Compute the probability density for generating the selected kinematics
+  // under the default cross section model
+  // TODO: add check that the default model predictions match those stored
+  // in the event record
+
+  // Clone the input interaction so that we can clear the set nucleon cluster
+  // PDG code and resonance flags. The total cross section stored in the
+  // event record for the Valencia model includes all contributions.
+  Interaction* interaction = new Interaction( *event.Summary() );
+
+  // Double-check that the running value of the lepton kinetic energy
+  // is set in the input interaction. If it isn't, set it manually
+  // using the lepton 4-momentum.
+  genie::Kinematics* kine_ptr = interaction->KinePtr();
+  if ( !kine_ptr->KVSet(kKVTl) ) {
+
+    // Final lepton mass
+    double ml = interaction->FSPrimLepton()->Mass();
+    // Final lepton 4-momentum
+    const TLorentzVector& p4l = kine_ptr->FSLeptonP4();
+    // Final lepton kinetic energy
+    double Tl = p4l.E() - ml;
+    // Final lepton scattering cosine
+    double ctl = p4l.CosTheta();
+
+    kine_ptr->SetKV( kKVTl, Tl );
+    kine_ptr->SetKV( kKVctl, ctl );
+  }
+
+  // The energy and momentum transfer is limited to 5 < q0 < 995 MeV
+  // and  1 < q3 < 2000 MeV in the Martini model (Reference:
+  // https://arxiv.org/pdf/2508.13939). If the default
+  // model differential cross section is outside this region of phase
+  // space, the alternative model differential cross section is 0, so
+  // the resulting weight is 1 - twk_dial. This way, the reweighted
+  // distribution interpolates naturally according to the phase-space
+  // limitations of the alternative model.
+
+  // Double-check that the running value of the momentum transfer
+  // is set in the input interaction. If it isn't, set it manually
+  // using the lepton 4-momentum.
+  if ( !kine_ptr->KVSet(kKVQ0) ) {
+
+    // Final lepton 4-momentum
+    const TLorentzVector& p4l = kine_ptr->FSLeptonP4();
+    // Final lepton total energy
+    double El = p4l.E();
+    // Probe 4-momentum
+    const InitialState& init_state = interaction->InitState();
+    TLorentzVector* p4v = init_state.GetProbeP4( kRfLab );
+    // Probe total energy
+    double Ev = p4v->E();
+    // Energy transfer
+    double q0 = Ev - El;
+    // Magnitude of the momentum transfer
+    double q3 = ( (*p4v) - p4l ).Vect().Mag();
+
+    kine_ptr->SetKV( kKVQ0, q0 );
+    kine_ptr->SetKV( kKVQ3, q3 );
+  }
+
+  // Get the differential and total cross section for the default
+  // MEC model (including contributions from both kinds of
+  // initial nucleon clusters and both kinds of diagrams)
+  // Save the hit nucleon cluster PDG code (we'll need to set it again
+  // for the alternate model)
+  int hit_nuc_pdg = interaction->InitState().Tgt().HitNucPdg();
+  interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( 0 );
+  interaction->ExclTagPtr()->SetResonance( kNoResonance );
+
+  double diff_xsec_def = fXSecAlgCCDef->XSec( interaction,
+    kPSTlctl);
+  double tot_xsec_def = event.XSec();
+  double prob_density_def = diff_xsec_def / tot_xsec_def;
+
+  //double check_tot_xsec_def = fXSecAlgCCDef->Integral( interaction );
+  //LOG("ReW", pDEBUG) << "check_tot_xsec_def = " << check_tot_xsec_def;
+
+  // Get the names of the CCMEC cross section default and alternate models
+  std::string cc_def_alg_name = fXSecAlgCCDef->Id().Name();
+
+  std::string cc_alt_alg_name = fXSecAlgCCAlt_Nieves->Id().Name();
+  std::string cc_def_alg_config = fXSecAlgCCDef->Id().Config();
+  std::string cc_alt_alg_config = fXSecAlgCCAlt_Nieves->Id().Config();
+  std::string cc_alt2_alg_name = fXSecAlgCCAlt_SuSAv2->Id().Name();
+
+  std::string cc_alt4_alg_name = fXSecAlgCCAlt_Martini->Id().Name();
+
+  // Set the hit nucleon cluster PDG code to its sampled value
+  // (empirical MEC needs it)
+  if ( cc_alt4_alg_name == "genie::EmpiricalMECPXSec2015" ) {
+    interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( hit_nuc_pdg );
+  }
+
+  //// The empirical MEC differential cross section doesn't check the
+  //// kinematic limits imposed by MECGenerator, so enforce them here.
+  //// If we're outside, then don't bother calculating the alternative
+  //// model differential cross section.
+  //double diff_xsec_alt = 0.;
+  //Range1D_t rW = getWLimitsEmpiricalMEC();
+  //Range1D_t rQ2 = getQ2LimitsEmpiricalMEC();
+
+  //double W = interaction->Kine().W();
+  //double Q2 = interaction->Kine().Q2();
+
+  //LOG("RwMEC", pERROR) << "NIEVES: W = " << W << ", Q2 = " << Q2;
+  //if ( rW.min <= W && rW.max >= W && rQ2.min <= Q2 && rQ2.max >= Q2 ) {
+
+  // If none of the following if statements are true, that means that the
+  // input tune does not have the SuSAv2 or Valencia model as its default
+  // CCMEC cross section model. In this case, just return a weight of 1 as
+  // there are currently no plans to have either model as the default model.
+  double diff_xsec_alt = diff_xsec_def;
+  double tot_xsec_alt = tot_xsec_def;
+
+  if ( cc_def_alg_name == "genie::SuSAv2MECPXSec" || cc_def_alg_name == "genie::NievesSimoVacasMECPXSec2016" ) {
+    // If the SuSAv2 or Valencia model is the default CCMEC cross section model from the
+    // input tune, compute the differential and total cross section of GENIE's
+    // Martini-Ericson-Chanfray-Marteau MEC (alternative) model
+
+    diff_xsec_alt = fXSecAlgCCAlt_Martini->XSec( interaction, kPSTlctl );
+    tot_xsec_alt = this->GetXSecIntegral( fXSecAlgCCAlt_Martini, interaction );
+  }
+  else if ( cc_def_alg_name == "genie::MartiniEricsonChanfrayMarteauMECPXSec2024" ) {
+    // If the Martini-Ericson-Chanfray-Marteau model is the default CCMEC cross section model from the
+    // input tune, compute the differential and total cross section of GENIE's
+    // Valencia MEC (alternative) model
+
+    diff_xsec_alt = fXSecAlgCCAlt_Nieves->XSec( interaction, kPSTlctl );
+    tot_xsec_alt = this->GetXSecIntegral( fXSecAlgCCAlt_Nieves, interaction );
+  }
+  else {
+    // If the Empirical or any other model is the default CCMEC cross section model
+    // from the input tune, just return a weight of 1 as there are currently no
+    // plans to have any other model as the default model.
+
+    LOG("ReW", pWARN) << "MEC xsecshape reweighting for other CCMEC models but Valencia, SuSAv2 or Martini model not implemented";
+  }
+
+  //LOG("RwMEC", pERROR) << "diff_xsec_alt = " << diff_xsec_alt << ", tot_xsec_alt = " << tot_xsec_alt;
+
+  //if ( tot_xsec_alt == 0. && diff_xsec_alt != 0. ) LOG("RwMEC", pERROR) << "OH NO!";
+
+  // Protect against NaNs when the total cross section for the alternative
+  // model is zero
+  if ( tot_xsec_alt == 0. ) {
+    diff_xsec_alt = 0.;
+    tot_xsec_alt = 1.;
+  }
+  double prob_density_alt = diff_xsec_alt / tot_xsec_alt;
+
+  // Compute a new probability density for this event by interpolating between
+  // the two models while preserving the total cross section
+  double tweaked_prob_density = (1. - twk_dial)*prob_density_def + twk_dial*prob_density_alt;
+
+  // The weight is then the likelihood ratio
+  double weight = tweaked_prob_density / prob_density_def;
+
+  LOG("ReW", pDEBUG) << "xsec_def = " << diff_xsec_def << ", xsec_alt = " << diff_xsec_alt;
+  LOG("ReW", pDEBUG) << "tot_xsec_def = " << tot_xsec_def << ", tot_xsec_alt = " << tot_xsec_alt;
+  LOG("ReW", pDEBUG) << "twk_dial = " << fCCXSecShapeMartiniTwkDial << ", prob_density_def = "
+    << prob_density_def << ", prob_density_alt = " << prob_density_alt << ", weight = " << weight;
+
+  // We don't need the cloned interaction anymore, so delete it
+  delete interaction;
+
+  return weight;
+}
+//_______________________________________________________________________________________
+void GReWeightXSecMEC::BuildEnergyDepRatioGraphs(const genie::EventRecord& event)
+{
+  // Renormalised cross-section ratios computed dynamically from the three MEC
+  // models (SuSAv2, Valencia, Martini).
+  // Build upper/lower uncertainty envelope graphs from all three MEC models
+  // (SuSAv2, Valencia, Martini). Each model's total xsec is normalised to
+  // agree at E_ref, then the ratio to the default model gives three curves.
+  // The upper (lower) envelope is the max (min) of the three at each energy.
+
+  LOG("ReW", pNOTICE) << "Building energy-dependence ratio graphs from MEC models...";
+
+  const double E_ref  = 10.0;  // Reference energy for normalisation (GeV)
+  const double E_min  =  0.1;  // Avoid threshold issues at exactly 0
+  const double E_max  = 10.0;
+  const double E_step =  0.025;
+  const int nPoints = static_cast<int>((E_max - E_min) / E_step) + 1;
+
+  // Create a template interaction for total xsec queries.
+  // Clone from the event summary, then clear hit nucleon and exclusive
+  // tag so that AsString() produces a clean key matching the spline files
+  // (e.g. "nu:14;tgt:1000180400;proc:Weak[CC],MEC;")
+  Interaction* interaction = new Interaction( *event.Summary() );
+  interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( 0 );
+  interaction->ExclTagPtr()->SetResonance( kNoResonance );
+
+  // Pointers to all three models
+  XSecAlgorithmI* algs[3] = { fXSecAlgCCAlt_SuSAv2,
+                               fXSecAlgCCAlt_Nieves,
+                               fXSecAlgCCAlt_Martini };
+
+  // Compute total xsec for each model at the reference energy (for normalisation)
+  interaction->InitStatePtr()->SetProbeE(E_ref);
+  double xsec_ref[3];
+  for (int m = 0; m < 3; ++m) {
+    xsec_ref[m] = this->GetXSecIntegral(algs[m], interaction);
+    if (xsec_ref[m] <= 0.) {
+      LOG("ReW", pWARN) << "Model " << m << " has zero xsec at E_ref="
+        << E_ref << " GeV. Setting to 1 to avoid division by zero.";
+      xsec_ref[m] = 1.;
+    }
+  }
+
+  // Also get the default model's xsec at the reference energy
+  double xsec_def_ref = this->GetXSecIntegral(fXSecAlgCCDef, interaction);
+  if (xsec_def_ref <= 0.) {
+    LOG("ReW", pWARN) << "Default model has zero xsec at E_ref="
+      << E_ref << " GeV. Setting to 1.";
+    xsec_def_ref = 1.;
+  }
+
+  // Compute ratios on the energy grid
+  std::vector<double> energies(nPoints);
+  std::vector<double> upper(nPoints);
+  std::vector<double> lower(nPoints);
+
+  for (int i = 0; i < nPoints; ++i) {
+    double Ev = E_min + i * E_step;
+    energies[i] = Ev;
+
+    interaction->InitStatePtr()->SetProbeE(Ev);
+
+    // Default model xsec, normalised
+    double xsec_def = this->GetXSecIntegral(fXSecAlgCCDef, interaction);
+    double xsec_def_norm = xsec_def / xsec_def_ref;
+
+    // Compute normalised ratio for each model
+    double ratio_max = 1.0;  // default ratio is 1.0
+    double ratio_min = 1.0;
+
+    for (int m = 0; m < 3; ++m) {
+      double xsec_alt = this->GetXSecIntegral(algs[m], interaction);
+      double xsec_alt_norm = xsec_alt / xsec_ref[m];
+
+      double ratio = (xsec_def_norm > 0.)
+        ? xsec_alt_norm / xsec_def_norm : 1.0;
+
+      if (ratio > ratio_max) ratio_max = ratio;
+      if (ratio < ratio_min) ratio_min = ratio;
+    }
+
+    upper[i] = ratio_max;
+    lower[i] = ratio_min;
+
+    LOG("ReW", pDEBUG) << "E=" << Ev << " GeV: lower=" << ratio_min
+      << " upper=" << ratio_max;
+  }
+
+  fEnergyDepUpperGraph = std::unique_ptr<TGraph>(
+    new TGraph(nPoints, energies.data(), upper.data()));
+  fEnergyDepLowerGraph = std::unique_ptr<TGraph>(
+    new TGraph(nPoints, energies.data(), lower.data()));
+
+  fEnergyDepRatioInitialized = true;
+
+  delete interaction;
+
+  LOG("ReW", pNOTICE) << "Energy-dependence ratio graphs built successfully.";
+}
+//______________________________________________________________________________________
+double GReWeightXSecMEC::CalcWeightEnergyDependence(const genie::EventRecord& event)
+{
+  // Tweak dial on [-1, 1]:
+  //   0  = default (no reweighting)
+  //  +1  = reweight to upper uncertainty envelope
+  //  -1  = reweight to lower uncertainty envelope
+  double twk_dial = std::max( std::min(1., fEnergyDependenceTwkDial), -1. );
+
+  bool tweaked = ( std::abs(twk_dial) > controls::kASmallNum );
+  if ( !tweaked ) return 1.;
+
+  double weight = CalcWeight2p2hEnergyDependence( event );
+
+  return weight;
+}
+//_______________________________________________________________________________________
+double GReWeightXSecMEC::CalcWeight2p2hEnergyDependence(const genie::EventRecord& event)
+{
+  // Lazy initialization: build ratio graphs on first call
+  if ( !fEnergyDepRatioInitialized ) {
+    this->BuildEnergyDepRatioGraphs( event );
+  }
+
+  GHepParticle* neutrino = event.Particle( 0 );
+  double E_nu = neutrino->E();
+
+  // Clamp energy to the graph range [0.1, 10.0]
+  const double E_min = 0.1;
+  const double E_max = 10.0;
+  double E_eval = std::max( E_min, std::min( E_max, E_nu ) );
+
+  // Look up upper and lower envelope ratios at this energy
+  double r_upper = fEnergyDepUpperGraph->Eval(E_eval);
+  double r_lower = fEnergyDepLowerGraph->Eval(E_eval);
+
+  double twk_dial = std::max( std::min(1., fEnergyDependenceTwkDial), -1. );
+
+  // Interpolate: dial > 0 moves toward upper envelope,
+  //              dial < 0 moves toward lower envelope
+  double weight = 1.;
+  if ( twk_dial >= 0. ) {
+    weight = 1. + twk_dial * (r_upper - 1.);
+  } else {
+    weight = 1. - twk_dial * (r_lower - 1.);
+  }
+
+  return weight;
+}
+//_______________________________________________________________________________________
+double GReWeightXSecMEC::CalcWeightDecayAngMECLegendre(double theta_rad, double twk_dial, double twk_dial2, double twk_dial3, double twk_dial4, double twk_dial5, double twk_dial6)
+{
+  double costheta = std::cos(theta_rad);
+  double weight = 1.;
+
+  std::vector<double> twk_dials = {twk_dial, twk_dial2, twk_dial3, twk_dial4, twk_dial5, twk_dial6};
+
+  for( size_t i = 0; i < twk_dials.size(); ++i ){
+    int l = i + 1; // l in P_l(costheta) determines the Legendre-Polynomial
+    double P_l = gsl_sf_legendre_Pl( l, costheta );
+    weight += twk_dials[i] * P_l;
+  }
+
+  return weight;
+}
+//_______________________________________________________________________________________
+double GReWeightXSecMEC::GetXSecIntegral(
+  const XSecAlgorithmI* xsec_alg, const Interaction* interaction)
+{
+  // Search all loaded tunes for a matching spline. Falls back to
+  // numerical integration if no spline is found in any tune.
+
   double xsec = 0.;
+  bool spline_computed = false;
 
   XSecSplineList* xssl = XSecSplineList::Instance();
   assert( xssl );
 
-  // First check if a total cross section spline is already available
-  // for the requested cross section model and interaction. If it is,
-  // use it to get the integrated cross section.
-  std::string curr_tune = xssl->CurrentTune();
-  bool spline_computed = xssl->HasSplineFromTune( curr_tune )
-    && xssl->SplineExists( xsec_alg, interaction );
+  std::string orig_tune = xssl->CurrentTune();
+  std::vector< std::string > tunes = xssl->GetLoadedTunes();
+
+  for ( const auto& curr_tune : tunes ) {
+    xssl->SetCurrentTune( curr_tune );
+    spline_computed = xssl->HasSplineFromTune( curr_tune )
+      && xssl->SplineExists( xsec_alg, interaction );
+    if ( spline_computed ) {
+      const Spline* spl = xssl->GetSpline( xsec_alg, interaction );
+      double Ev = interaction->InitState().ProbeE( kRfLab );
+      if ( spl->ClosestKnotValueIsZero(Ev, "-") ) xsec = 0.;
+      else xsec = spl->Evaluate(Ev);
+
+      LOG("ReW", pDEBUG) << "Found spline for " << xsec_alg->Id().Key()
+        << " in tune " << curr_tune;
+
+      // We found the spline, so exit the loop over tunes
+      break;
+    }
+  }
+
+  // Reset the current tune back to the original before returning a result
+  xssl->SetCurrentTune( orig_tune );
+
   if ( spline_computed ) {
-    const Spline* spl = xssl->GetSpline( xsec_alg, interaction );
-    double Ev = interaction->InitState().ProbeE( kRfLab ); // kRfHitNucRest?
-    if ( spl->ClosestKnotValueIsZero(Ev, "-") ) xsec = 0.;
-    else xsec = spl->Evaluate( Ev );
+    return xsec;
   }
-  // If not, fall back to doing the integration directly
+
+  LOG("ReW", pDEBUG) << "No spline found for " << xsec_alg->Id().Key()
+    << " in any loaded tune. Falling back to numerical integration.";
+  return xsec_alg->Integral( interaction );
+}
+//_______________________________________________________________________________________
+double GReWeightXSecMEC::CalcWeightInternalDelta(const genie::EventRecord& event)
+{
+  // Only handle CC events for now (and return unit weight for the others)
+  // TODO: Revisit when a similar treatment is implemented for NC or EM MEC
+  InteractionType_t type = event.Summary()->ProcInfo().InteractionTypeId();
+  if ( type != kIntWeakCC ) return 1.;
+
+  // If the tweak dial is set to zero (or is really small) then just return a
+  // weight of unity
+  bool tweaked = std::abs( fFracDelta_CCTwkDial ) > controls::kASmallNum;
+  if ( !tweaked ) return 1.;
+
+  // The only GENIE CC MEC treatment that currently distinguishes between
+  // diagrams with/without an internal Δ line is the Valencia model. For
+  // all other models, return a unit weight.
+  std::string cc_def_alg_name = fXSecAlgCCDef->Id().Name();
+  if ( cc_def_alg_name != "genie::NievesSimoVacasMECPXSec2016" ) return 1.;
+
+  // Enforce that the current event involves an initial nucleon cluster.
+  // Determine whether the cluster is p+n
+  GHepParticle* initial_nucleon_cluster = event.HitNucleon();
+  assert( initial_nucleon_cluster );
+
+  int two_nuc_pdg = initial_nucleon_cluster->Pdg();
+  assert( pdg::Is2NucleonCluster(two_nuc_pdg) );
+
+  // Whether the current event involved an initial pn nucleon cluster
+  bool is_pn_event = ( two_nuc_pdg == kPdgClusterNP );
+
+  // Whether the current event involved a virtual Δ resonance
+  // (currently only used by the Valencia model). If this is the
+  // case, then a resonance will be set in the interaction.
+  bool is_delta_event = event.Summary()->ExclTag().KnownResonance();
+
+  // Calculate the default fraction of internal Δ baryons for the selected
+  // lepton kinematics in the event.
+  double delta_frac_def = 0.;
+
+  // Get the differential cross section for an initial pn pair and the total
+  // for all pair types (this is how the Valencia calculation is organized in
+  // GENIE). Note that the Valencia MEC model works in the kPSTlctl
+  // phase space. Clone the input interaction so that we can modify
+  // the PDG code of the initial nucleon cluster.
+  Interaction* interaction = new Interaction( *event.Summary() );
+
+  // TODO: When NC and/or EM interactions are added for Valencia, generalize
+  // this for use those. Unlike CC, all three pair types can participate in
+  // NC & EM.
+
+  // Get the differential cross section for an initial pn pair. Clear any
+  // set resonance so that we get the total differential cross section.
+  interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( kPdgClusterNP );
+  interaction->ExclTagPtr()->SetResonance( kNoResonance );
+  double xsec_pn = fXSecAlgCCDef->XSec( interaction, kPSTlctl );
+
+  // Get the total differential cross section (the resonance is still
+  // cleared)
+  interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( 0 );
+  double xsec_tot = fXSecAlgCCDef->XSec( interaction, kPSTlctl );
+
+  // Get the total differential cross section for an internal resonance
+  interaction->ExclTagPtr()->SetResonance( kP33_1232 );
+  double xsec_tot_delta = fXSecAlgCCDef->XSec( interaction, kPSTlctl );
+
+  // Get the differential cross section for an internal resonance and an
+  // initial pn pair (the resonance is still set)
+  interaction->InitStatePtr()->TgtPtr()->SetHitNucPdg( kPdgClusterNP );
+  double xsec_pn_delta = fXSecAlgCCDef->XSec( interaction, kPSTlctl );
+
+  // We don't need the cloned interaction anymore, so delete it
+  delete interaction;
+
+  // Compute the Δ fraction appropriate for the initial nucleon cluster
+  // type sampled in this event. This allows us to maintain consistency when
+  // potentially tweaking both the pn fraction and Δ fraction.
+  if ( is_pn_event ) {
+    assert( xsec_pn > 0. );
+    delta_frac_def = xsec_pn_delta / xsec_pn;
+  }
   else {
-    xsec = xsec_alg->Integral( interaction );
+    double xsec_nn = xsec_tot - xsec_pn;
+    double xsec_nn_delta = xsec_tot_delta - xsec_pn_delta;
+    assert( xsec_nn > 0. );
+    delta_frac_def = xsec_nn_delta / xsec_nn;
   }
 
-  LOG("ReW", pDEBUG) << "MECshape spline check: "
-    << ( spline_computed ? "found" : "not found" );
+  // Force the default Δ fraction to be on the interval [0, 1] for sanity's
+  // sake. This will counteract interpolation problems.
+  delta_frac_def = std::max( std::min(1., delta_frac_def), 0. );
 
-  return xsec;
+  // TODO: add support for asymmetric errors here
+  GSystUncertainty* gsu = GSystUncertainty::Instance();
+  double frac_err_delta_cc = gsu->OneSigmaErr( kXSecTwkDial_FracDelta_CCMEC );
+
+  // Compute the scaling factor for the Δ fraction that corresponds to the
+  // current tweak dial setting
+  double delta_tweak_factor = ( 1. + fFracDelta_CCTwkDial * frac_err_delta_cc );
+
+  // To conserve the total cross section (which is separately controlled by the
+  // normalization tweak dials), enforce that the tweaked Δ fraction lies on
+  // the interval [0, 1].
+  double delta_frac_tweak = std::max(
+    std::min( 1., delta_frac_def * delta_tweak_factor ), 0. );
+
+  // Assign the appropriate likelihood ratio as the weight. Note that
+  // we've already checked that delta_frac_def lies in a reasonable range
+  // above, so we can divide as shown without worrying about NaNs.
+  double weight;
+  if ( is_delta_event ) weight = delta_frac_tweak / delta_frac_def;
+  else weight = ( 1. - delta_frac_tweak ) / ( 1. - delta_frac_def );
+
+  LOG("ReW", pDEBUG) << "delta_twk_dial = " << fFracDelta_CCTwkDial
+    << ", frac_err = " << frac_err_delta_cc;
+  LOG("ReW", pDEBUG) << "delta_frac_def = " << delta_frac_def
+    << ", delta_frac_tweak = " << delta_frac_tweak << ", weight = " << weight;
+
+  return weight;
 }

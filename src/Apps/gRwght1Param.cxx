@@ -21,6 +21,7 @@
           [--seed random_number_seed]
           [--message-thresholds xml_file]
           [--event-record-print-level level]
+          [--cross-sections spline_file1,...]
 
          where
          [] is an optional argument.
@@ -64,6 +65,10 @@
             Allows users to customize the message stream thresholds.
             The thresholds are specified using an XML file.
             See $GENIE/config/Messenger.xml for the XML schema.
+         --cross-sections spline_file1,...
+            Specifies one or more cross-section spline XML files that should
+            be loaded before evaluating event weights. File names are separated
+            from each other by commas.
 
 \author  Jim Dobson
          Imperial College London
@@ -98,6 +103,7 @@
 #include "Framework/ParticleData/PDGCodes.h"
 #include "Framework/ParticleData/PDGCodeList.h"
 #include "Framework/Utils/XSecSplineList.h"
+#include "Framework/Utils/StringUtils.h"
 #include "Framework/Utils/AppInit.h"
 #include "Framework/Utils/RunOpt.h"
 #include "Framework/Utils/CmdLnArgParser.h"
@@ -124,6 +130,7 @@
 #include "RwCalculators/GReWeightNuXSecCCQEvec.h"
 #include "RwCalculators/GReWeightNuXSecNCRES.h"
 #include "RwCalculators/GReWeightNuXSecDIS.h"
+#include "RwCalculators/GReWeighthA2025.h"
 
 #include "RwCalculators/GReWeightINukeParams.h"
 #include "RwCalculators/GReWeightNuXSecNC.h"
@@ -267,6 +274,7 @@ int main(int argc, char ** argv)
   rw.AdoptWghtCalc( "hadro_fzone",     new GReWeightFZone           );
   rw.AdoptWghtCalc( "hadro_intranuke", new GReWeightINuke           );
   rw.AdoptWghtCalc( "hadro_agky",      new GReWeightAGKY            );
+  rw.AdoptWghtCalc( "hA_2025_cex_weight", new GReWeighthA2025       );
 
   // GReWeightDISNuclMod::CalcWeight() not implemented - don't try to use it ..
   // will return 1 if tweak dial = 0, hard fail otherwise
@@ -652,9 +660,19 @@ void GetCommandLineArgs(int argc, char ** argv)
   // Get the splines file
   if ( parser.OptionExists("cross-sections") ) {
     LOG("grwght1scan", pINFO) << "Loading cross-section splines";
-    std::string spl_file_name = parser.ArgAsString( "cross-sections" );
+    std::string spl_file_names = parser.ArgAsString( "cross-sections" );
     genie::XSecSplineList* xssl = genie::XSecSplineList::Instance();
-    xssl->LoadFromXml( spl_file_name );
+    std::vector<std::string> files = utils::str::Split(spl_file_names, ",");
+    for (size_t i = 0; i < files.size(); ++i) {
+      std::string trimmed = utils::str::TrimSpaces(files[i]);
+      LOG("grwght1scan", pINFO) << "Loading spline file: " << trimmed;
+      // NOTE: the second argument below is used to merge splines from
+      // all input files into a single list. On the first iteration,
+      // keep == true, and the contents of the spline list are reset
+      // before loading new splines from the XML file. On subsequent
+      // iterations, the new splines are added to the existing list.
+      xssl->LoadFromXml( trimmed, /*keep=*/ i > 0 );
+    }
   }
 
 }
@@ -707,7 +725,8 @@ void PrintSyntax(void)
      << "    [-o output_weights_file] \n"
      << "    [--seed random_number_seed] \n"
      << "    [--message-thresholds xml_file]\n"
-     << "    [--event-record-print-level level]\n\n\n"
+     << "    [--event-record-print-level level]\n"
+     << "    [--cross-sections spline_file1,...]\n\n\n"
      << " See the GENIE Physics and User manual for more details";
 }
 //_________________________________________________________________________________
