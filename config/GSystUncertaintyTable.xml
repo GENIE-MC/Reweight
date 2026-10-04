@@ -261,6 +261,12 @@ values for each Reweight tweak dial. All of these have default values of zero.
         form factors, added by Liang Liu -->
    <param type="double" name="ZExpELFFCCQE@PlusOneSigma"> 1.0 </param>
    <param type="double" name="ZExpELFFCCQE@MinusOneSigma"> 1.0 </param>
+
+   <!-- holistic zexp axial FF dial (GReWeightNuXSecCCQEZAFF): the weight
+        already carries the propagated covariance uncertainty, so the dial
+        scale is unity, mirroring ZExpELFFCCQE above -->
+   <param type="double" name="ZExpZAFFCCQE@PlusOneSigma"> 1.0 </param>
+   <param type="double" name="ZExpZAFFCCQE@MinusOneSigma"> 1.0 </param>
    <param type="double" name="ZExpELFFAP1CCQE@PlusOneSigma">  0.00651536  </param>
    <param type="double" name="ZExpELFFAP1CCQE@MinusOneSigma"> 0.00651536  </param>
    <param type="double" name="ZExpELFFAP2CCQE@PlusOneSigma">  0.542931    </param>
@@ -294,8 +300,8 @@ values for each Reweight tweak dial. All of these have default values of zero.
    <param type="double" name="ZExpELFFBN4CCQE@PlusOneSigma">  41.4534     </param>
    <param type="double" name="ZExpELFFBN4CCQE@MinusOneSigma"> 41.4534     </param>
 
- </param_set>
- <param_set name="CovarianceMatrix">
-   <param type="mat-double" name="ZExpELFF@CovarianceMatrix" importfile="true"> data/covariances/ELZExpFF.dat </param>
+   <param type="double" name="ZExpAFF@PlusOneSigma"> 1.0 </param>
+   <param type="double" name="ZExpAFF@MinusOneSigma"> 1.0 </param>
+
  </param_set>
 </alg_conf>

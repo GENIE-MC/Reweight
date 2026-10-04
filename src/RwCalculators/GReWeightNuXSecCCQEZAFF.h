@@ -1,10 +1,10 @@
 //____________________________________________________________________________
 /*!
 
-  \class    genie::rew::GReWeightNuXSecCCQEELFFELFF
+  \class    genie::rew::GReWeightNuXSecCCQEZAFF
 
   \brief    Reweighting CCQE GENIE neutrino cross sections
-            Z expansion vector form factor model
+            Z expansion axial form factor model
 
   \author   Liang Liu <liangliu \at fnal.gov>
   Fermi National Accelerator Laboratory
@@ -16,8 +16,8 @@
   */
 //____________________________________________________________________________
 
-#ifndef _G_REWEIGHT_NU_XSEC_CCQE_ELFF_H_
-#define _G_REWEIGHT_NU_XSEC_CCQE_ELFF_H_
+#ifndef _G_REWEIGHT_NU_XSEC_CCQE_ZAFF_H_
+#define _G_REWEIGHT_NU_XSEC_CCQE_ZAFF_H_
 
 #include <string>
 
@@ -38,14 +38,14 @@ namespace genie {
 
   namespace rew   {
 
-    class GReWeightNuXSecCCQEELFF : public GReWeightModel
+    class GReWeightNuXSecCCQEZAFF : public GReWeightModel
     {
       public:
         static const int kModeZExp             = 0;
 
-        GReWeightNuXSecCCQEELFF();
-        GReWeightNuXSecCCQEELFF(std::string model, std::string type);
-        ~GReWeightNuXSecCCQEELFF();
+        GReWeightNuXSecCCQEZAFF();
+        GReWeightNuXSecCCQEZAFF(std::string model, std::string type);
+        ~GReWeightNuXSecCCQEZAFF();
 
         // implement the GReWeightI interface
         bool   AppliesTo      (const EventRecord &event) const;
@@ -68,15 +68,17 @@ namespace genie {
         // (grwght1p --fd-delta). Must be > 0 (checked at first use).
         void SetFiniteDiffDelta (double d){ fFiniteDiffDelta = d; }
 
-        // How the xsec 1-sigma is estimated from the coefficient covariance
-        // (mirror of GReWeightNuXSecCCQEZAFF):
-        //   kSigmaPropagation - analytic error propagation (default)
-        //   kSigmaCholesky    - MC universes a' = a + L*z over the 4*Kmax
-        //                       stacked (AP,BP,AN,BN) coefficient space
+        // How the xsec 1-sigma is estimated from the coefficient covariance:
+        //   kSigmaPropagation - analytic error propagation via finite-difference
+        //                       derivatives (default; exact for the quadratic
+        //                       coefficient dependence)
+        //   kSigmaCholesky    - MC sampling: universes a' = a + L*z with L the
+        //                       Cholesky factor of the covariance, sigma = sample
+        //                       std dev of the recomputed xsec (grwghtnp-style)
         enum ESigmaEstimator { kSigmaPropagation = 0, kSigmaCholesky = 1 };
         void SetSigmaEstimator (ESigmaEstimator m){ fSigmaEstimator = m; }
-        // universes for kSigmaCholesky (default 1000, must be >= 2;
-        // driver option: grwght1p --n-universes)
+        // number of universes for kSigmaCholesky (default 1000; must be >= 2,
+        // checked at first use). Driver option: grwght1p --n-universes.
         void SetNUniverses     (int n){ fNUniverses = n; }
 
       private:
@@ -118,10 +120,7 @@ namespace genie {
           double fGmp0;
           double fGen0;
           double fGmn0;
-          std::vector<double> fZ_APn;
-          std::vector<double> fZ_BPn;
-          std::vector<double> fZ_ANn;
-          std::vector<double> fZ_BNn;
+          std::vector<double> fZ_An;
         } fZExpParaDef, fZExpPara, fZExpParaTwkDial;
         // tweek dial and scale factor in propagation method
         double fZExpTwkDial;
@@ -129,10 +128,9 @@ namespace genie {
         double fFiniteDiffDelta; ///< finite-difference step (fraction of 1-sigma) in XSecPartialDerivative
 
         // Two methods are provided to calculate the uncertainties of XSec
-        // 1. propagation of errors: it is based on grwght1p
-        // 2. Cholesky decomposition: it is based on grwghtnp
-        // fIsSinglePara/fIsAllPara placeholders retired in favour of
-        // fSigmaEstimator (see ESigmaEstimator).
+        // (see ESigmaEstimator): propagation of errors, or Cholesky-sampled
+        // universes. fIsSinglePara/fIsAllPara placeholders retired in favour
+        // of fSigmaEstimator.
         ESigmaEstimator fSigmaEstimator; ///< how GetOneSigma estimates sigma_xsec
         int             fNUniverses;     ///< universes for kSigmaCholesky
         TMatrixD        fLch;            ///< lazily-computed Cholesky factor L of error_mat
