@@ -890,6 +890,10 @@ void AdoptWeightCalcs (vector<GSyst_t> lsyst, GReWeight & rw)
     case kXSecTwkDial_NormCCMEC:
     case kXSecTwkDial_NormNCMEC:
     case kXSecTwkDial_NormEMMEC:
+    case kXSecTwkDial_DecayAngMEC:
+    case kXSecTwkDial_DecayAng2MEC:
+    case kXSecTwkDial_DecayAngMECLegendre:
+    case kXSecTwkDial_DecayAngMECLegendre2:
       if ( ! rw.WghtCalc("xsec_mec") ) {
         LOG("grwghtnp", pNOTICE) << "Adopting xsec_mec weight calc";
         rw.AdoptWghtCalc( "xsec_mec", new GReWeightXSecMEC );
@@ -911,14 +915,14 @@ void AdoptWeightCalcs (vector<GSyst_t> lsyst, GReWeight & rw)
    case kXSecTwkDial_ZExpELFF_BP2:
    case kXSecTwkDial_ZExpELFF_BP3:
    case kXSecTwkDial_ZExpELFF_BP4:
-      if(! rw.WghtCalc("xsec_ccqe_elff")){
-        LOG("grwghtnp", pNOTICE) << "Adopting xsec_ccqe zexp vector form factor";
-        rw.AdoptWghtCalc( "xsec_ccqe_elff", new GReWeightNuXSecCCQEELFF );
-      }
-      break;
-    default: // no fine-tuning needed
-    break;
-    }
+     if(! rw.WghtCalc("xsec_ccqe_elff")){
+       LOG("grwghtnp", pNOTICE) << "Adopting xsec_ccqe zexp vector form factor";
+       rw.AdoptWghtCalc( "xsec_ccqe_elff", new GReWeightNuXSecCCQEELFF );
+     }
+     break;
+   default: // no fine-tuning needed
+     break;
+   }
   }
 }
 //_________________________________________________________________________________
