@@ -1,83 +1,80 @@
 # GENIE Reweight
 
-The GENIE Reweight product is a selection of tools to propagate model uncertainties and to support generator-related 
+The GENIE Reweight product is a selection of tools to propagate model uncertainties and to support generator-related
 analysis tasks. Users should note the inherent limitations of the reweighting procedure and be aware that this product
 does not include weight calculators for several important systematics, and that important modelling aspects are not
-reweightable in principle. The GENIE Reweight product does *not* provide the full systematic error for any GENIE 
-comprehensive model or tune and, indeed, the **GENIE tuning procedure makes no use of the ReWeight product** 
+reweightable in principle. The GENIE Reweight product does *not* provide the full systematic error for any GENIE
+comprehensive model or tune and, indeed, the **GENIE tuning procedure makes no use of the ReWeight product**
 but it relies on weighting functions from brute-force parameter scans made with the aid of the Professor tool [https://professor.hepforge.org/].
 
-The GENIE Collaboration has medium-term plans to release Professor/YODA Generator response functions for all important 
+The GENIE Collaboration has medium-term plans to release Professor/YODA Generator response functions for all important
 modelling uncertainties, as well as to release all covariance matrices from the GENIE global fits to scattering data.
 In the mean time, please be aware of the numerous caveats with the use of the Reweight product.
 
 For more information, visit http://www.genie-mc.org
 
 <pre>
-                                                   .oooooo.    oooooooooooo ooooo      ooo ooooo oooooooooooo  
-                                                  d8P'  `Y8b   `888'     `8 `888b.     `8' `888' `888'     `8  
-                                                 888            888          8 `88b.    8   888   888           
-                        Ndyooym          dN      888            888oooo8     8   `88b.  8   888   888oooo8     
-                     Nds//+sdmoy       d+m       888     ooooo  888    "     8     `88b.8   888   888    "      
-                   Nh+//ohN  m+s      N//syyN    `88.    .88'   888       o  8       `888   888   888       o  
-                 Ny+//od   Nh+oN       o///+      `Y8bood8P'   o888ooooood8 o8o        `8  o888o o888ooooood8  
-               Nh+//om   Nh+/yN       o///s                                                                    
-              d+//+d   my+/smmyhN    m///h                                                           REWEIGHT    
-            Ns///yN NdyoshNNs///d   h////yN                                                                    
-           mo//om        ms///+m   d///////oyhmN                                                               
-          N+//yN       ms////+N    h////////////oym                                                         
-          s//h       ho/+///sN     N///////////////od                                                          
-         N+/h     my++yh+//y       s/////////////////oN                                                        
-         Ns/m Nmy++ymNh//+d        s//////////////////+m                                                       
-          NhssoshN  Ny//sN         m///////////////////+                                                       
-                  Nmo/+ohdmN        mo//////////////////h            NmmN                                      
-              ms/+s//o/-----:+sdN     mhso+ooys/////////o      mhs+/------/ohN                                 
-    Nhd     N+-/o+/o+------------/shN     Ndy+//////////+ mhs+:---------------om                               
-  mo/sN    m:/oo/oo:-----------------:://////////////////-----------------------y                              
-  y//d    Noo++o+:----------:------------:://///////////:-------:/+osyso/:-------h                             
-  Nyo+syysooo+/--------------::--------------:://///////:----::////+ossyso/------:                             
-     NNNNNs--------------------:/::-------------:://///:-:://////////oosyo+:------                             
-          y---------------------:////:::-----------:////////////////+o++++/:-----/                             
-          m-----------------------://////////////////////////////+so/--:---------y                             
-           +------------------------://////////////////////////+yy:---+oh/--:y+-/N                             
-           N/-------------------------://////////////////////ohy/-------yy--os-/m                              
-            No--------------------------://///////////////+shs/---------/d++/-oN                               
-              mo--------------------------:////////////+shyo:------------sy/sm                                 
-                Ny+:------------------------::://///oyhyo:--------------/sd                                    
-                    mhso+/:------------------:/+oyhyo/----------:/+syhm                                        
-                           NmddhyyyssssyyyhdmmNNNmhhhyyyyhhddmN                                                
+                                                   .oooooo.    oooooooooooo ooooo      ooo ooooo oooooooooooo
+                                                  d8P'  `Y8b   `888'     `8 `888b.     `8' `888' `888'     `8
+                                                 888            888          8 `88b.    8   888   888
+                        Ndyooym          dN      888            888oooo8     8   `88b.  8   888   888oooo8
+                     Nds//+sdmoy       d+m       888     ooooo  888    "     8     `88b.8   888   888    "
+                   Nh+//ohN  m+s      N//syyN    `88.    .88'   888       o  8       `888   888   888       o
+                 Ny+//od   Nh+oN       o///+      `Y8bood8P'   o888ooooood8 o8o        `8  o888o o888ooooood8
+               Nh+//om   Nh+/yN       o///s
+              d+//+d   my+/smmyhN    m///h                                                           REWEIGHT
+            Ns///yN NdyoshNNs///d   h////yN
+           mo//om        ms///+m   d///////oyhmN
+          N+//yN       ms////+N    h////////////oym
+          s//h       ho/+///sN     N///////////////od
+         N+/h     my++yh+//y       s/////////////////oN
+         Ns/m Nmy++ymNh//+d        s//////////////////+m
+          NhssoshN  Ny//sN         m///////////////////+
+                  Nmo/+ohdmN        mo//////////////////h            NmmN
+              ms/+s//o/-----:+sdN     mhso+ooys/////////o      mhs+/------/ohN
+    Nhd     N+-/o+/o+------------/shN     Ndy+//////////+ mhs+:---------------om
+  mo/sN    m:/oo/oo:-----------------:://////////////////-----------------------y
+  y//d    Noo++o+:----------:------------:://///////////:-------:/+osyso/:-------h
+  Nyo+syysooo+/--------------::--------------:://///////:----::////+ossyso/------:
+     NNNNNs--------------------:/::-------------:://///:-:://////////oosyo+:------
+          y---------------------:////:::-----------:////////////////+o++++/:-----/
+          m-----------------------://////////////////////////////+so/--:---------y
+           +------------------------://////////////////////////+yy:---+oh/--:y+-/N
+           N/-------------------------://////////////////////ohy/-------yy--os-/m
+            No--------------------------://///////////////+shs/---------/d++/-oN
+              mo--------------------------:////////////+shyo:------------sy/sm
+                Ny+:------------------------::://///oyhyo:--------------/sd
+                    mhso+/:------------------:/+oyhyo/----------:/+syhm
+                           NmddhyyyssssyyyhdmmNNNmhhhyyyyhhddmN
 </pre>
 
 ## Current authors:
 
 - Luis Alvarez-Ruso (*IFIC*)
+- Frederik Andersen (*IFIC*)
 - Costas Andreopoulos (+) (*Liverpool*)
 - Adi Ashkenazi (*Tel Aviv*)
-- Joshua Barrow (*Tel Aviv; MIT*)
+- Pablo Samuel Barham Alzás (*Tel Aviv*)
+- Joshua Barrow (*Minnesota*)
+- Steven Doran (*Fermilab*)
 - Steve Dytman (*Pittsburgh*)
 - Hugh Gallagher (*Tufts*)
-- Alfonso Andres Garcia Soto (*Harvard and IFIC*)
+- Alfonso Andres Garcia Soto (*IFIC*)
 - Steven Gardiner (*Fermilab*)
 - Matan Goldenberg (*Tel Aviv*)
 - Robert Hatcher (*Fermilab*)
-- Or Hen (*MIT*)
 - Igor Kakorin (*JINR*)
 - Konstantin Kuzmin (*ITEP and JINR*)
-- Weijun Li (*Oxford*)
 - Liang Liu (*Fermilab*)
 - Xianguo Lu (*Warwick*)
 - Anselmo Meregaglia (*Bordeaux, CNRS/IN2P3*)
 - Vadim Naumov (*JINR*)
-- Afroditi Papadopoulou (*Argonne*)
+- Afroditi Papadopoulou (*Georgia Tech*)
 - Gabriel Perdue (*Fermilab*)
-- Komninos-John Plows (*Oxford*)
+- Komninos-John Plows (*Chicago and Fermilab*)
 - Marco Roda (*Liverpool*)
-- Beth Slater (*Liverpool*)
 - Alon Sportes (*Tel Aviv*)
-- Noah Steinberg (*Fermilab*)
-- Vladyslav Syrotenko (*Tufts*)
-- Júlia Tena Vidal (*Tel Aviv*)
-- Jeremy Wolcott (*Tufts*)
+- Júlia Tena Vidal (*IFIC*)
 - Qiyu Yan (*UCAS and Warwick*)
 
 ---
@@ -85,20 +82,25 @@ For more information, visit http://www.genie-mc.org
 
 **Prof. Costas Andreopoulos < c.andreopoulos \at cern.ch >**
 
-University of Liverpool, Department of Physics, Oliver Lodge Lab 316,  Liverpool L69 7ZE, UK  
+University of Liverpool, Department of Physics, Oliver Lodge Lab 316,  Liverpool L69 7ZE, UK
 
- 
+
 ## Past authors and other key contributors
 
-Past authors: 
+Past authors:
 - Christopher Barry (*Liverpool*)
 - Steve Dennis (*Liverpool*)
 - Walter Giele (*Fermilab*)
+- Or Hen (*MIT*)
 - Timothy Hobbs (*Fermilab*)
 - Libo Jiang (*Pittsburgh*)
 - Rhiannon Jones (*Liverpool*)
+- Weijun Li (*Oxford*)
 - Donna Naples (*Pittsburgh*)
-- Julia Yarba (*Fermilab*) 
+- Noah Steinberg (*Fermilab*)
+- Vladyslav Syrotenko (*Tufts*)
+- Jeremy Wolcott (*Tufts*)
+- Julia Yarba (*Fermilab*)
 
 
 ## Copyright
@@ -108,7 +110,7 @@ Copyright (c) 2003-2024, The GENIE Collaboration. For information, visit http://
 
 ## Physics & User manual
 
-For installation and usage information, as well as information on the GENIE framework, event generator modules and tuning, 
+For installation and usage information, as well as information on the GENIE framework, event generator modules and tuning,
 see the GENIE Physics & User Manual in the public section of the GENIE Document Database:
 https://genie-docdb.pp.rl.ac.uk/cgi-bin/ShowDocument?docid=2
 
@@ -129,7 +131,7 @@ GENIE welcomes community contributions through its Incubator. An Incubator Proje
 
 ## Citing GENIE
 
-If you use GENIE, please **always** cite the following reference: 
+If you use GENIE, please **always** cite the following reference:
 
 <pre>
 @article{Andreopoulos:2009rq,
