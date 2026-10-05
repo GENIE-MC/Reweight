@@ -117,12 +117,12 @@ void GReWeightINukeParams::SetTwkDial(GSyst_t syst, double val)
   else
   if(GSyst::IsINukePionMeanFreePathSystematic(syst))
   {
-    fParmPionMFP->SetTwkDial(val);
+    fParmPionMFP->SetTwkDial(syst, val);
   }
   else
   if(GSyst::IsINukeNuclMeanFreePathSystematic(syst))
   {
-    fParmNuclMFP->SetTwkDial(val);
+    fParmNuclMFP->SetTwkDial(syst, val);
   }
 }
 //___________________________________________________________________________
@@ -196,9 +196,7 @@ double GReWeightINukeParams::Fates::ScaleFactor(
 double GReWeightINukeParams::Fates::ScaleFactor(
       GSyst_t syst, double KE) const
 {
-  GSystUncertainty * uncert = GSystUncertainty::Instance();
-
-  double fractional_error = uncert->OneSigmaErr(syst);
+  double fractional_error = this->OneSigmaErr(syst, KE);
   double twk_dial         = this->ActualTwkDial(syst, KE);
 
   double fate_fraction_scale = 1. + twk_dial * fractional_error;
@@ -224,7 +222,6 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
     return 0.;
   }
 
-  GSystUncertainty * uncert = GSystUncertainty::Instance();
   map<GSyst_t, double>::const_iterator iter;
 
   //
@@ -248,7 +245,7 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
      bool curr_is_cushion = this->IsCushionTerm(curr_syst);
      if(curr_is_cushion) continue;
 
-     double fractional_frac_err = uncert->OneSigmaErr(curr_syst); // fractional 1 sigma error
+     double fractional_frac_err = this->OneSigmaErr(curr_syst, KE); // fractional 1 sigma error
      double frac_scale = 1. + curr_twk_dial * fractional_frac_err;
 
      if(frac_scale < 0) {
@@ -278,7 +275,7 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
      bool curr_is_cushion = this->IsCushionTerm(curr_syst);
      if(curr_is_cushion) continue;
 
-     double fractional_frac_err = uncert->OneSigmaErr(curr_syst); // fractional 1 sigma error
+     double fractional_frac_err = this->OneSigmaErr(curr_syst, KE); // fractional 1 sigma error
 
      double frac_scale = 1. + curr_twk_dial * fractional_frac_err;
      double curr_frac  = genie::utils::rew::FateFraction(curr_syst, KE, fTargetA, frac_scale);
@@ -323,7 +320,7 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
 
        bool curr_is_cushion = this->IsCushionTerm(curr_syst);
 
-       double fractional_frac_err = uncert->OneSigmaErr(curr_syst); // fractional 1 sigma error
+       double fractional_frac_err = this->OneSigmaErr(curr_syst, KE); // fractional 1 sigma error
 
        double frac_scale = 1. + curr_twk_dial * fractional_frac_err;
        double curr_frac  = genie::utils::rew::FateFraction(curr_syst, KE, fTargetA, frac_scale);
@@ -370,7 +367,7 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
          bool curr_is_cushion = this->IsCushionTerm(curr_syst);
          if(!curr_is_cushion) continue;
 
-         double fractional_frac_err = uncert->OneSigmaErr(curr_syst); // fractional 1 sigma error
+         double fractional_frac_err = this->OneSigmaErr(curr_syst, KE); // fractional 1 sigma error
          double nom_frac = genie::utils::rew::FateFraction(curr_syst, KE, fTargetA, 1.);
          sum += (nom_frac * fractional_frac_err);
       }
@@ -407,7 +404,7 @@ double GReWeightINukeParams::Fates::ActualTwkDial(GSyst_t syst, double KE) const
 
      bool curr_is_cushion = this->IsCushionTerm(curr_syst);
 
-     double fractional_frac_err = uncert->OneSigmaErr(curr_syst); // fractional 1 sigma error
+     double fractional_frac_err = this->OneSigmaErr(curr_syst, KE); // fractional 1 sigma error
 
      double frac_scale = 1. + curr_twk_dial * fractional_frac_err;
      double curr_frac  = genie::utils::rew::FateFraction(curr_syst, KE, fTargetA, frac_scale);
@@ -536,6 +533,15 @@ bool GReWeightINukeParams::Fates::IsHandled(GSyst_t syst) const
   return false;
 }
 //___________________________________________________________________________
+double GReWeightINukeParams::Fates::OneSigmaErr(GSyst_t syst, double /*KE*/)
+  const
+{
+  // Dummy second argument allows derived classes to do a
+  // kinetic-energy-dependent uncertainty lookup by overriding this function
+  GSystUncertainty * uncert = GSystUncertainty::Instance();
+  return uncert->OneSigmaErr(syst);
+}
+//___________________________________________________________________________
 void GReWeightINukeParams::Fates::AddCushionTerms(void)
 {
 // When this method is called for the first time, all terms not already
@@ -614,11 +620,20 @@ GReWeightINukeParams::MFP::~MFP()
 
 }
 //___________________________________________________________________________
-double GReWeightINukeParams::MFP::ScaleFactor(void) const
+double GReWeightINukeParams::MFP::ScaleFactor(const TLorentzVector & p4) const
 {
+  double KE = p4.Energy() - p4.M(); // kinetic energy
+  return this->ScaleFactor(KE);
+}
+//___________________________________________________________________________
+double GReWeightINukeParams::MFP::ScaleFactor(double /*KE*/) const
+{
+  // Dummy argument allows derived classes to introduce kinetic
+  // energy dependence
+
   if(! this->IsTweaked()) return 1.;
 
-  GSystUncertainty * uncert = GSystUncertainty::Instance();
+  GSystUncertainty* uncert = GSystUncertainty::Instance();
 
   double mfp_sigma    = uncert->OneSigmaErr(fSyst);
   double mfp_twkdial  = this->TwkDial();
@@ -653,9 +668,10 @@ void GReWeightINukeParams::MFP::Reset(void)
   fIsIncluded = false;
 }
 //___________________________________________________________________________
-void GReWeightINukeParams::MFP::SetTwkDial(double val)
+void GReWeightINukeParams::MFP::SetTwkDial(GSyst_t /*syst*/, double val)
 {
+  // Dummy first argument allows multiple MFP dials to be manipulated
+  // by derived classes
   fTwkDial    = val;
   fIsIncluded = true;
 }
-//___________________________________________________________________________

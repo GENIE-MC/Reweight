@@ -9,10 +9,17 @@
 #pragma link C++ namespace genie::rew;
 
 #pragma link C++ class genie::rew::GReWeightModel;
+
 #pragma link C++ class genie::rew::GReWeightINuke;
 #pragma link C++ class genie::rew::GReWeightINukeParams;
 #pragma link C++ class genie::rew::GReWeightINukeParams::Fates;
 #pragma link C++ class genie::rew::GReWeightINukeParams::MFP;
+
+#pragma link C++ class genie::rew::GReWeightINukeExtra;
+#pragma link C++ class genie::rew::GReWeightINukeParamsExtra;
+#pragma link C++ class genie::rew::GReWeightINukeParamsExtra::Fates;
+#pragma link C++ class genie::rew::GReWeightINukeParamsExtra::MFP;
+
 #pragma link C++ class genie::rew::GReWeightAGKY;
 #pragma link C++ class genie::rew::GReWeightFZone;
 #pragma link C++ class genie::rew::GReWeightFGM;
