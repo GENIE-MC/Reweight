@@ -11,6 +11,9 @@
           Steven Gardiner <gardiner \at fnal.gov>
           Fermi National Accelerator Laboratory
 
+\edits    Lars Bathe-Peters <lars.bathe-peters@physics.ox.ac.uk>
+          University of Oxford
+
 \created  Aug 1, 2009
 
 \cpright  Copyright (c) 2003-2025, The GENIE Collaboration
@@ -192,6 +195,15 @@ typedef enum EGSyst {
 
   // MEC nucleon cluster decay angular distribution
   kXSecTwkDial_DecayAngMEC,
+  kXSecTwkDial_DecayAng2MEC,
+
+  // MEC nucleon cluster decay angular distribution following Legendre Polynomials
+  kXSecTwkDial_DecayAngMECLegendre,
+  kXSecTwkDial_DecayAngMECLegendre2,
+  kXSecTwkDial_DecayAngMECLegendre3,
+  kXSecTwkDial_DecayAngMECLegendre4,
+  kXSecTwkDial_DecayAngMECLegendre5,
+  kXSecTwkDial_DecayAngMECLegendre6,
 
   // Fraction of CCMEC initial nucleon clusters that are p+n
   kXSecTwkDial_FracPN_CCMEC,
@@ -203,6 +215,12 @@ typedef enum EGSyst {
   // Shape of CCMEC differential cross section (interpolates
   // between models)
   kXSecTwkDial_XSecShape_CCMEC,
+  kXSecTwkDial_XSecShape_CCMEC_Empirical,
+  kXSecTwkDial_XSecShape_CCMEC_Martini,
+
+  // Considers energy dependence of CCMEC differential cross 
+  // section models
+  kXSecTwkDial_EnergyDependence_CCMEC,
 
   // Interpolates between the default CCQE model and the same
   // one with RPA off (only gives non-unit weights for Nieves CCQE)
@@ -225,22 +243,13 @@ typedef enum EGSyst {
   // Alternative approach to CCQE form factors (z-expansion) vector form factor
   //
   kXSecTwkDial_ZExpELFF,
-  kXSecTwkDial_ZExpELFF_AP1,
-  kXSecTwkDial_ZExpELFF_AP2,
-  kXSecTwkDial_ZExpELFF_AP3,
-  kXSecTwkDial_ZExpELFF_AP4,
-  kXSecTwkDial_ZExpELFF_AN1,
-  kXSecTwkDial_ZExpELFF_AN2,
-  kXSecTwkDial_ZExpELFF_AN3,
-  kXSecTwkDial_ZExpELFF_AN4,
-  kXSecTwkDial_ZExpELFF_BP1,
-  kXSecTwkDial_ZExpELFF_BP2,
-  kXSecTwkDial_ZExpELFF_BP3,
-  kXSecTwkDial_ZExpELFF_BP4,
-  kXSecTwkDial_ZExpELFF_BN1,
-  kXSecTwkDial_ZExpELFF_BN2,
-  kXSecTwkDial_ZExpELFF_BN3,
-  kXSecTwkDial_ZExpELFF_BN4,
+  //
+  // Alternative approach to CCQE form factors (z-expansion) axial form factor
+  //
+  kXSecTwkDial_ZExpZAFF,
+
+  // Approximate reweight of pion fate fractions from hA2018 to hA2025
+  kINukehA2018_to_hA2025,
 
   //
   // Misc

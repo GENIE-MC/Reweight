@@ -8,6 +8,9 @@
 
           Steven Gardiner <gardiner \at fnal.gov>
           Fermi National Accelerator Laboratory
+
+          Lars Bathe-Peters <lars.bathe-peters \at physics.ox.ac.uk>
+          University of Oxford
 */
 //____________________________________________________________________________
 
@@ -113,31 +116,27 @@ std::map<GSyst_t, std::string> GSyst::BuildGSystToStringMap() {
   temp_map[ kXSecTwkDial_NormNCMEC ]  = "NormNCMEC";
   temp_map[ kXSecTwkDial_NormEMMEC ]  = "NormEMMEC";
   temp_map[ kXSecTwkDial_DecayAngMEC ]  = "DecayAngMEC";
+  temp_map[ kXSecTwkDial_DecayAng2MEC ]  = "DecayAng2MEC";
+  temp_map[ kXSecTwkDial_DecayAngMECLegendre ]  = "DecayAngMECLegendre";
+  temp_map[ kXSecTwkDial_DecayAngMECLegendre2 ]  = "DecayAngMECLegendre2";
+  temp_map[ kXSecTwkDial_DecayAngMECLegendre3 ]  = "DecayAngMECLegendre3";
+  temp_map[ kXSecTwkDial_DecayAngMECLegendre4 ]  = "DecayAngMECLegendre4";
+  temp_map[ kXSecTwkDial_DecayAngMECLegendre5 ]  = "DecayAngMECLegendre5";
+  temp_map[ kXSecTwkDial_DecayAngMECLegendre6 ]  = "DecayAngMECLegendre6";
   temp_map[ kXSecTwkDial_FracPN_CCMEC ] = "FracPN_CCMEC";
   temp_map[ kXSecTwkDial_FracDelta_CCMEC ] = "FracDelta_CCMEC";
   temp_map[ kXSecTwkDial_XSecShape_CCMEC ] = "XSecShape_CCMEC";
+  temp_map[ kXSecTwkDial_XSecShape_CCMEC_Empirical ] = "XSecShape_CCMEC_Empirical";
+  temp_map[ kXSecTwkDial_XSecShape_CCMEC_Martini ] = "XSecShape_CCMEC_Martini";
+  temp_map[ kXSecTwkDial_EnergyDependence_CCMEC ] = "EnergyDependence_CCMEC";
   temp_map[ kXSecTwkDial_RPA_CCQE ] = "RPA_CCQE";
   temp_map[ kRDcyTwkDial_Theta_Delta2NRad ] = "ThetaDelta2NRad";
   temp_map[ kXSecTwkDial_CoulombCCQE ] = "CoulombCCQE";
   temp_map[ kXSecTwkDial_NormCCCOHpi ] = "NormCCCOH";
   temp_map[ kXSecTwkDial_NormNCCOHpi ] = "NormNCCOH";
   temp_map[ kXSecTwkDial_ZExpELFF ] = "ZExpELFFCCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_AP1 ] = "ZExpELFFAP1CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_AP2 ] = "ZExpELFFAP2CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_AP3 ] = "ZExpELFFAP3CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_AP4 ] = "ZExpELFFAP4CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_AN1 ] = "ZExpELFFAN1CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_AN2 ] = "ZExpELFFAN2CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_AN3 ] = "ZExpELFFAN3CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_AN4 ] = "ZExpELFFAN4CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_BP1 ] = "ZExpELFFBP1CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_BP2 ] = "ZExpELFFBP2CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_BP3 ] = "ZExpELFFBP3CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_BP4 ] = "ZExpELFFBP4CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_BN1 ] = "ZExpELFFBN1CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_BN2 ] = "ZExpELFFBN2CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_BN3 ] = "ZExpELFFBN3CCQE";
-  temp_map[ kXSecTwkDial_ZExpELFF_BN4 ] = "ZExpELFFBN4CCQE";
+  temp_map[ kXSecTwkDial_ZExpZAFF ] = "ZExpZAFFCCQE";
+  temp_map[ kINukehA2018_to_hA2025 ] = "hA2018_to_hA2025";
 
   return temp_map;
 }
