@@ -26,12 +26,17 @@
 
 // GENIE/Generator includes
 #include "Framework/EventGen/EventRecord.h"
+#include "Framework/Conventions/GBuild.h"
 // GENIE/Reweight includes
 #include "RwFramework/GSyst.h"
 
 namespace genie {
 
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
   class Intranuke2018;
+#else
+  class Intranuke2025;
+#endif
 
 namespace utils {
 namespace rew   {
@@ -40,7 +45,11 @@ namespace rew   {
   double MeanFreePathWeight(
     int pdgc, const TLorentzVector & x4, const TLorentzVector & p4,
     double A, double Z,
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
     double mfp_scale_factor, bool interacted, const Intranuke2018& fsi_model );
+#else
+    double mfp_scale_factor, bool interacted, const Intranuke2025& fsi_model );
+#endif
 
   double MeanFreePathWeight(
       double prob_def, double prob_twk, bool interacted);
@@ -51,7 +60,11 @@ namespace rew   {
   double FZoneWeight(
     int pdgc, const TLorentzVector & vtx, const TLorentzVector & x4,
     const TLorentzVector & p4, double A, double Z, double fz_scale_factor, bool interacted,
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
     const Intranuke2018& fsi_model );
+#else
+    const Intranuke2025& fsi_model );
+#endif
 
   // Return the fraction of the hadron rescatering fate described by the input
   // systematic enumeration at the input hadron kinetic energy for a hit nucleus

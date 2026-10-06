@@ -34,6 +34,16 @@
 
 //#define _G_REWEIGHT_INUKE_DEBUG_NTP_
 
+// Standard library includes
+#include <memory>
+
+// GENIE/Generator includes
+#include "Framework/Conventions/GBuild.h"
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
+#include "Physics/HadronTransport/HAIntranuke2018.h"
+#else
+#include "Physics/HadronTransport/HAIntranuke2025.h"
+#endif
 // GENIE/Reweight includes
 #include "RwCalculators/GReWeightModel.h"
 #include "RwCalculators/GReWeightINukeParams.h"
@@ -47,7 +57,11 @@ class TLorentzVector;
 
 namespace genie {
 
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
  class HAIntranuke2018;
+#else
+ class HAIntranuke2025;
+#endif
  class GHepParticle;
 
 namespace rew   {
@@ -75,7 +89,11 @@ namespace rew   {
 
    GReWeightINukeParams fINukeRwParams;
 
+#ifdef __GENIE_REWEIGHT_INTRANUKE2018_ENABLED__
    HAIntranuke2018* fFSIModel;
+#else
+   HAIntranuke2025* fFSIModel;
+#endif
 
 #ifdef _G_REWEIGHT_INUKE_DEBUG_NTP_
    TFile *              fTestFile;
