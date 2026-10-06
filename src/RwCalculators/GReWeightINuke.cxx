@@ -301,7 +301,7 @@ double GReWeightINuke::CalcWeight(const EventRecord & event)
      if(calc_w_fate && interacted)
      {
         double fate_fraction_scale_factor =
-	  fINukeRwParams->FateParams(pdgc)->ScaleFactor(
+	  fINukeRwParams.FateParams(pdgc)->ScaleFactor(
 	        GSyst::INukeFate2GSyst((INukeFateHA2018_t)fsi_code,pdgc), p4);
         w_fate = fate_fraction_scale_factor;
      }
