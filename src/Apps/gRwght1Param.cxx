@@ -145,7 +145,7 @@ using namespace genie;
 using namespace genie::rew;
 
 void GetCommandLineArgs (int argc, char ** argv);
-void PrintSyntax        (void);
+void PrintSyntax        (log4cpp::Priority::PriorityLevel p = pFATAL);
 void GetEventRange      (Long64_t nev_in_file, Long64_t & nfirst, Long64_t & nlast);
 
 string      gOptInpFilename; ///< name for input file (contains input event tree)
@@ -465,7 +465,10 @@ void GetCommandLineArgs(int argc, char ** argv)
   // Parse run options for this app
 
   CmdLnArgParser parser(argc,argv);
-
+  if (parser.OptionExists('h') || parser.OptionExists("help")){
+    PrintSyntax(pNOTICE);
+    exit(0);
+  }
   // get GENIE event sample
   if(parser.OptionExists('f')) {
     LOG("grwght1scan", pINFO) << "Reading event sample filename";
@@ -707,7 +710,7 @@ void GetEventRange(Long64_t nev_in_file, Long64_t & nfirst, Long64_t & nlast)
   assert(nfirst < nlast && nfirst >= 0 && nlast <= nev_in_file-1);
 }
 //_________________________________________________________________________________
-void PrintSyntax(void)
+void PrintSyntax(log4cpp::Priority::PriorityLevel p)
 {
   LOG("grwght1scan", pFATAL)
      << "\n\n"
@@ -726,7 +729,8 @@ void PrintSyntax(void)
      << "    [--seed random_number_seed] \n"
      << "    [--message-thresholds xml_file]\n"
      << "    [--event-record-print-level level]\n"
-     << "    [--cross-sections spline_file1,...]\n\n\n"
+     << "    [--cross-sections spline_file1,...]\n"
+     << "    [-h, --help print this message]\n\n\n"
      << " See the GENIE Physics and User manual for more details";
 }
 //_________________________________________________________________________________

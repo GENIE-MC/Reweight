@@ -119,7 +119,7 @@ using namespace genie::rew;
 using namespace genie::utils::math;
 using std::stringstream;
 
-void PrintSyntax();
+void PrintSyntax(log4cpp::Priority::PriorityLevel p = pFATAL);
 void GetEventRange       (Long64_t nev_in_file, Long64_t & nfirst, Long64_t & nlast);
 void GetCommandLineArgs  (int argc, char ** argv);
 void GetCorrelationMatrix(string fname, TMatrixD *& cmat);
@@ -421,7 +421,10 @@ void GetCommandLineArgs(int argc, char ** argv)
   RunOpt::Instance()->ReadFromCommandLine(argc,argv);
 
   CmdLnArgParser parser(argc,argv);
-
+  if (parser.OptionExists('h') || parser.OptionExists("help")){
+    PrintSyntax(pNOTICE);
+    exit(0);
+  }
   // get GENIE event sample
   if( parser.OptionExists('f') ) {
     LOG("grwghtnp", pINFO) << "Reading event sample filename";
@@ -928,9 +931,9 @@ void AdoptWeightCalcs (vector<GSyst_t> lsyst, GReWeight & rw)
   }
 }
 //_________________________________________________________________________________
-void PrintSyntax(void)
+void PrintSyntax(log4cpp::Priority::PriorityLevel p)
 {
-  LOG("grwghtnp", pFATAL)
+  LOG("grwghtnp", p)
      << "\n\n"
      << "grwghtnp                    \n"
      << "     -f input_event_file     \n"
@@ -940,6 +943,7 @@ void PrintSyntax(void)
      << "     -v cval1[,cval2[,...]]  \n"
      << "    [-n n1[,n2]]             \n"
      << "    [-r run_key]             \n"
-     << "    [-o output_weights_file]";
+     << "    [-o output_weights_file] \n"
+     << "    [-h, --help print this message]";
 }
 //_________________________________________________________________________________
