@@ -9,7 +9,9 @@
 */
 //____________________________________________________________________________
 
+#include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstdlib>
 
 #include <TMath.h>
@@ -26,6 +28,7 @@
 #include "Framework/GHEP/GHepParticle.h"
 #include "Framework/Messenger/Messenger.h"
 #include "Framework/Numerical/Spline.h"
+#include "Framework/ParticleData/PDGCodes.h"
 #include "Framework/ParticleData/PDGUtils.h"
 #include "Framework/Registry/Registry.h"
 #include "Physics/NuclearState/NuclearUtils.h"
@@ -217,8 +220,43 @@ double genie::rew::GReWeighthA2025::CalcWeight(const EventRecord & event)
     // FracADep below)
 	  double ke_in_MeV = ke / units::MeV;
 
-    double fate_frac2018 = hd2018->FracADep( pdgc, fsi_code, ke_in_MeV, remnA );
-    double fate_frac2025 = hd2025->FracADep( pdgc, fsi_code, ke_in_MeV, remnA );
+    // Normalize over all pion fates, including the hA2025 pi0 corrections.
+    const INukeFateHA2018_t pion_fates[] = {
+      kIHAFtCEx, kIHAFtInelas, kIHAFtAbs, kIHAFtPiProd
+    };
+    double fate_frac2018 = 0.0;
+    double fate_frac2025 = 0.0;
+    double total_frac2018 = 0.0;
+    double total_frac2025 = 0.0;
+    const double ke_ratio = std::min(ke_in_MeV, 1000.0);
+    for ( auto fate : pion_fates ) {
+      double frac2018 = hd2018->FracADep( pdgc, fate, ke_in_MeV, remnA );
+      double frac2025 = hd2025->FracADep( pdgc, fate, ke_in_MeV, remnA );
+      if ( pdgc == kPdgPi0 ) {
+        // Match HAIntranuke2025::HadronFateHA (KE in MeV).
+        if ( fate == kIHAFtCEx )
+          frac2025 *= 0.0008702 * ke_ratio + 1.9047;
+        else if ( fate == kIHAFtInelas )
+          frac2025 *= -0.0003209 * ke_ratio + 0.837764;
+        else if ( fate == kIHAFtAbs )
+          frac2025 *= 0.0003291 * ke_ratio + 0.82617;
+        else if ( fate == kIHAFtPiProd && ke_in_MeV > 400.0 )
+          frac2025 *= 0.0004402 * ke_ratio + 0.47418;
+      }
+      total_frac2018 += frac2018;
+      total_frac2025 += frac2025;
+      if ( fate == fsi_code ) {
+        fate_frac2018 = frac2018;
+        fate_frac2025 = frac2025;
+      }
+    }
+    if ( !std::isfinite(total_frac2018) || total_frac2018 <= 0.0
+      || !std::isfinite(total_frac2025) || total_frac2025 <= 0.0 ) {
+      LOG("ReW", pWARN) << "Invalid pion fate fraction total for particle " << ip;
+      continue;
+    }
+    fate_frac2018 /= total_frac2018;
+    fate_frac2025 /= total_frac2025;
 
 	  LOG("ReW", pDEBUG)
       << "GReWeighthA2025 reweighted hadron at position = " << ip
@@ -243,3 +281,4 @@ double genie::rew::GReWeighthA2025::CalcWeight(const EventRecord & event)
 
   return event_weight;
 }
+
