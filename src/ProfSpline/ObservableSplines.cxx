@@ -40,7 +40,7 @@ double ObservableSplines::GetRatio(const EventRecord &evt,
   auto old_weight = GetValueInterpolated(obvs, para_orig);
   const auto product = new_weight / old_weight;
   /// \uml{skip}
-  if (product < 0 || isnan(product)) {
+  if (product < 0 || std::isnan(product)) {
     auto bin_id = lookupBinID(obvs);
     LOG("ObservableSplines", pERROR) << "Negative ratio: " << new_weight << " \
     / " << old_weight << " for bin " << bin_id
