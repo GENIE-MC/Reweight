@@ -1,3 +1,22 @@
+//____________________________________________________________________________
+/*!
+
+\class    genie::rew::RwgKineSpace
+
+\brief    Abstract interface for algorithms that compute the kinematic
+          variables and interaction channel ID used to classify an event for
+          GENIE/Professor spline-based reweighting (see ObservableSplines).
+
+\author   Qiyu Yan <yanqiyu17 \at mails.ucas.ac.cn>
+          University of Chinese Academy of Sciences (UCAS) and University of Warwick
+
+\created  July 2023
+
+\cpright  Copyright (c) 2003-2026, The GENIE Collaboration
+          For the full text of the license visit http://copyright.genie-mc.org
+*/
+//____________________________________________________________________________
+
 // Class to handle all observables as a whole
 // This is a interface class
 

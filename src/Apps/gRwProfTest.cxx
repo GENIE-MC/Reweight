@@ -1,3 +1,37 @@
+//____________________________________________________________________________
+/*!
+
+\program grwproftest
+
+\brief   Development/test driver for exercising the GReWeightProfessor
+         reweighting engine against pairs of GENIE event samples generated
+         at different points of a Professor2 tuning scan. Builds control
+         plots comparing the Professor-interpolated reweighted sample
+         against the directly-generated target sample.
+
+         This is a work-in-progress testing application: input paths are
+         taken from hardcoded, scan-specific directory conventions rather
+         than from a stable command-line interface, so it is not intended
+         for general end-user use.
+
+\syntax  grwproftest [from_id [to_id [base_dir]]]
+
+         where
+         from_id   Scan point ID to reweight from (default: "0000")
+         to_id     Scan point ID to reweight to / compare against (default: "0002")
+         base_dir  Base directory containing the Professor scan outputs
+                   (default: "/var/home/yan/neutrino/proftest/")
+
+\author  Qiyu Yan <yanqiyu17 \at mails.ucas.ac.cn>
+         University of Chinese Academy of Sciences (UCAS) and University of Warwick
+
+\created August 2023
+
+\cpright Copyright (c) 2003-2026, The GENIE Collaboration
+         For the full text of the license visit http://copyright.genie-mc.org
+*/
+//____________________________________________________________________________
+
 #include <cassert>
 #include <fstream>
 #include <functional>

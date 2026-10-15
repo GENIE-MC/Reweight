@@ -1,3 +1,21 @@
+//____________________________________________________________________________
+/*!
+
+\class    genie::rew::ObservableMuonMomentum
+
+\brief    RwgKineSpace implementation that uses the final-state muon momentum
+          as the single kinematic variable for GENIE/Professor reweighting.
+
+\author   Qiyu Yan <yanqiyu17 \at mails.ucas.ac.cn>
+          University of Chinese Academy of Sciences (UCAS) and University of Warwick
+
+\created  July 2023
+
+\cpright  Copyright (c) 2003-2026, The GENIE Collaboration
+          For the full text of the license visit http://copyright.genie-mc.org
+*/
+//____________________________________________________________________________
+
 #ifndef _OBSERVABLE_MUON_MOMENTUM_
 #define _OBSERVABLE_MUON_MOMENTUM_
 
