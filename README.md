@@ -105,7 +105,7 @@ Past authors:
 
 ## Copyright
 
-Copyright (c) 2003-2024, The GENIE Collaboration. For information, visit http://copyright.genie-mc.org
+Copyright (c) 2003-2026, The GENIE Collaboration. For information, visit http://copyright.genie-mc.org
 
 
 ## Physics & User manual
