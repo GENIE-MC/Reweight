@@ -1,3 +1,22 @@
+//____________________________________________________________________________
+/*!
+
+\class    genie::rew::GReWeightProfessor
+
+\brief    Reweighting engine that applies tweaks interpolated from Professor2
+          parameterizations of differential cross section splines, using the
+          ObservableSplines/RwgKineSpace machinery in ProfSpline.
+
+\author   Qiyu Yan <yanqiyu17 \at mails.ucas.ac.cn>
+          University of Chinese Academy of Sciences (UCAS) and University of Warwick
+
+\created  July 2023
+
+\cpright  Copyright (c) 2003-2026, The GENIE Collaboration
+          For the full text of the license visit http://copyright.genie-mc.org
+*/
+//____________________________________________________________________________
+
 #ifndef _G_REWEIGHT_PROFESSOR_
 #define _G_REWEIGHT_PROFESSOR_
 

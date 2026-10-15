@@ -1,3 +1,25 @@
+//____________________________________________________________________________
+/*!
+
+\class    genie::rew::ChannelIDs
+
+\brief    A lightweight container identifying an interaction channel (e.g. by
+          probe and target/hit-nucleon PDG codes) used to tag GENIE/Professor
+          reweighting bins and splines.
+          This header also defines genie::rew::KinematicVariables, a plain
+          vector-of-doubles alias used to pass kinematic variable values
+          around the ProfSpline machinery.
+
+\author   Qiyu Yan <yanqiyu17 \at mails.ucas.ac.cn>
+          University of Chinese Academy of Sciences (UCAS) and University of Warwick
+
+\created  April 2024
+
+\cpright  Copyright (c) 2003-2026, The GENIE Collaboration
+          For the full text of the license visit http://copyright.genie-mc.org
+*/
+//____________________________________________________________________________
+
 #ifndef _KINEMATIC_VARIABLES_
 #define _KINEMATIC_VARIABLES_
 #include <algorithm>

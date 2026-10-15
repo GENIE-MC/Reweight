@@ -1,3 +1,23 @@
+//____________________________________________________________________________
+/*!
+
+\class    genie::rew::ObservableSplines
+
+\brief    Owns a set of Professor2 interpolation objects (one per kinematic
+          bin) for a given RwgKineSpace observable and interaction channel,
+          and uses them to compute differential cross-section ratios used as
+          event reweighting factors.
+
+\author   Qiyu Yan <yanqiyu17 \at mails.ucas.ac.cn>
+          University of Chinese Academy of Sciences (UCAS) and University of Warwick
+
+\created  July 2023
+
+\cpright  Copyright (c) 2003-2026, The GENIE Collaboration
+          For the full text of the license visit http://copyright.genie-mc.org
+*/
+//____________________________________________________________________________
+
 // Storage for a whole spline
 // And it owns corresponding Observable class
 
