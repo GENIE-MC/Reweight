@@ -16,3 +16,5 @@ src/Framework/Conventions/GVersion.h
 *.swp
 *_dictUmbrella.h
 *_dictContent.h
+test.*
+test/*

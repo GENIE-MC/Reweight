@@ -83,6 +83,8 @@ namespace rew   {
    bool   fRewNuebar;            ///< reweight nu_e_bar?
    bool   fRewNumu;              ///< reweight nu_mu?
    bool   fRewNumubar;           ///< reweight nu_mu_bar?
+   bool   fRewTau = false;
+   bool   fRewNuTaubar = false;
    bool   fRewCC;                ///< reweight CC?
    bool   fRewNC;                ///< reweight NC?
 

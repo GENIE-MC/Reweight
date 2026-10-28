@@ -212,6 +212,8 @@ double GReWeightNuXSecDIS::CalcWeight(const genie::EventRecord & event)
   if(nupdg==kPdgAntiNuMu && !fRewNumubar) return 1.;
   if(nupdg==kPdgNuE      && !fRewNue    ) return 1.;
   if(nupdg==kPdgAntiNuE  && !fRewNuebar ) return 1.;
+  if(nupdg==kPdgNuTau      && !fRewTau    ) return 1.;
+  if(nupdg==kPdgAntiNuTau  && !fRewNuTaubar ) return 1.;  
 
   bool selected = true;
   double W  = interaction->Kine().W (selected);
@@ -303,7 +305,11 @@ double GReWeightNuXSecDIS::CalcWeightABCV12uShape(const genie::EventRecord & eve
 //_______________________________________________________________________________________
 void GReWeightNuXSecDIS::Init(void)
 {
-  AlgId id("genie::QPMDISPXSec","Default");
+  AlgConfigPool * conf_pool = AlgConfigPool::Instance();
+  Registry * gpl = conf_pool->GlobalParameterList();
+  RgAlg xsec_alg = gpl->GetAlg("XSecModel@genie::EventGenerator/DIS-CC");
+
+  AlgId id(xsec_alg);
 
   AlgFactory * algf = AlgFactory::Instance();
 
@@ -330,10 +336,10 @@ void GReWeightNuXSecDIS::Init(void)
   this->SetWminCut (1.7*units::GeV);
   this->SetQ2minCut(1.0*units::GeV*units::GeV);
 
-  this->SetAhtBYPath ("SFAlg/BY-A");
-  this->SetBhtBYPath ("SFAlg/BY-B");
-  this->SetCV1uBYPath("SFAlg/BY-Cv1U");
-  this->SetCV2uBYPath("SFAlg/BY-Cv2U");
+  this->SetAhtBYPath ("DISModel/SFAlg/BY-A");
+  this->SetBhtBYPath ("DISModel/SFAlg/BY-B");
+  this->SetCV1uBYPath("DISModel/SFAlg/BY-Cv1U");
+  this->SetCV2uBYPath("DISModel/SFAlg/BY-Cv2U");
 
   fAhtBYTwkDial  = 0;
   fBhtBYTwkDial  = 0;
