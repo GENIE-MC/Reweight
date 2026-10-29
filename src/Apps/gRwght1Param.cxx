@@ -326,7 +326,8 @@ int main(int argc, char ** argv)
   if ( gOptSyst == kXSecTwkDial_AhtBYshape  ||
        gOptSyst == kXSecTwkDial_BhtBYshape  ||
        gOptSyst == kXSecTwkDial_CV1uBYshape ||
-       gOptSyst == kXSecTwkDial_CV2uBYshape    ) {
+       gOptSyst == kXSecTwkDial_CV2uBYshape
+         ) {
      // Similarly for the GReWeightNuXSecDIS weight calculator.
      // There the default behaviour is for the Aht, Bht, CV1u and CV2u
      // Bodek-Yang params to affects both normalization and dsigma/dxdy shape.
@@ -334,6 +335,10 @@ int main(int argc, char ** argv)
      GReWeightNuXSecDIS * rwdis =
         dynamic_cast<GReWeightNuXSecDIS *> (rw.WghtCalc("xsec_dis"));
      rwdis->SetMode(GReWeightNuXSecDIS::kModeABCV12uShape);
+  } else if (gOptSyst == kXSecTwkDial_NormDISCC){
+         GReWeightNuXSecDIS * rwdis =
+        dynamic_cast<GReWeightNuXSecDIS *> (rw.WghtCalc("xsec_dis"));
+     rwdis->SetMode(kXSecTwkDial_NormDISCC);
   }
 
   // Twk dial loop

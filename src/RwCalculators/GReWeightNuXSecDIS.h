@@ -66,13 +66,13 @@ namespace rew   {
    void SetBhtBYPath (string p )  { fBhtBYPath  = p;  }
    void SetCV1uBYPath(string p )  { fCV1uBYPath = p;  }
    void SetCV2uBYPath(string p )  { fCV2uBYPath = p;  }
+   void SetDISNormPath(string p ) { fNormPath  = p; }
    void SetWminCut   (double W )  { fWmin       = W;  }
    void SetQ2minCut  (double Q2)  { fQ2min      = Q2; }
 
  private:
 
    void   Init                   (void);
-   double CalcWeightABCV12u      (const genie::EventRecord & event); ///< rew. Aht,Bht,CV1u,CV2u
    double CalcWeightABCV12uShape (const genie::EventRecord & event); ///< rew. AhtShape,BhtShape,CV1uShape,CV2uShape
 
    XSecAlgorithmI * fXSecModelDef;    ///< default model
@@ -95,6 +95,7 @@ namespace rew   {
    double fBhtBYTwkDial;    ///< tweak dial for BY parameter: Bht
    double fCV1uBYTwkDial;   ///< tweak dial for BY parameter: CV1u
    double fCV2uBYTwkDial;   ///< tweak dial for BY parameter: CV2u
+   double fNormDISCCTwkDial;
    double fAhtBYDef;        ///<
    double fBhtBYDef;        ///<
    double fCV1uBYDef;       ///<
@@ -103,6 +104,9 @@ namespace rew   {
    double fBhtBYCur;        ///<
    double fCV1uBYCur;       ///<
    double fCV2uBYCur;       ///<
+   double fNormDisCC;
+   double fNormDISCCDef;
+   string fNormPath;
    string fAhtBYPath;       ///<
    string fBhtBYPath;       ///<
    string fCV1uBYPath;      ///<

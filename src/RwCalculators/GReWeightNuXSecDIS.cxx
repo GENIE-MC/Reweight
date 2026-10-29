@@ -90,7 +90,9 @@ bool GReWeightNuXSecDIS::IsHandled(GSyst_t syst) const
        if      (fMode == kModeABCV12u     ) handle = true;
        else if (fMode == kModeABCV12uShape) handle = false;
        break;
-
+    case (kXSecTwkDial_NormDISCC):
+      handle = true;
+      break;
      default:
        handle = false;
        break;
@@ -129,6 +131,8 @@ void GReWeightNuXSecDIS::SetSystematic(GSyst_t syst, double twk_dial)
      case ( kXSecTwkDial_CV2uBYshape ) :
        fCV2uBYTwkDial = twk_dial;
        break;
+      case (kXSecTwkDial_NormDISCC):
+      fNormDISCCTwkDial = twk_dial;
      default:
        return;
        break;
@@ -141,7 +145,7 @@ void GReWeightNuXSecDIS::Reset(void)
   fBhtBYTwkDial  = 0.;
   fCV1uBYTwkDial = 0.;
   fCV2uBYTwkDial = 0.;
-
+  fNormDISCCTwkDial = 0.;
   this->Reconfigure();
 }
 //_______________________________________________________________________________________
@@ -153,6 +157,7 @@ void GReWeightNuXSecDIS::Reconfigure(void)
   double fracerr_bht  = 0.;
   double fracerr_cv1u = 0.;
   double fracerr_cv2u = 0.;
+  double fracerr_norm = 0.;
 
   if(fMode == kModeABCV12u) {
       fracerr_aht  = fracerr->OneSigmaErr (kXSecTwkDial_AhtBY );
@@ -166,19 +171,30 @@ void GReWeightNuXSecDIS::Reconfigure(void)
       fracerr_bht  = fracerr->OneSigmaErr (kXSecTwkDial_BhtBYshape );
       fracerr_cv1u = fracerr->OneSigmaErr (kXSecTwkDial_CV1uBYshape);
       fracerr_cv2u = fracerr->OneSigmaErr (kXSecTwkDial_CV2uBYshape);
+  } else if (fMode == kXSecTwkDial_NormDISCC){
+        fracerr_norm = fracerr->OneSigmaErr(kXSecTwkDial_NormDISCC);
   }
 
   fAhtBYCur  = fAhtBYDef  * (1. + fAhtBYTwkDial  * fracerr_aht );
   fBhtBYCur  = fBhtBYDef  * (1. + fBhtBYTwkDial  * fracerr_bht );
   fCV1uBYCur = fCV1uBYDef * (1. + fCV1uBYTwkDial * fracerr_cv1u);
   fCV2uBYCur = fCV2uBYDef * (1. + fCV2uBYTwkDial * fracerr_cv2u);
-
+  fNormDisCC = fNormDISCCDef * (1 + fNormDISCCTwkDial * fracerr_norm);
+#ifdef _G_REWEIGHT_DIS_DEBUG_
+  LOG("GReWeightDIS", pNOTICE) 
+  << "New Values: fAhtBYCur = "  << fAhtBYCur 
+  << ", fBhtBYCur " << fBhtBYCur 
+  << ", fCV1uBYCur " << fCV1uBYCur
+  << ", fCV2uBYCur " << fCV2uBYCur
+  << ", fNormDisCC " << fNormDisCC;
+#endif
   Registry & r = *fXSecModelConfig;
 
   r.Set(fAhtBYPath,  fAhtBYCur );
   r.Set(fBhtBYPath,  fBhtBYCur );
   r.Set(fCV1uBYPath, fCV1uBYCur);
   r.Set(fCV2uBYPath, fCV2uBYCur);
+  r.Set(fNormPath, fNormDisCC);
 
   fXSecModel->Configure(r);
 
@@ -191,9 +207,10 @@ double GReWeightNuXSecDIS::CalcWeight(const genie::EventRecord & event)
       (TMath::Abs(fAhtBYTwkDial)  > controls::kASmallNum) ||
       (TMath::Abs(fBhtBYTwkDial)  > controls::kASmallNum) ||
       (TMath::Abs(fCV1uBYTwkDial) > controls::kASmallNum) ||
-      (TMath::Abs(fCV2uBYTwkDial) > controls::kASmallNum);
+      (TMath::Abs(fCV2uBYTwkDial) > controls::kASmallNum) ||
+      (TMath::Abs(fNormDISCCTwkDial) > controls::kASmallNum) 
+      ;
   if(!tweaked) return 1.0;
-
   Interaction * interaction = event.Summary();
 
   bool is_dis = interaction->ProcInfo().IsDeepInelastic();
@@ -223,19 +240,18 @@ double GReWeightNuXSecDIS::CalcWeight(const genie::EventRecord & event)
 
   //
   // calculate weight
-  //
-
   double wght = 1.;
 
-  if(fMode == kModeABCV12u) {
-     wght = this->CalcWeightABCV12u(event);
-  }
-  else
   if(fMode == kModeABCV12uShape) {
      wght = this->CalcWeightABCV12uShape(event);
+  } else {
+    interaction->KinePtr()->UseSelectedKinematics();
+    double twk_xsec   = fXSecModel->XSec(interaction, kPSxyfE);
+    wght = event.Weight() * (twk_xsec/event.DiffXSec());
+    interaction->KinePtr()->ClearRunningValues();    
   }
-
 #ifdef _G_REWEIGHT_DIS_DEBUG_
+  LOG("GReWeightDIS", pNOTICE) << "Calculated weight = " << wght;
   double E = interaction->InitState().ProbeE(kRfHitNucRest);
   double x = interaction->Kine().x(true);
   double y = interaction->Kine().y(true);
@@ -247,22 +263,6 @@ double GReWeightNuXSecDIS::CalcWeight(const genie::EventRecord & event)
 #endif
 
   return wght;
-}
-//_______________________________________________________________________________________
-double GReWeightNuXSecDIS::CalcWeightABCV12u(const genie::EventRecord & event)
-{
-  Interaction * interaction = event.Summary();
-
-  interaction->KinePtr()->UseSelectedKinematics();
-
-  double old_xsec   = event.DiffXSec();
-  double old_weight = event.Weight();
-  double twk_xsec   = fXSecModel->XSec(interaction, kPSxyfE);
-  double weight = old_weight * (twk_xsec/old_xsec);
-
-  interaction->KinePtr()->ClearRunningValues();
-
-  return weight;
 }
 //_______________________________________________________________________________________
 double GReWeightNuXSecDIS::CalcWeightABCV12uShape(const genie::EventRecord & event)
@@ -340,19 +340,23 @@ void GReWeightNuXSecDIS::Init(void)
   this->SetBhtBYPath ("DISModel/SFAlg/BY-B");
   this->SetCV1uBYPath("DISModel/SFAlg/BY-Cv1U");
   this->SetCV2uBYPath("DISModel/SFAlg/BY-Cv2U");
+  this->SetDISNormPath("DISModel/DIS-CC-XSecScale");
 
   fAhtBYTwkDial  = 0;
   fBhtBYTwkDial  = 0;
   fCV1uBYTwkDial = 0;
   fCV2uBYTwkDial = 0;
+  fNormDISCCTwkDial = 0;
   fAhtBYDef  = fXSecModelConfig->GetDouble(fAhtBYPath);
   fBhtBYDef  = fXSecModelConfig->GetDouble(fBhtBYPath);
   fCV1uBYDef = fXSecModelConfig->GetDouble(fCV1uBYPath);
   fCV2uBYDef = fXSecModelConfig->GetDouble(fCV2uBYPath);
+  fNormDISCCDef = fXSecModelConfig->GetDouble(fNormPath);
   fAhtBYCur  = fAhtBYDef;
   fBhtBYCur  = fBhtBYDef;
   fCV1uBYCur = fCV1uBYDef;
   fCV2uBYCur = fCV2uBYDef;
+  fNormDisCC = fNormDISCCDef;
 
 #ifdef _G_REWEIGHT_DIS_DEBUG_
   fTestFile = new TFile("./dis_reweight_test.root","recreate");

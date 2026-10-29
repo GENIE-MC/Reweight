@@ -61,8 +61,10 @@ double GSystUncertainty::OneSigmaErr(GSyst_t s, int sign) const
   // return zero.
   std::map<GSyst_t, GSystUncertaintyTable::MapEntry>::const_iterator
     it = error_map.find( s );
-  if ( it == error_map.end() ) return 0.;
-
+  if ( it == error_map.end() ) {
+    LOG("GSystUncertainty", pWARN) << "Could not find Systematic " << s;  
+    return 0.;
+  }
   // Otherwise, get the appropriate one-sigma error
   // (plus, minus, or the mean of the two)
   if (sign > 0) return it->second.PlusOneSigmaErr();

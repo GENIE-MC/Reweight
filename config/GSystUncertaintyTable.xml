@@ -157,6 +157,9 @@ values for each Reweight tweak dial. All of these have default values of zero.
    <param type="double" name="BhtBYshape@PlusOneSigma"> 0.25 </param>
    <param type="double" name="BhtBYshape@MinusOneSigma"> 0.25 </param>
 
+   <param type="double" name="NormDISCC@PlusOneSigma"> 0.1 </param>
+   <param type="double" name="NormDISCC@MinusOneSigma"> 0.1 </param>   
+
    <param type="double" name="CV1uBYshape@PlusOneSigma"> 0.30 </param>
    <param type="double" name="CV1uBYshape@MinusOneSigma"> 0.30 </param>
 
