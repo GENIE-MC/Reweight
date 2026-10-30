@@ -346,9 +346,9 @@ int main(int argc, char ** argv)
 
      // Set non-default values and re-configure.
      double twk_dial = twk_dial_min + ith_dial * twk_dial_step;
-     LOG("grwght1scan", pNOTICE)
-       << "\n\nReconfiguring systematic: " << GSyst::AsString(gOptSyst)
-       << " - Setting tweaking dial to: " << twk_dial;
+     LOG("grwght1scan", pFATAL)
+       << "Reconfiguring systematic: " << GSyst::AsString(gOptSyst)
+       << " - Setting tweaking dial to: " << twk_dial << " twk_dial_min " << twk_dial_min << " ith_dial * twk_dial_step " << ith_dial << " * " << twk_dial_step;
      syst.Set(gOptSyst, twk_dial);
      rw.Reconfigure();
 
@@ -619,7 +619,7 @@ void GetCommandLineArgs(int argc, char ** argv)
   if( parser.OptionExists("max-tweak") ) {
      gOptMaxTwk =  parser.ArgAsDouble("max-tweak");
   } else {
-     gOptMaxTwk = -5;
+     gOptMaxTwk = 5;
   }
 
   // finite-difference step for the covariance-propagation calculators

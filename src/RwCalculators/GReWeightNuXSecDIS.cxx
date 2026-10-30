@@ -181,12 +181,13 @@ void GReWeightNuXSecDIS::Reconfigure(void)
   fCV2uBYCur = fCV2uBYDef * (1. + fCV2uBYTwkDial * fracerr_cv2u);
   fNormDisCC = fNormDISCCDef * (1 + fNormDISCCTwkDial * fracerr_norm);
 #ifdef _G_REWEIGHT_DIS_DEBUG_
-  LOG("GReWeightDIS", pNOTICE) 
+  LOG("GReWeightDIS", pFATAL) 
   << "New Values: fAhtBYCur = "  << fAhtBYCur 
   << ", fBhtBYCur " << fBhtBYCur 
   << ", fCV1uBYCur " << fCV1uBYCur
   << ", fCV2uBYCur " << fCV2uBYCur
-  << ", fNormDisCC " << fNormDisCC;
+  << ", fNormDisCC " << fNormDisCC
+  << ", fNormDISCCTwkDial " << fNormDISCCTwkDial;
 #endif
   Registry & r = *fXSecModelConfig;
 
@@ -247,7 +248,7 @@ double GReWeightNuXSecDIS::CalcWeight(const genie::EventRecord & event)
   } else {
     interaction->KinePtr()->UseSelectedKinematics();
     double twk_xsec   = fXSecModel->XSec(interaction, kPSxyfE);
-    wght = event.Weight() * (twk_xsec/event.DiffXSec());
+    wght = twk_xsec/event.DiffXSec();
     interaction->KinePtr()->ClearRunningValues();    
   }
 #ifdef _G_REWEIGHT_DIS_DEBUG_
@@ -287,9 +288,8 @@ double GReWeightNuXSecDIS::CalcWeightABCV12uShape(const genie::EventRecord & eve
     }
   }
 
-  double old_weight = event.Weight();
   double twk_xsec   = fXSecModel->XSec(interaction, phase_space);
-  double weight = old_weight * (twk_xsec/old_xsec);
+  double weight = (twk_xsec/old_xsec);
 
 //double old_integrated_xsec = event.XSec();
   double old_integrated_xsec = fXSecModelDef -> Integral(interaction);
