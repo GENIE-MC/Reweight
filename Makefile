@@ -77,7 +77,7 @@ reweight-io: FORCE
 	cd RwIO && make && cd .. && \
 	cd ${GENIE_REWEIGHT}
 
-reweight-calculators: FORCE
+reweight-calculators: reweight-framework FORCE
 	@echo " "
 	@echo "** Building GENIE/Reweight calculators..."
 	cd ${GENIE_REWEIGHT}/src && \
