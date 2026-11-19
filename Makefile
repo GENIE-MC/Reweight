@@ -123,7 +123,7 @@ ifeq ($(strip $(GENIE_REWEIGHT_PREVIOUS_INSTALLATION)),YES)
 	$(error Previous installation exists at your specified installation path: $(GENIE_REWEIGHT_INSTALLATION_PATH). Try 'make distclean' first)
 endif
 
-make-install-dirs: FORCE
+make-install-dirs: check-previous-installation FORCE
 	@echo " "
 	@echo "** Creating directory structure for GENIE/Reweight installation..."
 	[ -d ${GENIE_REWEIGHT_INSTALLATION_PATH} ] || mkdir ${GENIE_REWEIGHT_INSTALLATION_PATH}
@@ -136,7 +136,7 @@ make-install-dirs: FORCE
 	mkdir ${GENIE_REWEIGHT_INC_INSTALLATION_PATH}/RwCalculators
 	mkdir ${GENIE_REWEIGHT_INC_INSTALLATION_PATH}/ProfSpline
 
-copy-install-files: FORCE
+copy-install-files: make-install-dirs FORCE
 	@echo " "
 	@echo "** Copying libraries/binaries/headers to installation location..."
 	cp ${GENIE_REWEIGHT_BIN_PATH}/* ${GENIE_REWEIGHT_BIN_INSTALLATION_PATH} && \
@@ -172,7 +172,7 @@ clean-files: FORCE
 	cd scripts       &&    make clean && cd .. && \
 	cd $(GENIE_REWEIGHT)
 
-clean-dir: FORCE
+clean-dir: clean-files FORCE
 	@echo "Deleting GENIE/Reweight lib and bin directories..." && \
 	cd $(GENIE_REWEIGHT) && \
 	[ ! -d ./bin ] || rmdir ./bin && \
